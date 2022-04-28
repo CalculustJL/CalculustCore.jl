@@ -18,7 +18,7 @@ Goals:
   - [x] spectral
   - [ ] spectral element - overload inner product
 - [ ] Operator interface
-  - [X] `<: AbstractSciMLOperators`
+  - [X] `<: AbstractDiffEqOperators`
   - [X] linear algebra operations
   - [X] lazy composition
   - [X] can use array reductions
