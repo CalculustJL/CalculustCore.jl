@@ -11,5 +11,4 @@ _vec(a::AbstractArray) = _reshape(a,(length(a),))
 issquare(::UniformScaling) = true
 issquare(A) = size(A,1) === size(A,2)
 issquare(A...) = @. (&)(issquare(A)...)
-#issquare(::Identity) = true
 #

@@ -1,4 +1,9 @@
 #
+# TODO
+#   - rename "Space" to "Discretization" because
+#       1. space is how you represent functions (with basis)
+#       2. discretization is how you compute vector calculus operations
+#
 ###
 # AbstractSpace interface
 ###

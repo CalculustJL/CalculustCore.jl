@@ -14,10 +14,12 @@ SciMLBase.has_mul(::AbstractOperator) = true
 SciMLBase.has_mul!(::AbstractOperator) = true
 
 function (A::AbstractOperator{<:Number,D})(u::AbstractField{<:Number,D}, p, t::Number) where{D}
+    A = SciMLBase.update_coefficients(A, u, p ,t)
     A * u
 end
 
 function (A::AbstractOperator{<:Number,D})(du::AbstractField{<:Number,D}, u, p, t::Number) where{D}
+    SciMLBase.update_coefficients!(A, u, p ,t)
     mul!(du, A, u)
 end
 

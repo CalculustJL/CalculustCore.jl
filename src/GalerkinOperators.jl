@@ -3,8 +3,11 @@
 # Gather-Scatter Operators - enforce continuity/ periodicity
 ###
 
+Base.adjoint(A::AbstractGatherScatterOperator) = A
+
 # TODO write GatherScatterOp that calls NNlib.gather, scatter
-struct GatherScatter{D} <: AbstractGatherScatterOperator{Bool,D}
+# implement mul!, *
+struct GatherScatter{D} <: AbstractGatherScatterOperator{D}
     global_numbering
     implementation
 end
@@ -13,13 +16,16 @@ end
 Q*Q'*u where Q: local -> global operator
 """
 function DSS(u,l2g,g2l)
-    
-    Qu   = NNlib.scatter(+,u,l2g)
-    QQtu = NNlib.gather(Qu,g2l)
+
+    Qu   = NNlib.scatter(+,u,l2g) # Q
+    QQtu = NNlib.gather(Qu,g2l)   # Q'
 
     return v
 end
 
+"""
+map from local vector to global vector
+"""
 function Qmatrix(n::Integer, periodic::Bool)
     Q = sparse(I,n, n-1)
 
@@ -61,7 +67,7 @@ end
 struct DirichletBC end
 
 struct BoundaryCondition{T,D} <: AbstractBoundaryCondition{T,D}
-    tag
+    tags_to_type # dictionary
     type # dirichlet, neumann
     dirichlet_func! # (ub, space) -> mul!(ub, I, false)
 #   neumann_func!
