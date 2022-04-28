@@ -1,6 +1,11 @@
 #
 using AbstractPDEs, LinearAlgebra
 
+# OperatorBasics.jl
+import AbstractPDEs: NullOp, IdentityOp, AffineOp, ComposedOp, InverseOp
+# Operators.jl
+import AbstractPDEs: MatrixOp, DiagonalOp, TensorProductOp2D
+
 nr = 8
 ns = 12
 

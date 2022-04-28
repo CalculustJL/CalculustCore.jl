@@ -117,6 +117,9 @@ export
        deform, end_points, isperiodic,
        unit_box, annulus_2D,
 
+       # Fields
+       Field,
+
        # space functionality
        grid, gradOp, massOp, laplaceOp, advectionOp, interpOp,
 #      BoundaryCondition,
