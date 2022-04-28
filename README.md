@@ -17,8 +17,7 @@ Goals:
 - [ ] Field interface `<: AbstractVector`
   - [x] spectral
   - [ ] spectral element - overload inner product
-- [ ] Operator interface
-  - [X] `<: AbstractDiffEqOperators`
+- [ ] Operator interface `<: AbstractDiffEqOperator`
   - [X] linear algebra operations
   - [X] lazy composition
   - [X] can use array reductions
