@@ -108,7 +108,7 @@ include("LagrangePolynomialSpace.jl")
 # fourier spaces
 #include("FourierSpace.jl")
 
-# boundary value problem
+# problems
 #include("BoundaryValueProblem.jl")
 
 export 
