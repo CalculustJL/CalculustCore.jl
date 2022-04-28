@@ -32,7 +32,7 @@ Goals:
   - [ ] spectral elements
 - [ ] Create a distinction between `Space`, and `Discretization`
 - [ ] Boundary Condition interface
-  - [ ] apply "this" boundary condition based on "that" domain tag
+  - [ ] apply "this" boundary condition based on "that" domain tag (use `Dict`)
 - [ ] Problems
   - [ ] Describe problem with `ModelingToolkit.jl`?
   - [ ] Boundary Value Problems
