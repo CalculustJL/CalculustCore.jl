@@ -29,4 +29,3 @@ Goals:
     - [ ] dispatch to `LinearSolve.jl`, `NonlinearSolve.jl`
   - [ ] Method of Lines
     - [ ] play nice with `OrdinaryDiffEq.jl`
-- [ ] 
