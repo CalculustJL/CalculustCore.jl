@@ -35,6 +35,7 @@ Goals:
   - [ ] apply "this" boundary condition based on "that" domain tag (use `Dict`)
 - [ ] Problems
   - [ ] Describe problem with `ModelingToolkit.jl`?
+    - [ ] ref for input interface https://github.com/zoemcc/DFNExperiments.jl/blob/main/src/multi_dimensional_function.jl
   - [ ] Boundary Value Problems
     - [ ] move boundary information to RHS
     - [ ] dispatch to `LinearSolve.jl`, `NonlinearSolve.jl`
