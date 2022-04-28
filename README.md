@@ -14,7 +14,7 @@ Goals:
   - [ ] Gordon Hall interpolation
   - [ ] general meshes
   - [ ] signed distance geometries
-- [ ] Field interface
+- [ ] Field interface `<: AbstractVector`
   - [x] spectral
   - [ ] spectral element - overload inner product
 - [ ] Operator interface
