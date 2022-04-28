@@ -8,6 +8,7 @@ Goals:
   - [X] Deform domain
   - [ ] Gordon Hall interpolation
   - [ ] general meshes
+  - [ ] signed distance geometries
 - [ ] Field interface
   - [x] spectral
   - [ ] spectral element - overload inner product
