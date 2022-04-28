@@ -27,7 +27,7 @@ Goals:
 - [ ] Spaces
   - [X] Deform space
   - [X] orthogonal polynomials
-  - [ ] Spectral with transforms (Fourier, Cosine, Sin, Ultraspherical,)
+  - [ ] Spectral with transforms (Fourier, Cosine, Sin, Ultraspherical, Jacobi)
   - [ ] option to solve in transformed space
   - [ ] spectral elements
 - [ ] Create a distinction between `Space`, and `Discretization`
