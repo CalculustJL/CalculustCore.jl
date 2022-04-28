@@ -31,6 +31,7 @@ Goals:
   - [ ] option to solve in transformed space
   - [ ] spectral elements
 - [ ] Create a distinction between `Space`, and `Discretization`
+  - [ ] Operators should emerge out of discretizations (?)
 - [ ] Boundary Condition interface
   - [ ] apply "this" boundary condition based on "that" domain tag (use `Dict`)
 - [ ] Problems
