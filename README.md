@@ -27,8 +27,10 @@ Goals:
   - [ ] General interpolation operator on element-meshes
 - [ ] Spaces
   - [X] Deform space
-  - [X] Spectral polynomials
+  - [X] orthogonal polynomials
   - [ ] Spectral with transforms (Fourier, Cosine, Sin, Ultraspherical,)
+  - [ ] option to solve in transformed space
+  - [ ] spectral elements
 - [ ] Create a distinction between `Space`, and `Discretization`
 - [ ] Boundary Condition interface
   - [ ] apply "this" boundary condition based on "that" domain tag
