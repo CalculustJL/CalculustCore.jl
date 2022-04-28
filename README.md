@@ -14,6 +14,8 @@ Goals:
 - [ ] Operator interface
   - [X] `<: AbstractSciMLOperators`
   - [X] linear algebra operations
+  - [X] lazy composition
+  - [X] can use array reductions
   - [ ] caching
   - [ ] Gather-Scatter operator using `NNlib`
   - [ ] General interpolation operator on element-meshes
