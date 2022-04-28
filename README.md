@@ -1,11 +1,12 @@
 ## AbstractPDEs.jl
 
-should be able to plug in any discretizations into this API
+Aim is to write a general API that any discretization can be plugged into
 
 Goals:
 - [ ] Domain interface
   - [X] Logically rectangular
   - [X] Deform domain
+  - [ ] Gordon Hall interpolation
   - [ ] general meshes
 - [ ] Field interface
   - [x] spectral
