@@ -8,14 +8,15 @@ After describing your problem, it should spit out the right BoundaryValueProblem
 
 
 Goals:
-- [ ] Domain interface
+- [ ] Abstract Domain interface
+  - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
   - [X] Logically rectangular
   - [X] Deform domain
-  - [ ] Gordon Hall interpolation
+  - [ ] Gordon Hall interpolation (transfinite interpolation)
   - [ ] general meshes
   - [ ] signed distance geometries
-- [ ] Field interface `<: AbstractVector`
-  - [x] spectral
+- [ ] Abstract Field interface `<: AbstractVector`
+  - [X] spectral
   - [ ] spectral element - overload inner product
 - [ ] Operator interface `<: AbstractDiffEqOperator`
   - [X] linear algebra operations

@@ -19,7 +19,7 @@ args:
 ret:
     Tuple of end points
 """
-function end_points end
+function endpoints end
 
 """
 check if domain end points match
@@ -56,10 +56,10 @@ function IntervalDomain(x0 = -1e0, x1 = 1e0,
 end
 
 isperiodic(dom::IntervalDomain) = dom.isperiodic
-end_points(dom::IntervalDomain) = (dom.x0, dom.x1)
+endpoints(dom::IntervalDomain) = (dom.x0, dom.x1)
 
 function domains_match(int1::IntervalDomain, int2::IntervalDomain)
-    bools = isapprox.(end_points.((int1, int2))...)
+    bools = isapprox.(endpoints.((int1, int2))...)
     *(bools...)
 end
 
@@ -79,8 +79,8 @@ struct BoxDomain{T,D,Ti} <: AbstractDomain{T,D}
 end
 
 isperiodic(box::BoxDomain, dir::Integer) = box.intervals[dir] |> isperiodic
-end_points(box::BoxDomain, dir::Integer) = box.intervals[dir] |> end_points
-end_points(box::BoxDomain) = end_points.(box.intervals)
+endpoints(box::BoxDomain, dir::Integer) = box.intervals[dir] |> endpoints
+endpoints(box::BoxDomain) = endpoints.(box.intervals)
 
 Base.:*(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
 Base.:*(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)
@@ -110,8 +110,8 @@ args:
 struct DeformedDomain{T,D,Tdom<:AbstractDomain{T,D}, Tm} <: AbstractDomain{T,D}
     domain::Tdom
     mapping::Tm
-#   isrescaling::Bool
     isseparable::Bool
+#   isrescaling::Bool
 end
 
 function deform(domain, mapping = nothing, isseparable = false)
@@ -132,53 +132,15 @@ function domains_match(box1::BoxDomain{<:Number, D1}, box2::BoxDomain{<:Number, 
     ret
 end
 
-# TODO - make a struct for mappings
-# struct Deformations{D,Tmap} <: AbstractDeformation{D}
-#   mapping::Tmap
-#   isrescaling::Bool
-#   isseparable::Bool
-# end
-
 function map_from_ref(domain, ref_domain;D=D) # TODO
 
     if domains_match(domain, ref_domain)
         return domain
     end
 
-    xe = domain.end_points
+    xe = domain.endpoints
 
     mapping = domain.mapping ==! nothing ? domain.mapping : (r -> r)
     mapping = mapping ∘ map
 end
-
-###
-# Conveniences
-###
-
-function unit_box(D, args...) # TODO not exactly unit haha
-    interval = IntervalDomain(-true, true, args...)
-    BoxDomain((interval for i=1:D)...)
-end
-
-function polar2D(r, θ)
-    x = @. r * cos(θ)
-    y = @. r * sin(θ)
-    x, y
-end
-
-function annulus_2D(r0, r1)
-    intR = IntervalDomain(r0, r1, false, (:Inner, :Outer))
-    intθ = IntervalDomain(-π,  π, true , (:Periodic, :Periodic))
-
-    dom = intR * intθ
-
-    deform(dom, polar2D)
-end
-
-###
-# Transfinite Interpolation
-###
-
-function gordon_hall end # TODO
-
 #

@@ -62,17 +62,22 @@ Base.zero(::Type{<:AbstractOperator{<:Number, D}}) where{D} = NullOp{D}()
 Base.adjoint(Z::NullOp) = Z
 issquare(::NullOp) = true
 
+Base.:*(::NullOp{D}, u::AbstractField{<:Number,D}) where{D} = u * false
+
 function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::NullOp{D}, u::AbstractField{<:Number,D}) where{D}
-    mul!(v,I, false)
+    lmul!(false, v)
 end
 
 # overloads
 for op in (
-           :*, :∘, :+,
+           :*, :∘,
           )
     @eval $op(::NullOp{D}, ::AbstractOperator{<:Number,D}) where{D} = NullOp{D}()
     @eval $op(::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = NullOp{D}()
 end
+
+Base.:+(::NullOp{D}, A::AbstractOperator{<:Number,D}) where{D} = A
+Base.:+(A::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = A
 
 Base.:-(::NullOp{D}, A::AbstractOperator{<:Number,D}) where{D} = -A
 Base.:-(A::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = A
@@ -94,6 +99,9 @@ issquare(::IdentityOp) = true
 
 SciMLBase.has_ldiv(::IdentityOp) = true
 SciMLBase.has_ldiv!(::IdentityOp) = true
+
+Base.:*(::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D} = copy(u)
+Base.:\(::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D} = copy(u)
 
 function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D}
     copy!(v, u)

@@ -41,17 +41,6 @@ abstract type AbstractSpace{T,D} end
 """ Boundary condition on domain in D-Dimensional space """
 abstract type AbstractBonudaryCondition{T,D} end
 
-AbstractSupertypes{T,D} = Union{
-                                AbstractField{T,D},
-                                AbstractOperator{T,D},
-                                AbstractSpace{T,D},
-                                AbstractDomain{T,D},
-                                AbstractBonudaryCondition{T,D}
-                               }
-
-Base.eltype(::AbstractSupertypes{T,D}) where{T,D} = T
-dims(::AbstractSupertypes{T,D}) where{T,D} = D
-
 ###
 # AbstractOperator subtypes
 ###
@@ -79,8 +68,26 @@ abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 """ Boundary Condition on D-Dimensional domain """
 abstract type AbstractBoundaryCondition{T,D} end
 
-#""" Deform D-Dimensional domain """
-#abstract type AbstractDeformation{D} end
+#""" D-Dimensional domain maps """
+#abstract type AbstractMap{D} end # <: AbstractOperator # field to field map
+
+AbstractSupertypes{T,D} = Union{
+                                AbstractField{T,D},
+                                AbstractOperator{T,D},
+                                AbstractSpace{T,D},
+                                AbstractDomain{T,D},
+                                AbstractBonudaryCondition{T,D}
+                               }
+
+# traits
+
+dims(::AbstractSupertypes{T,D}) where{T,D} = D
+Base.eltype(::Union{
+                    AbstractSpace{T,D},
+                    AbstractDomain{T,D},
+                    AbstractBoundaryCondition{T,D},
+                   }
+           ) where{T,D} = T
 
 # misc
 include("utils.jl")

@@ -3,39 +3,63 @@ using AbstractPDEs, LinearAlgebra
 
 # OperatorBasics.jl
 import AbstractPDEs: NullOp, IdentityOp, AffineOp, ComposedOp, InverseOp
+
 # Operators.jl
 import AbstractPDEs: MatrixOp, DiagonalOp, TensorProductOp2D
 
 nr = 8
 ns = 12
 
+p = nothing
+t = false
+
 u = rand(nr,ns) |> Field
 v = rand(nr,ns) |> Field
+w = rand(nr,ns) |> Field
 
-## DiagonalOp
+# DiagonalOp
 d = rand(nr,ns) |> Field
 D = DiagonalOp(d)
+D_u = d .* u
 
-@test mul!(v,D,u) ≈ d .* u
-
-## TensorProductOp2D
-
+# TensorProductOp2D
 A = rand(nr,nr)
 B = rand(ns,ns)
 T = TensorProductOp2D(A, B)
+T_u = Field(A * u.array * B')
 
-@test mul!(v,T,u) ≈ Field(A * u.array * B')
-@test mul!(v,T,u) ≈ Field(A * u.array * B')
+# NullOp
+Z = NullOp{2}()
+Z_u = u * false
 
-## ZeroOp
+# IdentityOp
+Id = IdentityOp{2}()
+Id_u = copy(u)
 
-## IdentityOp
+ops = (
+       Z, Id, D, T,
+      )
+
+rhs = (
+       Z_u, Id_u, D_u, T_u,
+      )
+
+for (A, b) in zip(ops, rhs)
+    @show typeof(A)
+    # in place
+    @test mul!(v, A, u) ≈ b
+    @test A(v, u, p, t) ≈ b
+
+    # out of place
+    @test *(A, u) ≈ b
+#   @test A(u, p, t) ≈ b
+end
 
 ## AffineOp
 
-#### +,-(op,op)
-#### +,-(λ, op)
-#### *,/(λ, op)
+# +,-(op,op)
+# +,-(λ, op)
+# *,/(λ, op)
 
 ## ComposeOp
 

@@ -1,7 +1,7 @@
 using AbstractPDEs
 using Test, SafeTestsets
 
-@testset "SpectralElements.jl" begin
+@testset "AbstractPDEs.jl" begin
 
     @time @safetestset "Field" begin include("Field.jl") end
     @time @safetestset "Operators" begin include("Operators.jl") end

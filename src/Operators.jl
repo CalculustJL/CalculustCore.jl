@@ -167,13 +167,13 @@ issquare(A::TensorProductOp2D) = issquare(A.A) & issquare(A.B)
 
 function Base.adjoint(A::TensorProductOp2D)
     if issquare(A)
-        TensorProdOp(A.A', A.B', A.cache)
+        TensorProdudtOp2D(A.A', A.B', A.cache)
     else
-        TensorProdOp(A.A', A.B')
+        TensorProductOp2D(A.A', A.B')
     end
 end
 
-function Base.:*(A::TensorProductOp2D{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
+function Base.:*(A::TensorProductOp2D{<:Number}, u::AbstractField{<:Number,D}) where{D}
     v = copy(u)
     @set! v.array = A.A * u.array * A.B' # get type information from u
 end
