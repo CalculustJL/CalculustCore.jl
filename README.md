@@ -12,6 +12,8 @@ Goals:
   - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
   - [X] Logically rectangular
   - [X] Deform domain
+  - [X] Boundary tags
+  - [ ] Interior tags
   - [ ] Gordon Hall interpolation (transfinite interpolation)
   - [ ] general meshes
   - [ ] signed distance geometries
