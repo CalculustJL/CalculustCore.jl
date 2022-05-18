@@ -1,7 +1,7 @@
-using AbstractPDEs
+using PDEInterfaces
 using Test, SafeTestsets
 
-@testset "AbstractPDEs.jl" begin
+@testset "PDEInterfaces.jl" begin
 
     @time @safetestset "Field" begin include("Field.jl") end
     @time @safetestset "Operators" begin include("Operators.jl") end

@@ -1,6 +1,5 @@
 #
-using Test
-using SpectralElements
+using PDEInterfaces
 
 dir = "../examples"
 files = [

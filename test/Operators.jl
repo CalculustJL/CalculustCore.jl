@@ -1,11 +1,11 @@
 #
-using AbstractPDEs, LinearAlgebra
+using PDEInterfaces, LinearAlgebra
 
 # OperatorBasics.jl
-import AbstractPDEs: NullOp, IdentityOp, AffineOp, ComposedOp, InverseOp
+import PDEInterfaces: NullOp, IdentityOp, AffineOp, ComposedOp, InverseOp
 
 # Operators.jl
-import AbstractPDEs: MatrixOp, DiagonalOp, TensorProductOp2D
+import PDEInterfaces: MatrixOp, DiagonalOp, TensorProductOp2D
 
 nr = 8
 ns = 12
@@ -45,7 +45,6 @@ rhs = (
       )
 
 for (A, b) in zip(ops, rhs)
-    @show typeof(A)
     # in place
     @test mul!(v, A, u) ≈ b
     @test A(v, u, p, t) ≈ b

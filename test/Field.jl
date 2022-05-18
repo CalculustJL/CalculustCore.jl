@@ -1,5 +1,5 @@
 #
-using AbstractPDEs, LinearAlgebra
+using PDEInterfaces, LinearAlgebra
 
 nr = 8
 ns = 12
