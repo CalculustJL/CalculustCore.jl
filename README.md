@@ -1,4 +1,4 @@
-## AbstractPDEs.jl
+## PDEInterfaces.jl
 
 Tired of writing boilerplate code for PDE solvers? Just want to focus on discretizations? Want something that plays nice with `DiffEq` ecosystem? AbstractPDEs.jl contains separate abstract interaces for multidimensional domains, fields, operators, and function spaces. it is general enough that anybody can plug in their discretizations and start solving PDEs. in fact i aim to use it with my experimental NN discretizations. All you need to do is provide a gradient operator, and a mass operator (integration).
 
