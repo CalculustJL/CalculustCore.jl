@@ -102,6 +102,7 @@ include("Operators.jl")
 
 # domain
 include("Domain.jl")
+#include("DomainMaps.jl")
 
 # space
 include("Space.jl")
@@ -122,7 +123,7 @@ export
        # Domains
        IntervalDomain, BoxDomain,
        deform, end_points, isperiodic,
-       unit_box, annulus_2D,
+       reference_box, annulus_2D,
 
        # Fields
        Field,

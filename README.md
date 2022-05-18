@@ -8,6 +8,7 @@ After describing your problem, it should spit out the right BoundaryValueProblem
 
 
 Goals:
+- [ ] Get a better name. `PDEInterfaces.jl`
 - [ ] Abstract Domain interface
   - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
   - [X] Logically rectangular

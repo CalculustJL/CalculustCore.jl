@@ -50,7 +50,7 @@ end
 # Conveniences
 ###
 
-function unit_box(D, args...) # TODO not exactly unit haha
+function reference_box(D, args...)
     interval = IntervalDomain(-true, true, args...)
     BoxDomain((interval for i=1:D)...)
 end
