@@ -140,4 +140,4 @@ export
        # boundary value problem
 #      BoundaryValuePDEProblem
 
-end # module AbstractPDEs
+end # module PDEInterfaces
