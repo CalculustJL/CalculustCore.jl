@@ -1,7 +1,10 @@
 #
 
+#""" D-Dimensional domain maps """
+abstract type AbstractMap{D} end # <: AbstractOperator # field to field map
+
 # TODO - make a struct for mappings
-struct Deformations{D,Tmap} <: AbstractDeformation{D}
+struct Deformations{D,Tmap} <: AbstractMap{D}
   mapping::Tmap
   isrescaling::Bool
   isseparable::Bool
@@ -11,15 +14,28 @@ end
 # Transfinite Interpolation
 ###
 
-function gordon_hall end # TODO
+function gordon_hall end #TODO
 
 """
  Gordon Hall map - Transfinite interpolation
 """
-function mapBoxes(box1::BoxDomain{<:Number,D}, box1::BoxDomain{<:Number,D}) where{D}
+function mapBoxes(box1::BoxDomain{<:Number,D}, box2::BoxDomain{<:Number,D}) where{D}
     mapping = nothing
 end
 
+function map_from_ref(domain, ref_domain;D=D) # TODO
+
+    if domains_match(domain, ref_domain)
+        return domain
+    end
+
+    xe = domain.endpoints
+
+    mapping = domain.mapping ==! nothing ? domain.mapping : identity#(r -> r)
+    mapping = mapping ∘ map
+end
+
+#=
 function fill_box_with_space(dom1::BoxDomain{<:Number,D},
                   space::AbstractSpace{<:Number,D}
                  ) where{D}
@@ -45,14 +61,21 @@ function fill_box_with_space(dom1::BoxDomain{<:Number,D},
 
     return
 end
+=#
 
 ###
 # Conveniences
 ###
 
-function reference_box(D, args...)
-    interval = IntervalDomain(-true, true, args...)
-    BoxDomain((interval for i=1:D)...)
+function reference_box(D)
+    domain = BoxDomain()
+    for i=1:D
+        tag1 = Symbol("Lower$(i)")
+        tag2 = Symbol("Upper$(i)")
+        interval = IntervalDomain(-true, true; tags=(tag1, tag2))
+        domain *= interval
+    end
+    domain
 end
 
 function polar(r, θ)

@@ -8,43 +8,48 @@ struct LagrangePolynomialSpace{T,D,Tpts,
                                Tdom<:AbstractDomain{T,D},
                                Tquad,Tgrid,
                                Tmass<:AbstractField{T,D},
-                               Tderiv, #Tl2g,
+                               Tderiv,
+#                              Tl2g,
                               } <: AbstractSpectralSpace{T,D}
     domain::Tdom
     npoints::Tpts
     quadratures::Tquad
     grid::Tgrid
-    mass_mat::Tmass
+    mass_matrix::Tmass
     deriv_mats::Tderiv
 #   local2global::Tl2g # TODO
 end
 
-function LagrangePolynomialSpace(domain::AbstractDomain{<:Number,1}, n;
-                                 quadrature = gausslobatto,
-                                 T = Float64,
-                                )
+function LagrangePolynomialSpace(n::Integer;
+        domain::AbstractDomain{<:Number,1}=reference_box(1),
+        quadrature = gausslobatto,
+        T = Float64,
+       )
 
-    """ reset deformation to map from [-1,1]^D """
-    ref_domain = unit_square(2)
-    domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    #""" reset deformation to map from [-1,1]^D """
+    #ref_domain = reference_box(1)
+    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    ## change domain eltype
 
     z, w = quadrature(n)
-
-    D = lagrange_deriv_mat(z)
 
     z = T.(z)
     w = T.(w)
 
+    D = lagrange_deriv_mat(z)
+
+    domain = T(domain)
     npoints = (n,)
     quadratures = ((z, w),)
     grid = (Field(z),)
-    mass_mat = Field(w)
+    mass_matrix = Field(w)
     deriv_mats = (D,)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
-                                    mass_mat, deriv_mats, 
+                                    mass_matrix, deriv_mats, 
                                    )
+
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
@@ -52,16 +57,18 @@ GaussLobattoLegendre1D(args...; kwargs...) = LagrangePolynomialSpace(args...; qu
 GaussLegendre1D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
 GaussChebychev1D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
-function LagrangePolynomialSpace(domain::AbstractDomain{<:Number,2}, nr, ns;
-                                 quadrature = gausslobatto,
-                                 T = Float64,
-                                )
-    msg = "spectral polynomials work with logically rectangular domains"
-    @assert domain isa BoxDomain msg
+function LagrangePolynomialSpace(nr::Integer, ns::Integer;
+        domain::AbstractDomain{<:Number,2}=reference_box(2),
+        quadrature = gausslobatto,
+        T = Float64,
+       )
 
-    """ reset deformation to map from [-1,1]^D """
-    ref_domain = unit_square(2)
-    domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    #msg = "spectral polynomials work with logically rectangular domains"
+    #@assert domain isa BoxDomain msg
+
+    #""" reset deformation to map from [-1,1]^D """
+    #ref_domain = reference_box(2)
+    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
     zr, wr = quadrature(nr)
     zs, ws = quadrature(ns)
@@ -74,16 +81,18 @@ function LagrangePolynomialSpace(domain::AbstractDomain{<:Number,2}, nr, ns;
     Dr = lagrange_deriv_mat(zr)
     Ds = lagrange_deriv_mat(zs)
 
+    domain = T(domain)
     npoints = (nr, ns,)
     quadratures = ((zr, wr), (zs, ws),)
     grid = (r, s)
-    mass_mat = Field(wr * ws')
+    mass_matrix = Field(wr * ws')
     deriv_mats = (Dr, Ds,)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
-                                    mass_mat, deriv_mats, 
+                                    mass_matrix, deriv_mats, 
                                    )
+
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
@@ -96,9 +105,9 @@ get_domain(space::LagrangePolynomialSpace) = space.domain
 get_numpoints(space::LagrangePolynomialSpace) = space.points
 
 function massOp(space::LagrangePolynomialSpace)
-    @unpack mass_mat = space
+    @unpack mass_matrix = space
 
-    DiagonalOp(mass_mat)
+    DiagonalOp(mass_matrix)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,1})
@@ -163,7 +172,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
     Jr = lagrange_interp_mat(r2, r1) # from 1 to 2
     Js = lagrange_interp_mat(s2, s1)
 
-    TensorProductOp3D(Jr, Js)
+    TensorProductOp2D(Jr, Js)
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,3},

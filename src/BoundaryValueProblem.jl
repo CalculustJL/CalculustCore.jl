@@ -11,9 +11,8 @@ using LinearSolve.jl
 struct BoundaryValuePDEProblem{Tu,Tbc,Tlhsop,Trhs,Tspace} <: AbstractBoundaryValueProblem
     u::Tu
     bc::Tbc
-    lhsOp::Tlhsop
-    rhs::Trhs
-    space::Tspace
+    op::Top         # neumann operator
+    mass_matrix::Tm # RHS mass_matrix
 end
 
 struct LinearBVPDEAlg{Tl} <: AbstractBoundaryValueAlgorithm
@@ -40,7 +39,8 @@ learn to add neumann, robin data, and solve BVP
 plug in to SciMLBase.BVProblem
 """
 function makeRHS(prob::BoundaryValuePDEProblem)
-    rhs = b - applyBC()
+    rhs = b - applyBC(u) # dirichlet
+    rhs = b + applyBC(u) # neumann
 end
 
 function SciMLBase.sovle(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)

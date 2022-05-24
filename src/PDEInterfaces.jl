@@ -68,9 +68,6 @@ abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 """ Boundary Condition on D-Dimensional domain """
 abstract type AbstractBoundaryCondition{T,D} end
 
-#""" D-Dimensional domain maps """
-#abstract type AbstractMap{D} end # <: AbstractOperator # field to field map
-
 AbstractSupertypes{T,D} = Union{
                                 AbstractField{T,D},
                                 AbstractOperator{T,D},
@@ -102,7 +99,11 @@ include("Operators.jl")
 
 # domain
 include("Domain.jl")
-#include("DomainMaps.jl")
+include("DomainMaps.jl")
+
+# misc
+#include("BoundaryCondition.jl")
+#include("GatherScatter.jl")
 
 # space
 include("Space.jl")
@@ -111,15 +112,18 @@ include("DeformSpace.jl")
 # polynomial spaces
 include("LagrangeMatrices.jl")
 include("LagrangePolynomialSpace.jl")
-#include("GalerkinOperators.jl")
 
 # fourier spaces
 #include("FourierSpace.jl")
 
 # problems
 #include("BoundaryValueProblem.jl")
+#include("EigenValueProblem.jl")
 
 export 
+
+       dims,
+
        # Domains
        IntervalDomain, BoxDomain,
        deform, end_points, isperiodic,
@@ -137,7 +141,7 @@ export
        GaussLobattoLegendre1D, GaussLegendre1D, GaussChebychev1D,
        GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D
 
-       # boundary value problem
+       # problems
 #      BoundaryValuePDEProblem
 
 end # module

@@ -6,9 +6,8 @@ Once you plug in your discretizations, you can do a lot of cool things like appl
 
 After describing your problem, it should spit out the right BoundaryValueProblem  or ODEProblem  that you can solve using the correct `DiffEq` package.
 
-
 Goals:
-- [ ] Get a better name. `PDEInterfaces.jl`
+- [ ] Add `AbstractCalculus` object between function space, and `AbstractDiscretization`
 - [ ] Abstract Domain interface
   - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
   - [X] Logically rectangular
@@ -47,5 +46,4 @@ Goals:
     - [ ] dispatch to `LinearSolve.jl`, `NonlinearSolve.jl`
   - [ ] Method of Lines
     - [ ] play nice with `OrdinaryDiffEq.jl`
-
 
