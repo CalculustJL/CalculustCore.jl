@@ -36,14 +36,21 @@ struct NonlinearBVPDEAlg{Tnl} <: AbstractBoundaryValueAlgorithm
 end
 
 function makeLHS(op::AbstractOperator{<:Number,D},
-                 bc::AbstractBoundaryCondition{<:Number,D}) where{{D}}
-    @unpack mask_dirichlet = bc
+                 bc::AbstractBoundaryCondition{<:Number,D}) where{D}
+    @unpack mask_dir = bc
 
-    mask_dirichlet * op
+    #TODO - how to empty dirichlet row?
+    # https://github.com/vpuri3/PDEInterfaces.jl/issues/1
+    # is having the construct u := u_inhom + u_hom the only way?
+    # then would have to interpolate u_inhom into interior
+
+    amask_dir = IdentityOp{D}() - mask_dir
+
+    mask_dir * op + amask_dir
 end
 
 function makeRHS(f::AbstractField{<:Number,D},
-                 bc::AbstractBoundaryCondition{<:Number,D}) where{{D}}
+                 bc::AbstractBoundaryCondition{<:Number,D}) where{D}
     @unpack bcs, antimasks, dirichlet_mask, space = bc
 
     M = MassOp(space)
