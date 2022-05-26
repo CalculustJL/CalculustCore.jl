@@ -58,7 +58,7 @@ Mapping 2
  smooth function on Ω. Then, solve for uh
 """
 
-function mask_dirichlet(space::AbstractSpace{<:Number,D}, bcs) where{D}
+function dirichlet_mask(space::AbstractSpace{<:Number,D}, bcs) where{D}
     domain  = get_domain(space)
     indices = boundary_nodes(space)
 
@@ -81,28 +81,32 @@ function mask_dirichlet(space::AbstractSpace{<:Number,D}, bcs) where{D}
         end
     end
 
+    DiagonalOp(M)
 end
 
-struct BCMapping{T,D} <: AbstractBoundaryCondition{T,D}
-    """ Dict(Domain_Bdry_Tag => BoundaryCondition) """
+struct BoundaryCondition{T,D} <: AbstractBoundaryCondition{T,D}
+    """Dict(Domain_bdry_tag => BCType) """
     bcs
-    """ Dict(Domain_Bdry_Tag => Node indices) """
-    idx
-    domain
+    """Vector(Domain_Bdry_Tag => Node indices) """
+    indices
+    """Diagonal Mask operator hiding Dirichlet boundaries"""
+    M
+    """Function Space"""
     space
-    mask # implementation
 end
 
-function BoundaryCondition(tags, space::AbstractSpace{<:Number,2};
-                           dirichlet_func! =nothing, neumann_func! = nothing)
-
-    #BoundaryCondition()
+function BoundaryCondition(bcs, space::AbstractSpace{<:Number,2})
+    BoundaryCondition()
 end
 
-#function applyBC!(u::AbstractField{<:Number,D}) where{D}
-#    return u
-#end
-#
-#function applyBC!()
-#end
+function applyBC!(u::AbstractField{<:Number,D}, bc::BoundaryCondition{<:Number,D}) where{D}
+    @unpack bcs, indices, M, space = bc
+
+    u = M * u
+    return u
+end
+
+function applyBC(u::AbstractField{<:Number,D}, bc::BoundaryCondition{<:Number,D}) where{D}
+    return u
+end
 #

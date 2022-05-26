@@ -33,14 +33,23 @@ learn to add neumann, robin data, and solve BVP
 
 plug in to SciMLBase.BVProblem
 """
-function makeRHS(prob::BoundaryValuePDEProblem)
-    @unpack space, f = prob
+function makeRHS(f, bc::BoundaryCondition)
 
     M = MassOp(space)
     b = M * f
 
-    rhs = b - applyBC(u) # dirichlet
-    rhs = b + applyBC(u) # neumann
+    for i=1:B
+        idx = 
+        if bc isa NeumannBC
+            b = b - bc.f
+        elseif bc isa DirichletBC
+#
+        elseif bc isa RobinBC
+#
+        end
+    end
+
+    b
 end
 
 """
