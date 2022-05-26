@@ -39,10 +39,15 @@ function makeLHS(op::AbstractOperator{<:Number,D},
                  bc::AbstractBoundaryCondition{<:Number,D}) where{D}
     @unpack mask_dir = bc
 
-    #TODO - how to empty dirichlet row?
-    # https://github.com/vpuri3/PDEInterfaces.jl/issues/1
-    # is having the construct u := u_inhom + u_hom the only way?
-    # then would have to interpolate u_inhom into interior
+    #TODO
+    """
+    how to empty dirichlet row? -
+        https://github.com/vpuri3/PDEInterfaces.jl/issues/1
+
+    is having the construct u := u_inhom + u_hom the only way?
+    then would have to interpolate u_inhom into interior.
+    what are the consequences?
+    """
 
     amask_dir = IdentityOp{D}() - mask_dir
 

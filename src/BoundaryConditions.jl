@@ -9,7 +9,7 @@ u(x) = f(x), x ∈ ∂Ω
 Defaults to homogeneous.
 """
 Base.@kwdef struct DirichletBC{F}
-    f::F = zero
+    f::F = grid = zero(grid[1])
 end
 
 """
@@ -18,7 +18,7 @@ end
 Defaults to homogeneous.
 """
 Base.@kwdef struct NeumannBC{F}
-    f::F = zero
+    f::F = grid = zero(grid[1])
 end
 
 """
@@ -74,16 +74,19 @@ function dirichlet_mask(domain, bcs, indices)
     DiagonalOp(mask)
 end
 
-struct BoundaryCondition{T,D,Tbcs,Tamask,
+struct BoundaryCondition{T,D,Tbcs,Tamasks,
                          Tmask<:AbstractOperator{Bool,D},
+                         Tamask<:AbstractOperator{Bool,D},
                          Tspace<:AbstractSpace{T,D},
                         } <: AbstractBoundaryCondition{T,D}
     """Dict(Domain_bdry_tag => BCType)"""
     bcs::Tbcs
     """Vector(boundary_antimasks); antimask = id - mask"""
-    antimasks::Tamask
+    antimasks::Tamasks
     """Diagonal Mask operator hiding Dirichlet boundaries"""
     mask_dir::Tmask
+    """antimask for dirichlet BC"""
+    amask_dir::Tamask
     """Function space"""
     space::Tspace
 end
@@ -93,7 +96,8 @@ function BoundaryCondition(bcs::Dict, space::AbstractSpace)
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(domain, indices)
     mask_dir  = dirichlet_mask(domain, bcs, indices)
+    amask_dir = IdentityOp{D}() - mask_dir
 
-    BoundaryCondition(bcs, bc_antimasks, mask_dir, space)
+    BoundaryCondition(bcs, bc_antimasks, mask_dir, amask_dir, space)
 end
 #

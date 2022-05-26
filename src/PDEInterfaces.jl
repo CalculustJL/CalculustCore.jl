@@ -123,26 +123,31 @@ include("BoundaryValueProblem.jl")
 export 
        dims,
 
-       # Domains
-       isperiodic, endpoints,
+       ## Domains
+       isperiodic, endpoints, boundary_tags, boundary_tag,
+       num_boundaries, bounding_box,
+
        IntervalDomain, BoxDomain, deform,
        reference_box, annulus_2D,
 
-       # Fields
+       ## Fields
        Field,
 
-       # Space
+       ## Spaces
        get_grid, get_domain, numpoints,
-       gradOp, massOp, laplaceOp, advectionOp, divergenceOp, interpOp,
+
+       gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
+
+       interpOp,
 
        LagrangePolynomialSpace,
        GaussLobattoLegendre1D, GaussLegendre1D, GaussChebychev1D,
        GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D,
 
-       # boundary conditions
+       ## Boundary conditions
        DirichletBC, NeumannBC, RobinBC,
 
-       # boundary vale problem
+       ## Boundary vale problem
        BoundaryValuePDEProblem, LinearBVPDEAlg, NonLinearBVPDEAlg
 
 end # module
