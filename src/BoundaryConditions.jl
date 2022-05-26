@@ -41,28 +41,32 @@ end
 # BC implementation
 ###
 
-"""
- A periodic mesh overwrites :Dirichlet to :Neumann in direction of periodicity.
- Periodicity is implemented via the gather-scatter operator.
+function boundary_antimasks(domain, indices)
+    x = get_grid(space)[1]
 
- To achieve inhomogeneous Dirichlet condition, apply the formulation
- u = ub + uh, where uh is homogeneous part, and ub is an arbitrary
- smooth function on Ω. Then, solve for uh
-"""
+    antimasks = []
+    for i=1:num_boundaries(domain)
+        idx = indices[i]
+        M = similar(x, Bool) .* false
+        M[idx] = true
+
+        push!(antimasks, M)
+    end
+
+    DiagonalOp.(antimasks)
+end
 
 function dirichlet_mask(domain, bcs, indices)
-    #periodic = isperiodic(domain)
     tags = boundary_tags(domain)
-
-    x = get_grid(space)[1]
-    M = Bool.(zero(x)) .+ true
+    x    = get_grid(space)[1]
+    M    = Bool.(zero(x)) .+ true
 
     for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
         bc  = bcs[tag]
-        idx = indices[i]
 
         if bc isa DirichletBC
+            idx = indices[i]
             M[idx] = false
         end
     end
@@ -70,24 +74,26 @@ function dirichlet_mask(domain, bcs, indices)
     DiagonalOp(M)
 end
 
-struct BoundaryCondition{T,D,Tbcs,Tidx,
+struct BoundaryCondition{T,D,Tbcs,Tamask,
                          Tmask::AbstractOperator{Bool,D},
                          Tspace::AbstractSpace{<:Number,D},
                         } <: AbstractBoundaryCondition{T,D}
     """Dict(Domain_bdry_tag => BCType)"""
     bcs::Tbcs
-    """Vector(Domain_Bdry_Tag => Node indices)"""
-    indices::Tidx
+    """Vector(boundary_antimasks)"""
+    antimasks::Tamask
     """Diagonal Mask operator hiding Dirichlet boundaries"""
-    mask::Tmask
+    mask_dirichlet::Tmask
     """Function space"""
     space::Tsp
 end
 
 function BoundaryCondition(bcs::Dict, space::AbstractSpace)
-    domain = get_domain(space)
-    indices = boundary_nodes(space)
-    mask = dirichlet_mask(domain, bcs, indices)
-    BoundaryCondition(bcs, indices, mask)
+    domain    = get_domain(space)
+    indices   = boundary_nodes(space)
+    antimasks = boundary_antimasks(domain, indices)
+    mask_dir  = dirichlet_mask(domain, bcs, indices)
+
+    BoundaryCondition(bcs, bc_antimasks, mask_dir, space)
 end
 #

@@ -35,21 +35,16 @@ struct NonlinearBVPDEAlg{Tnl} <: AbstractBoundaryValueAlgorithm
     nlalg::Tnl
 end
 
-"""
-Solve boundary value problem
-A * u = f
+function makeLHS(op::AbstractOperator{<:Number,D},
+                 bc::AbstractBoundaryCondition{<:Number,D}) where{{D}}
+    @unpack mask_dirichlet = bc
 
-when A is a linear operator, we get
+    mask_dirichlet * op
+end
 
-M * A * uh = M * ( B * f - A * ub)
-
-where u = uh + ub (Dirichlet data)
-
-learn to add neumann, robin data, and solve BVP
-
-plug in to SciMLBase.BVProblem
-"""
-function makeRHS(f, bc::BoundaryCondition)
+function makeRHS(f::AbstractField{<:Number,D},
+                 bc::AbstractBoundaryCondition{<:Number,D}) where{{D}}
+    @unpack bcs, antimasks, dirichlet_mask, space = bc
 
     M = MassOp(space)
     b = M * f
@@ -61,22 +56,14 @@ function makeRHS(f, bc::BoundaryCondition)
     grid = get_grid(space)
 
     for i=1:num_boundaries(domain)
-        tag = boundary_tag(domain, i)
-        bc  = bcs[tag]
-        idx = indices[i]
-
-        # zygote.ignore()
-        bcnodes = begin
-            x = get_grid(space)[1]
-            M = Bool.(zero(x))
-            M[idx] = true
-        end
-        #
+        tag   = boundary_tag(domain, i)
+        bc    = bcs[tag]
+        amask = antimasks[i]
 
         if bc isa DirichletBC
-            dirichlet += bc.f(grid) * bcnodes
+            dirichlet += amask * bc.f(grid)
         elseif bc isa NeumannBC
-            neumann += bc.f(grid) * bcnodes
+            neumann += amask * bc.f(grid)
         elseif bc isa RobinBC
             # TODO
         elseif bc isa PeriodicBC
@@ -84,21 +71,17 @@ function makeRHS(f, bc::BoundaryCondition)
         end
     end
 
-    b = mask * b + dirichlet - neumann + robin
+    b = dirichlet_mask * b + dirichlet - neumann + robin
 end
 
-"""
- [A_II A_IB] * [u_I] = [b_I]
- [A_BI A_BB]   [u_B]   [b_B]
-
-with mask M,
-    u_I = M * u       # masks ∂ data
-    u_B = (I - M) * u # hides interior data
-"""
 function SciMLBase.solve(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)
     @unpack op, f, u, bc, space = prob
 
-    b = makeRHS(f, bc)
+    grid = get_grid(space)
+    ff = f(grid...)
+
+    lhs = makeLHS(op, bc)
+    rhs = makeRHS(ff, bc)
 
     linprob = LinearProblem(op, b; u0=u)
     linsol = solve(linprob, linalg)
