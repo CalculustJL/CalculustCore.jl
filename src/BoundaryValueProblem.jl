@@ -2,12 +2,12 @@
 abstract type AbstractBoundaryValueProblem <: SciMLBase.DEProblem end
 abstract type AbstractBoundaryValueAlgorithm <: SciMLBase.DEAlgorithm end
 
-struct BoundaryValuePDEProblem{Tu,Tbc,Tlhsop,Trhs,Tspace} <: AbstractBoundaryValueProblem
+struct BoundaryValuePDEProblem{Tu,Tbc,Top,Tf,Tsp} <: AbstractBoundaryValueProblem
     u::Tu
     bc::Tbc
-    op::Top         # neumann operator
+    op::Top # neumann operator
+    f::Tf   # forcing vector
     space::Tsp
-    mass_matrix::Tm # RHS mass_matrix
 end
 
 struct LinearBVPDEAlg{Tl} <: AbstractBoundaryValueAlgorithm
@@ -34,6 +34,11 @@ learn to add neumann, robin data, and solve BVP
 plug in to SciMLBase.BVProblem
 """
 function makeRHS(prob::BoundaryValuePDEProblem)
+    @unpack space, f = prob
+
+    M = MassOp(space)
+    b = M * f
+
     rhs = b - applyBC(u) # dirichlet
     rhs = b + applyBC(u) # neumann
 end
@@ -47,8 +52,7 @@ with mask M,
     u_B = (I - M) * u # hides interior data
 """
 
-function SciMLBase.sovle(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)
-
+function SciMLBase.solve(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)
     b = makeRHS(prob)
 
     linprob = LinearProblem(lhsOp, b; u0=u)

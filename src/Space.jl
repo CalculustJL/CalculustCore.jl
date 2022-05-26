@@ -42,12 +42,17 @@ ret:
     ith basis function that can be evaluated
     anywhere in Space.domain
 """
-function get_basis end
+function basis end
 
 """
 get number of points
 """
-function get_numpoints end
+function numpoints end
+
+"""
+get indices of boudnary nodes
+"""
+function boundary_nodes end
 
 ### interpolation
 """
@@ -165,9 +170,9 @@ end
 """
 Divergence
 """
-function divergenceOp(space::AbstractSpace)
-    D = gradOp(space)
-    return reshape(G, 1, length(D))
+function divergenceOp(space::AbstractSpace{<:Number,D}) where{D}
+    Dx = gradOp(space)
+    return reshape(Dx, 1, D)
 end
 
 ### dealiased operators

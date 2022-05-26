@@ -109,7 +109,22 @@ GaussChebychev2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadratu
 
 get_grid(space::LagrangePolynomialSpace) = space.grid
 get_domain(space::LagrangePolynomialSpace) = space.domain
-get_numpoints(space::LagrangePolynomialSpace) = space.points
+numpoints(space::LagrangePolynomialSpace) = space.npoints
+
+function boundary_nodes(space::LagrangePolynomialSpace{<:Number, D},
+                        domain::BoxDomain{<:Number,D}=get_domain(space)) where{D}
+    npoints = numpoints(space)
+    indices = []
+    for i=1:D
+        n = npoints(i)
+        range_lower = ([Colon() for j=1:i-1]..., 1, [Colon() for j=i+1:D]...)
+        range_upper = ([Colon() for j=1:i-1]..., n, [Colon() for j=i+1:D]...)
+        push!(indices, range_lower)
+        push!(indices, range_upper)
+    end
+
+    indices
+end
 
 function massOp(space::LagrangePolynomialSpace)
     @unpack mass_matrix = space

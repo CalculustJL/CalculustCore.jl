@@ -125,7 +125,7 @@ export
        dims,
 
        # Domains
-       isperiodic, endpoints, boundary_tags,
+       isperiodic, endpoints, boundary_tag, boundary_tags,
        IntervalDomain, BoxDomain, deform,
        reference_box, annulus_2D,
 
@@ -133,7 +133,7 @@ export
        Field,
 
        # Space
-       get_grid, get_domain, 
+       get_grid, get_domain, numpoints,
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp, interpOp,
 
        LagrangePolynomialSpace,
