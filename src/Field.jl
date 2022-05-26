@@ -49,4 +49,8 @@ find_fld(x) = x
 find_fld(::Tuple{}) = nothing
 find_fld(a::Field, rest) = a
 find_fld(::Any, rest) = find_fld(rest)
+
+#TODO - implement lazy adjoint Adjoint(u::Field). overload ', adjoint. then
+# overload (u' * A) \defeq  (A' * u)' in OperatorBasics.jl
+#
 #

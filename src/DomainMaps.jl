@@ -10,6 +10,11 @@ struct Deformations{D,Tmap} <: AbstractMap{D}
   isseparable::Bool
 end
 
+# AffineMap y = Ax + b
+# LinearMap y = Ax
+# SeparableMap: y = D x + b
+# 
+
 ###
 # Transfinite Interpolation
 ###
@@ -67,21 +72,23 @@ end
 # Conveniences
 ###
 
-function reference_box(D)
-    domain = BoxDomain()
-    for i=1:D
-        tag1 = Symbol("Lower$(i)")
-        tag2 = Symbol("Upper$(i)")
-        interval = IntervalDomain(-true, true; tags=(tag1, tag2))
-        domain *= interval
-    end
-    domain
-end
-
-function polar(r, θ)
+function polarMap(r, θ)
     x = @. r * cos(θ)
     y = @. r * sin(θ)
     x, y
+end
+
+function reference_box(D; periodic_dirs=())
+    domain = BoxDomain()
+    for i=1:D
+        periodic = i ∈ periodic_dirs
+        tag1 = Symbol("Lower$(i)")
+        tag2 = Symbol("Upper$(i)")
+        tags = (tag1, tag2)
+        interval = IntervalDomain(-true, true; periodic=periodic, bdry_tags=tags)
+        domain *= interval
+    end
+    domain
 end
 
 function annulus_2D(r0, r1)

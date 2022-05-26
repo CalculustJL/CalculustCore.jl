@@ -102,7 +102,7 @@ include("Domain.jl")
 include("DomainMaps.jl")
 
 # misc
-#include("BoundaryCondition.jl")
+include("BoundaryConditions.jl")
 #include("GatherScatter.jl")
 
 # space
@@ -117,7 +117,7 @@ include("LagrangePolynomialSpace.jl")
 #include("FourierSpace.jl")
 
 # problems
-#include("BoundaryValueProblem.jl")
+include("BoundaryValueProblem.jl")
 #include("EigenValueProblem.jl")
 
 export 
@@ -125,23 +125,25 @@ export
        dims,
 
        # Domains
-       IntervalDomain, BoxDomain,
-       deform, end_points, isperiodic,
+       isperiodic, endpoints, boundary_tags,
+       IntervalDomain, BoxDomain, deform,
        reference_box, annulus_2D,
 
        # Fields
        Field,
 
-       # space functionality
-       grid, gradOp, massOp, laplaceOp, advectionOp, interpOp,
-#      BoundaryCondition,
+       # Space
+       get_grid, get_domain, 
+       gradOp, massOp, laplaceOp, advectionOp, divergenceOp, interpOp,
 
-       # spaces
        LagrangePolynomialSpace,
        GaussLobattoLegendre1D, GaussLegendre1D, GaussChebychev1D,
        GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D
 
-       # problems
-#      BoundaryValuePDEProblem
+       # boundary conditions
+       DirichletBC, NeumannBC, RobinBC
+
+       # boundary vale problem
+       BoundaryValuePDEProblem, LinearBVPDEAlg
 
 end # module

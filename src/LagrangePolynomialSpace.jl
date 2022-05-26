@@ -26,6 +26,12 @@ function LagrangePolynomialSpace(n::Integer;
         T = Float64,
        )
 
+    if domain isa IntervalDomain
+        domain = BoxDomain(domain)
+    elseif ! domain isa BoxDomain
+        @error "spectral polynomials work with logically rectangular domains"
+    end
+
     #""" reset deformation to map from [-1,1]^D """
     #ref_domain = reference_box(1)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
@@ -63,8 +69,9 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
         T = Float64,
        )
 
-    #msg = "spectral polynomials work with logically rectangular domains"
-    #@assert domain isa BoxDomain msg
+    if ! domain isa BoxDomain
+        @error "spectral polynomials work with logically rectangular domains"
+    end
 
     #""" reset deformation to map from [-1,1]^D """
     #ref_domain = reference_box(2)

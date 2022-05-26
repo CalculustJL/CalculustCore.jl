@@ -1,22 +1,71 @@
 #
 ###
-# Boundary Condition application
-#
-# Apply this boundary condition to that boundary tag
+# BC Types
 ###
 
-dict = Dict(
-            tag1 => bc1,
-           )
+"""
+u(x) = f(x), x ∈ ∂Ω
 
+Defaults to homogeneous.
+"""
+Base.@kwedf struct DirichletBC{F}
+    f::F = zero
+end
 
-struct DirichletBC end
+"""
+(n⋅∇)u(x) = f(x), x ∈ ∂Ω
 
-struct BoundaryCondition{T,D} <: AbstractBoundaryCondition{T,D}
-    tags_to_type # dictionary
-    type # dirichlet, neumann
-    dirichlet_func! # (ub, space) -> mul!(ub, I, false)
-#   neumann_func!
+Defaults to homogeneous.
+"""
+Base.@kwdef struct NeumannBC{F}
+    f::F = zero
+end
+
+"""
+    f1(x)u(x) + f2(x)(n⋅∇)u(x) = f3(x), x ∈ ∂Ω
+"""
+struct RobinBC{F1,F2,F3}
+    f1::F1
+    f2::F2
+    f3::F3
+end
+
+###
+# Boundary tag to index
+###
+
+"""
+"""
+struct Boundary_to_index_map
+end
+
+###
+# BC Application
+###
+
+"""
+ Apply this boundary condition to that boundary tag
+
+mark boundary nodes with proper tag
+
+basically
+
+BCType --> Tag --> Node indices
+
+Mapping 1: "bcs"
+    Domain_BC_tag => BC_type (dirichlet, neumann, etc)
+
+Mapping 2
+    Domain_BC_tag => Node indices
+"""
+
+struct BCMapping{T,D} <: AbstractBoundaryCondition{T,D}
+    """ Dict(Domain_Bdry_Tag => BoundaryCondition) """
+    bcs
+    """ Dict(Domain_Bdry_Tag => Node indices) """
+    idx
+    domain
+    space
     mask # implementation
 end
 

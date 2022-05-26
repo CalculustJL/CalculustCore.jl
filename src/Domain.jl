@@ -22,8 +22,17 @@ ret:
 function endpoints end
 
 """
+args:
+    AbstractDomain
+    direction
+ret:
+    Tuple of boundary tags
+"""
+function boundary_tags end
+
+"""
 check if domain extent matches.
-doesn't check periodicity or tags
+doesn't check periodicity or bdry_tags
 
 args:
     AbstractDomain
@@ -42,26 +51,27 @@ struct IntervalDomain{T<:Number,Ttag} <: AbstractDomain{T,1}
     x0::T
     x1::T
     periodic::Bool
-    tags::Ttag
+    bdry_tags::Ttag
 
-    function IntervalDomain(x0::Number, x1::Number, periodic, tags)
+    function IntervalDomain(x0::Number, x1::Number, periodic, bdry_tags)
         T = promote_type(eltype.((x0, x1))...)
-        new{T,typeof(tags)}(T(x0), T(x1), periodic, tags)
+        new{T,typeof(bdry_tags)}(T(x0), T(x1), periodic, bdry_tags)
     end
 end
 
 function IntervalDomain(x0 = -1e0, x1 = 1e0;
-                        periodic=false, tags = (nothing, nothing)
+                        periodic=false, bdry_tags = (nothing, nothing)
                        )
-    IntervalDomain(x0, x1, periodic, tags)
+    IntervalDomain(x0, x1, periodic, bdry_tags)
 end
 
 function (::Type{T})(int::IntervalDomain) where{T<:Number}
-    IntervalDomain(T(int.x0), T(int.x1), int.periodic, int.tags)
+    IntervalDomain(T(int.x0), T(int.x1), int.periodic, int.bdry_tags)
 end
 
 isperiodic(dom::IntervalDomain) = dom.periodic
 endpoints(dom::IntervalDomain) = (dom.x0, dom.x1)
+boundary_tags(dom::IntervalDomain) = dom.bdry_tags
 
 function domains_match(int1::IntervalDomain, int2::IntervalDomain)
     bools = isapprox.(endpoints.((int1, int2))...)
@@ -89,7 +99,11 @@ end
 
 isperiodic(box::BoxDomain, dir::Integer) = box.intervals[dir] |> isperiodic
 endpoints(box::BoxDomain, dir::Integer) = box.intervals[dir] |> endpoints
+boundary_tags(box::BoxDomain, dir::Integer) = box.intervals[dir] |> boundary_tags
+
+isperiodic(box::BoxDomain) = isperiodic.(box.intervals)
 endpoints(box::BoxDomain) = endpoints.(box.intervals)
+boundary_tags(box::BoxDomain) = boundary_tags.(box.intervals)
 
 Base.:*(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
 Base.:*(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)

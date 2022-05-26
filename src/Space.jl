@@ -3,12 +3,11 @@
 #   - rename "Space" to "Discretization" because
 #       1. space is how you represent functions (with basis)
 #       2. discretization is how you compute vector calculus operations
-#
+
 ###
 # AbstractSpace interface
 ###
 
-### getters
 """
 args:
     space::AbstractSpace{T,D}
@@ -44,6 +43,11 @@ ret:
     anywhere in Space.domain
 """
 function get_basis end
+
+"""
+get number of points
+"""
+function get_numpoints end
 
 ### interpolation
 """
@@ -90,6 +94,8 @@ function gradOp end
 """
 Mass Operator
 
+Inner Product: <u, v := u' * M * v
+
 args:
     space::AbstractSpace{T,D}
     space_dealias
@@ -102,7 +108,7 @@ function massOp end
 Laplace Operator
 
 for v,u in H¹₀(Ω)
-
+get_
 (v,-∇² u) = (vx,ux) + (vy,uy)\n
          := a(v,u)\n
 
@@ -159,19 +165,10 @@ end
 """
 Divergence
 """
-function divergenceOp end # TODO write fallback using gradOp
-
-#function divergence(vec::Vector{AbstractSpace{<:Number,D}}, space::AbstractSpace{<:Number,D}) where{D}
-#    Dx = grad(space)
-#    div = NullOp{D}()
-#    for i=1:D
-#        Dxi = Dx[i]
-#        Vi  = V[i]
-#        div += Dxi(V[i])
-#    end
-#
-#    div
-#end
+function divergenceOp(space::AbstractSpace)
+    D = gradOp(space)
+    return reshape(G, 1, length(D))
+end
 
 ### dealiased operators
 
@@ -229,11 +226,6 @@ end
 ###
 # AbstractSpectralSpace
 ###
-
-"""
-get number of points
-"""
-function get_numpoints end
 
 ###
 # Tensor Product Spaces

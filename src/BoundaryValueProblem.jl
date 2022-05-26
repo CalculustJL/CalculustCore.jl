@@ -2,16 +2,11 @@
 abstract type AbstractBoundaryValueProblem <: SciMLBase.DEProblem end
 abstract type AbstractBoundaryValueAlgorithm <: SciMLBase.DEAlgorithm end
 
-"""
-lhs(u) = b
-
-move boundary data to right hand side, and solve BVP A \ b
-using LinearSolve.jl
-"""
 struct BoundaryValuePDEProblem{Tu,Tbc,Tlhsop,Trhs,Tspace} <: AbstractBoundaryValueProblem
     u::Tu
     bc::Tbc
     op::Top         # neumann operator
+    space::Tsp
     mass_matrix::Tm # RHS mass_matrix
 end
 
@@ -19,7 +14,7 @@ struct LinearBVPDEAlg{Tl} <: AbstractBoundaryValueAlgorithm
     linalg::Tl
 end
 
-# integrate NonlinearSolve.jl with LinearSolve.jl first
+#TODO integrate NonlinearSolve.jl with LinearSolve.jl first
 struct NonlinearBVPDEAlg{Tnl} <: AbstractBoundaryValueAlgorithm
     nlalg::Tnl
 end
@@ -42,6 +37,15 @@ function makeRHS(prob::BoundaryValuePDEProblem)
     rhs = b - applyBC(u) # dirichlet
     rhs = b + applyBC(u) # neumann
 end
+
+"""
+ [A_II A_IB] * [u_I] = [b_I]
+ [A_BI A_BB]   [u_B]   [b_B]
+
+with mask M,
+    u_I = M * u       # masks ∂ data
+    u_B = (I - M) * u # hides interior data
+"""
 
 function SciMLBase.sovle(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)
 
