@@ -37,7 +37,10 @@ Goals:
   - [ ] Space is how to represent functions
   - [ ] Discretization is how you form operators
 - [ ] Boundary Condition interface
-  - [ ] apply "this" boundary condition based on "that" domain tag (use `Dict`)
+  - [X] apply "this" boundary condition based on "that" domain tag (use `Dict`)
+  - [ ] Dirichlet
+  - [ ] Neumann
+  - [ ] Robin
 - [ ] Problems
   - [ ] Describe problem with `ModelingToolkit.jl`?
     - [ ] ref for input interface https://github.com/zoemcc/DFNExperiments.jl/blob/main/src/multi_dimensional_function.jl

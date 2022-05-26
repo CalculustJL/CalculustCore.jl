@@ -46,7 +46,7 @@ function makeLHS(op::AbstractOperator{<:Number,D},
 
     amask_dir = IdentityOp{D}() - mask_dir
 
-    mask_dir * op + amask_dir
+    lhs = mask_dir * op + amask_dir
 end
 
 function makeRHS(f::AbstractField{<:Number,D},
@@ -83,6 +83,7 @@ end
 
 function SciMLBase.solve(prob::BoundaryValuePDEProblem, alg::AbstractBoundaryValueProblem)
     @unpack op, f, u, bc, space = prob
+    @unpack linalg = alg
 
     grid = get_grid(space)
     ff = f(grid...)

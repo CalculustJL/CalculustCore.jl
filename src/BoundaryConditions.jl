@@ -59,7 +59,7 @@ end
 function dirichlet_mask(domain, bcs, indices)
     tags = boundary_tags(domain)
     x    = get_grid(space) |> first
-    M    = Bool.(zero(x)) .+ true
+    mask = Bool.(zero(x)) .+ true
 
     for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
@@ -67,11 +67,11 @@ function dirichlet_mask(domain, bcs, indices)
 
         if bc isa DirichletBC
             idx = indices[i]
-            M[idx] = false
+            mask[idx] = false
         end
     end
 
-    DiagonalOp(M)
+    DiagonalOp(mask)
 end
 
 struct BoundaryCondition{T,D,Tbcs,Tamask,
@@ -80,7 +80,7 @@ struct BoundaryCondition{T,D,Tbcs,Tamask,
                         } <: AbstractBoundaryCondition{T,D}
     """Dict(Domain_bdry_tag => BCType)"""
     bcs::Tbcs
-    """Vector(boundary_antimasks)"""
+    """Vector(boundary_antimasks); antimask = id - mask"""
     antimasks::Tamask
     """Diagonal Mask operator hiding Dirichlet boundaries"""
     mask_dir::Tmask

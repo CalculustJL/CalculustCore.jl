@@ -28,7 +28,7 @@ function LagrangePolynomialSpace(n::Integer;
 
     if domain isa IntervalDomain
         domain = BoxDomain(domain)
-    elseif ! domain isa BoxDomain
+    elseif !(domain isa BoxDomain)
         @error "spectral polynomials work with logically rectangular domains"
     end
 
@@ -69,7 +69,7 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
         T = Float64,
        )
 
-    if ! domain isa BoxDomain
+    if !(domain isa BoxDomain)
         @error "spectral polynomials work with logically rectangular domains"
     end
 

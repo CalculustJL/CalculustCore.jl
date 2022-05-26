@@ -137,12 +137,12 @@ export
 
        LagrangePolynomialSpace,
        GaussLobattoLegendre1D, GaussLegendre1D, GaussChebychev1D,
-       GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D
+       GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D,
 
        # boundary conditions
-       DirichletBC, NeumannBC, RobinBC
+       DirichletBC, NeumannBC, RobinBC,
 
        # boundary vale problem
-       BoundaryValuePDEProblem, LinearBVPDEAlg
+       BoundaryValuePDEProblem, LinearBVPDEAlg, NonLinearBVPDEAlg
 
 end # module
