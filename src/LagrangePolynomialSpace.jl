@@ -107,12 +107,13 @@ GaussLobattoLegendre2D(args...; kwargs...) = LagrangePolynomialSpace(args...; qu
 GaussLegendre2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
 GaussChebychev2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
+### abstract interface
+
 get_grid(space::LagrangePolynomialSpace) = space.grid
 get_domain(space::LagrangePolynomialSpace) = space.domain
 numpoints(space::LagrangePolynomialSpace) = space.npoints
 
-function boundary_nodes(space::LagrangePolynomialSpace{<:Number, D},
-                        domain::BoxDomain{<:Number,D}=get_domain(space)) where{D}
+function boundary_nodes(space::LagrangePolynomialSpace{<:Number,D}) where{D}
     npoints = numpoints(space)
     indices = []
     for i=1:D
@@ -125,6 +126,8 @@ function boundary_nodes(space::LagrangePolynomialSpace{<:Number, D},
 
     indices
 end
+
+### vector calculus ops
 
 function massOp(space::LagrangePolynomialSpace)
     @unpack mass_matrix = space
@@ -170,6 +173,8 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
      Dy
      Dz]
 end
+
+### interpolation operators
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,1},
                   space2::LagrangePolynomialSpace{<:Number,1},

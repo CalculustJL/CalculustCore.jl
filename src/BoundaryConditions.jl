@@ -30,52 +30,38 @@ struct RobinBC{F1,F2,F3}
     f3::F3
 end
 
+"""
+Periodic Boundary Condition
+"""
+struct PeriodicBC{Ttag}
+    tag::Ttag
+end
+
 ###
-# BC Application
+# BC implementation
 ###
 
 """
- Apply this boundary condition to that boundary tag
-
-mark boundary nodes with proper tag
-
-basically
-
-BCType --> Tag --> Node indices
-
-Mapping 1: "bcs"
-    Domain_BC_tag => BC_type (dirichlet, neumann, etc)
-
-Mapping 2
-    Domain_BC_tag => Node indices
-"""
-
-"""
- A periodic mesh overwrites 'D' to 'N' in direction of periodicity.
+ A periodic mesh overwrites :Dirichlet to :Neumann in direction of periodicity.
+ Periodicity is implemented via the gather-scatter operator.
 
  To achieve inhomogeneous Dirichlet condition, apply the formulation
  u = ub + uh, where uh is homogeneous part, and ub is an arbitrary
  smooth function on Ω. Then, solve for uh
 """
 
-function dirichlet_mask(space::AbstractSpace{<:Number,D}, bcs) where{D}
-    domain  = get_domain(space)
-    indices = boundary_nodes(space)
+function dirichlet_mask(domain, bcs, indices)
+    #periodic = isperiodic(domain)
+    tags = boundary_tags(domain)
 
-    grid = get_grid(space)
-    M = @. false * similar(grid[1], Bool) + true
+    x = get_grid(space)[1]
+    M = Bool.(zero(x)) .+ true
 
-    for i=1:2D
+    for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
         bc  = bcs[tag]
         idx = indices[i]
 
-        # ignore BC if periodic
-        if iperiodic(domain, i÷2+1)
-            break
-        end
-
-        # mask Dirichlet BC
         if bc isa DirichletBC
             M[idx] = false
         end
@@ -84,29 +70,24 @@ function dirichlet_mask(space::AbstractSpace{<:Number,D}, bcs) where{D}
     DiagonalOp(M)
 end
 
-struct BoundaryCondition{T,D} <: AbstractBoundaryCondition{T,D}
-    """Dict(Domain_bdry_tag => BCType) """
-    bcs
-    """Vector(Domain_Bdry_Tag => Node indices) """
-    indices
+struct BoundaryCondition{T,D,Tbcs,Tidx,
+                         Tmask::AbstractOperator{Bool,D},
+                         Tspace::AbstractSpace{<:Number,D},
+                        } <: AbstractBoundaryCondition{T,D}
+    """Dict(Domain_bdry_tag => BCType)"""
+    bcs::Tbcs
+    """Vector(Domain_Bdry_Tag => Node indices)"""
+    indices::Tidx
     """Diagonal Mask operator hiding Dirichlet boundaries"""
-    M
-    """Function Space"""
-    space
+    mask::Tmask
+    """Function space"""
+    space::Tsp
 end
 
-function BoundaryCondition(bcs, space::AbstractSpace{<:Number,2})
-    BoundaryCondition()
-end
-
-function applyBC!(u::AbstractField{<:Number,D}, bc::BoundaryCondition{<:Number,D}) where{D}
-    @unpack bcs, indices, M, space = bc
-
-    u = M * u
-    return u
-end
-
-function applyBC(u::AbstractField{<:Number,D}, bc::BoundaryCondition{<:Number,D}) where{D}
-    return u
+function BoundaryCondition(bcs::Dict, space::AbstractSpace)
+    domain = get_domain(space)
+    indices = boundary_nodes(space)
+    mask = dirichlet_mask(domain, bcs, indices)
+    BoundaryCondition(bcs, indices, mask)
 end
 #

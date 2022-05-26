@@ -40,6 +40,26 @@ ret:
 function boundary_tag end
 
 """
+get number of boundaries
+
+args:
+    AbstractDomain
+ret:
+    Integer
+"""
+function num_boundaries end
+
+"""
+get bounding box for domain
+
+args:
+    AbstractDomain
+ret:
+    BoxDomain
+"""
+function bounding_box end
+
+"""
 check if domain extent matches.
 doesn't check periodicity or bdry_tags
 
@@ -82,6 +102,7 @@ isperiodic(dom::IntervalDomain) = dom.periodic
 endpoints(dom::IntervalDomain) = (dom.x0, dom.x1)
 boundary_tags(dom::IntervalDomain) = dom.bdry_tags
 boundary_tag(dom::IntervalDomain, i) = dom.bdry_tags[i]
+num_boundaries(dom::IntervalDomain) = 2
 
 function domains_match(int1::IntervalDomain, int2::IntervalDomain)
     bools = isapprox.(endpoints.((int1, int2))...)
@@ -118,6 +139,8 @@ boundary_tags(box::BoxDomain) = boundary_tags.(box.intervals)
 
 boundary_tag(box::BoxDomain, dir::Integer, i::Integer) = boundary_tags(box, dir)[i]
 boundary_tag(box::BoxDomain, i) = boundary_tag(box, cld(i,2), 1 + rem(i-1, 2))
+
+num_boundaries(box::BoxDomain{<:Number,D}) where{D} = 2D
 
 Base.:*(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
 Base.:*(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)

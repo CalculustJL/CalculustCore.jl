@@ -121,11 +121,10 @@ include("BoundaryValueProblem.jl")
 #include("EigenValueProblem.jl")
 
 export 
-
        dims,
 
        # Domains
-       isperiodic, endpoints, boundary_tag, boundary_tags,
+       isperiodic, endpoints,
        IntervalDomain, BoxDomain, deform,
        reference_box, annulus_2D,
 
