@@ -109,6 +109,9 @@ include("BoundaryConditions.jl")
 include("Space.jl")
 include("DeformSpace.jl")
 
+# discretizations
+include("Discretizations.jl")
+
 # polynomial spaces
 include("LagrangeMatrices.jl")
 include("LagrangePolynomialSpace.jl")
