@@ -9,10 +9,12 @@ struct MatrixOp{T,Tm<:AbstractMatrix{T}} <: AbstractOperator{T,1}
 end
 
 @forward MatrixOp.mat (
-                       Base.size, Base.adjoint, #Base.:*, Base.:\
-                       issquare,
+                       Base.size, issquare,
                        SciMLBase.has_ldiv, SciMLBase.has_ldiv!
                       )
+
+Base.adjoint(A::MatrixOp) =  MatrixOp(A.mat')
+Base.inv(A::MatrixOp) = MatrixOp(inv(A.mat))
 
 function Base.:*(A::MatrixOp, u::AbstractField{<:Number,1})
     A.mat * _vec(u)
@@ -30,6 +32,12 @@ end
 function LinearAlgebra.ldiv!(v::AbstractField{<:Number,1}, A::MatrixOp, u::AbstractField{<:Number,1})
     ldiv!(_vec(v), A.mat, _vec(u))
     return v
+end
+
+# fusion
+function Base.:*(A::MatrixOp, B::MatrixOp)
+    M = A.mat * B.mat
+    MatrixOp(M)
 end
 
 ###
@@ -90,6 +98,16 @@ for op in (
         diag = $op(A.diag, λ)
         DiagonalOp(diag)
     end
+end
+
+function Base.:*(A::MatrixOp, D::DiagonalOp{<:Number,1})
+    M = A.mat * Diagonal(D.diag)
+    MatrixOp(M)
+end
+
+function Base.:*(D::DiagonalOp{<:Number,1}, A::MatrixOp)
+    M = Diagonal(D.diag) * A.mat
+    MatrixOp(M)
 end
 
 function Base.:/(A::DiagonalOp, λ::Number)
@@ -167,7 +185,7 @@ issquare(A::TensorProductOp2D) = issquare(A.A) & issquare(A.B)
 
 function Base.adjoint(A::TensorProductOp2D)
     if issquare(A)
-        TensorProdudtOp2D(A.A', A.B', A.cache)
+        TensorProductOp2D(A.A', A.B', A.cache)
     else
         TensorProductOp2D(A.A', A.B')
     end

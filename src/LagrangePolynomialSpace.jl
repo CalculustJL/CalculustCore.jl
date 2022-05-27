@@ -91,7 +91,7 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain = T(domain)
     npoints = (nr, ns,)
     quadratures = ((zr, wr), (zs, ws),)
-    grid = (r, s)
+    grid = (Field(r), Field(s))
     mass_matrix = Field(wr * ws')
     deriv_mats = (Dr, Ds,)
 
@@ -140,45 +140,47 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,1})
 
     Dx = MatrixOp(Dr)
 
-    [Dx]
+    DD = AbstractOperator{<:Number,1}[Dx]
+    reshape(DD, 1, 1)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,2})
     (nr, ns) = space.npoints
     (Dr, Ds) = space.deriv_mats
 
-    Ir = sparse(I, nr, nr)
-    Is = sparse(I, ns, ns)
+    Ir = I #sparse(I, nr, nr)
+    Is = I #sparse(I, ns, ns)
 
     Dx = TensorProductOp2D(Dr, Is)
     Dy = TensorProductOp2D(Ir, Ds)
 
-    [Dx
-     Dy]
+    DD = AbstractOperator{<:Number,2}[Dx
+                                      Dy]
+    reshape(DD, 2, 1)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     (Dr, Ds, Dt) = space.deriv_mats
     (nr, ns, nt) = space.npoints
 
-    Ir = sparse(I, nr, nr)
-    Is = sparse(I, ns, ns)
-    It = sparse(I, nt, nt)
+    Ir = I #sparse(I, nr, nr)
+    Is = I #sparse(I, ns, ns)
+    It = I #sparse(I, nt, nt)
 
     Dx = TensorProductOp3D(Dr, Is, It)
     Dy = TensorProductOp3D(Ir, Ds, It)
     Dz = TensorProductOp3D(Ir, Is, Dt)
 
-    [Dx
-     Dy
-     Dz]
+    DD = AbstractOperator{<:Number,2}[Dx
+                                      Dy
+                                      Dz]
+    reshape(DD, 3, 1)
 end
 
 ### interpolation operators
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,1},
-                  space2::LagrangePolynomialSpace{<:Number,1},
-                 )
+                  space2::LagrangePolynomialSpace{<:Number,1})
     r1, _ = space1.quadratures[1]
     r2, _ = space2.quadratures[1]
 
@@ -188,8 +190,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,1},
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
-                  space2::LagrangePolynomialSpace{<:Number,2},
-                 )
+                  space2::LagrangePolynomialSpace{<:Number,2})
     r1, _ = space1.quadratures[1]
     r2, _ = space2.quadratures[1]
 
@@ -203,8 +204,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,3},
-                  space2::LagrangePolynomialSpace{<:Number,3},
-                 )
+                  space2::LagrangePolynomialSpace{<:Number,3})
     r1, _ = space1.quadratures[1]
     r2, _ = space2.quadratures[1]
 

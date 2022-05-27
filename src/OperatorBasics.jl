@@ -32,8 +32,8 @@ function Base.:\(A::AbstractOperator{<:Number,D},u::AbstractField{<:Number,D}) w
 end
 
 function Base.:*(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D}) where{D}
-#   @warn "Operator fusion not defined for $A * $B. falling back to lazy composition, ∘"
-    A ∘ B
+#   A ∘ B # https://github.com/vpuri3/PDEInterfaces.jl/issues/2
+    ComposedOp(B, A)
 end
 
 # caching
@@ -166,18 +166,39 @@ function Base.adjoint(A::AffineOp)
     end
 end
 
+function Base.convert(::Type{AffineOp}, A::AbstractOperator{<:Number,D}) where{D}
+#   A
+    AffineOp(A, NullOp{D}(), true, false)
+end
+
 function init_cache(A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     cache = A.B * u
 end
 
 function Base.:*(A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     @unpack A, B, α, β = A
-    α * (A * u) + β * (B * u)
+    if iszero(α) | (A isa NullOp)
+        β * (B * u)
+    elseif iszero(β) | (B isa NullOp)
+        α * (A * u)
+    else
+        α * (A * u) + β * (B * u)
+    end
 end
 
 function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     mul!(v, A.A, u)
     lmul!(A.α, v)
+
+    if iszero(α) | (A isa NullOp)
+        mul!(v, B, u)
+        lmul!(β, v)
+        return v
+    elseif iszero(β) | (B isa NullOp)
+        mul!(v, A, u)
+        lmul!(α, v)
+        return v
+    end
 
     if isunset
         cache = init_cache(A,u)
@@ -190,15 +211,20 @@ function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, A::AffineOp{<:Number,D
     axpy!(true, A.cache, v)
 end
 
-function Base.:+(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D},) where{D}
-    AffineOp(A,B,true,true)
+function Base.:+(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D}) where{D}
+    AffineOp(A, B, true, true)
 end
 
 function Base.:-(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D}) where{D}
-    AffineOp(A,B,true,-true)
+    AffineOp(A, B, true, -true)
 end
 
 function Base.:+(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
+    Id = IdentityOp{D}()
+    AffineOp(A, Id, true, λ)
+end
+
+function Base.:+(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
     Id = IdentityOp{D}()
     AffineOp(A, Id, true, λ)
 end
@@ -208,9 +234,24 @@ function Base.:-(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
     AffineOp(A, Id, -true, λ)
 end
 
+function Base.:-(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
+    Id = IdentityOp{D}()
+    AffineOp(Id, A, λ, -true)
+end
+
+function Base.:-(A::AbstractOperator{<:Number,D}) where{D}
+    Z = NullOp{D}()
+    AffineOp(A, -true, false, Z)
+end
+
 function Base.:*(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
     Z = NullOp{D}()
-    AffineOp(A, Z, true, λ)
+    AffineOp(A, Z, λ, false)
+end
+
+function Base.:*(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
+    Z = NullOp{D}()
+    AffineOp(A, Z, λ, false)
 end
 
 function Base.:/(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
@@ -243,12 +284,13 @@ struct ComposedOp{T,D,Ti,To,Tc} <: AbstractOperator{T,D}
 end
 
 function Base.:∘(outer::AbstractOperator{Number,D}, inner::AbstractOperator{Number,D}) where{D}
-    ComposedOp(inner,outer)
+    ComposedOp(inner, outer)
 end
 
 Base.size(A::ComposedOp) = (size(A.outer, 1), size(A.inner, 2))
-Base.adjoint(A::ComposedOp) = A.inner' ∘ A.outer'
-Base.inv(A::ComposedOp) = inv(A.inner) ∘ inv(A.outer)
+# https://github.com/vpuri3/PDEInterfaces.jl/issues/2
+Base.adjoint(A::ComposedOp) = ComposedOp(A.outer', A.inner') # A.inner' ∘ A.outer'
+Base.inv(A::ComposedOp) = ComposedOp(inv(A.outer), inv(A.inner)) # inv(A.inner) ∘ inv(A.outer)
 
 SciMLBase.has_ldiv(A::ComposedOp) = has_ldiv(A.inner) & has_ldiv(A.outer)
 SciMLBase.has_ldiv!(A::ComposedOp) = has_ldiv!(A.inner) & has_ldiv!(A.outer)
@@ -261,7 +303,7 @@ end
 
 function Base.:*(A::ComposedOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     @unpack inner, outer = A
-    outer * inner * u
+    outer * (inner * u)
 end
 
 function Base.:\(A::ComposedOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}

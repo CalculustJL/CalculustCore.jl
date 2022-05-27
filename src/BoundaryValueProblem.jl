@@ -37,7 +37,7 @@ end
 
 function makeLHS(op::AbstractOperator{<:Number,D},
                  bc::AbstractBoundaryCondition{<:Number,D}) where{D}
-    @unpack mask_dir = bc
+    @unpack mask_dir, amask_dir = bc
 
     #TODO
     """
@@ -48,8 +48,6 @@ function makeLHS(op::AbstractOperator{<:Number,D},
     then would have to interpolate u_inhom into interior.
     what are the consequences?
     """
-
-    amask_dir = IdentityOp{D}() - mask_dir
 
     lhs = mask_dir * op + amask_dir
 end

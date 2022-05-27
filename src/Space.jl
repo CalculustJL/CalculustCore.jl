@@ -123,12 +123,12 @@ args:
 ret:
     laplaceOp: AbstractField -> AbstractField
 """
-function laplaceOp(space::AbstractSpace)
-    D = gradOp(space)
-    M = massOp(space)
+function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
+    DD = gradOp(space)
+    M  = massOp(space)
+    MM = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
 
-    lapl = D' * [M] * D
-
+    lapl = DD' * MM * DD
     first(lapl)
 end
 
@@ -155,15 +155,14 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
                    [Dx]
 """
 function advectionOp(space::AbstractSpace{<:Number,D},
-                     vel::AbstractField{<:Number,D}...
-                    ) where{D}
-    V = [DiagonalOp.(vel)...]
+                     vel::AbstractField{<:Number,D}...) where{D}
 
-    Dx = gradOp(space)
+    VV = AbstractOperator{<:Number,D}[DiagonalOp.(vel)...]
+    DD = gradOp(space)
     M  = massOp(space)
+    MM = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
 
-    advectOp = V' * [M] * Dx
-
+    advectOp = VV' * MM * DD
     first(advectOp)
 end
 
@@ -185,7 +184,7 @@ function massOp(space1::AbstractSpace{<:Number,D},
 
     M2 = massOp(space2)
 
-    J12' ∘ M2 ∘ J12
+    J12' * M2 * J12
 end
 
 function laplaceOp(space1::AbstractSpace{<:Number,D},
@@ -194,12 +193,13 @@ function laplaceOp(space1::AbstractSpace{<:Number,D},
                   ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
-    M2 = massOp(space2)
-    D1 = gradOp(space1)
-    JD = [J12] .∘ D1
+    M2  = massOp(space2)
+    MM2 = Diagonal(AbstractOperator{<:Number,D}[M2 for i=1:D])
 
-    laplOp = JD' * [M2] * JD
+    DD1 = gradOp(space1)
+    JDD = J12 .* DD1
 
+    laplOp = JDD' * MM2 * JDD
     first(laplOp)
 end
 
@@ -217,14 +217,13 @@ function advectionOp(space1::AbstractSpace{<:Number,D},
                     ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
-    V1 = [DiagonalOp.(vel)...]
-    V2 = J12 .* V1
+    VV1 = AbstractOperator{<:Number,D}[DiagonalOp.(vel)...]
+    VV2 = J12 .* V1
+    M2  = massOp(space2)
+    MM2 = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
+    DD1 = gradOp(space1)
 
-    M2 = massOp(space2)
-    D1 = gradOp(space1)
-
-    advectOp = [J12]' * V2' * [M2] * [J12] * D1
-
+    advectOp = J12' .* (VV2' * MM2 * (J12 .* DD1))
     first(advectOp)
 end
 

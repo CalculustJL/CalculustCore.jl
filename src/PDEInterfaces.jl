@@ -23,7 +23,7 @@ import Base: size, getindex, setindex!, IndexStyle
 import Base.Broadcast: BroadcastStyle
 
 # overload maths
-import Base: +, -, *, /, \, adjoint, ∘, inv, one
+import Base: +, -, *, /, \, adjoint, ∘, inv, one, convert
 import LinearAlgebra: mul!, ldiv!, lmul!, rmul!
 
 ###
