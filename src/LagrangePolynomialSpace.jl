@@ -117,7 +117,7 @@ function boundary_nodes(space::LagrangePolynomialSpace{<:Number,D}) where{D}
     npoints = numpoints(space)
     indices = []
     for i=1:D
-        n = npoints(i)
+        n = npoints[i]
         range_lower = ([Colon() for j=1:i-1]..., 1, [Colon() for j=i+1:D]...)
         range_upper = ([Colon() for j=1:i-1]..., n, [Colon() for j=i+1:D]...)
         push!(indices, range_lower)

@@ -9,7 +9,7 @@ u(x) = f(x), x ∈ ∂Ω
 Defaults to homogeneous.
 """
 Base.@kwdef struct DirichletBC{F}
-    f::F = grid = zero(grid[1])
+    f::F = grid -> zero(grid[1])
 end
 
 """
@@ -18,7 +18,7 @@ end
 Defaults to homogeneous.
 """
 Base.@kwdef struct NeumannBC{F}
-    f::F = grid = zero(grid[1])
+    f::F = grid -> zero(grid[1])
 end
 
 """
@@ -41,25 +41,28 @@ end
 # BC implementation
 ###
 
-function boundary_antimasks(domain, indices)
+function boundary_antimasks(space, domain, indices)
     x = get_grid(space) |> first
 
     antimasks = []
     for i=1:num_boundaries(domain)
         idx = indices[i]
         M = similar(x, Bool) .* false
-        M[idx] = true
-
+        if prod(length.(idx)) == 1
+            M[idx...] = true
+        else
+            M[idx...] .= true
+        end
         push!(antimasks, M)
     end
 
     DiagonalOp.(antimasks)
 end
 
-function dirichlet_mask(domain, bcs, indices)
+function dirichlet_mask(space, domain, indices, bcs)
     tags = boundary_tags(domain)
     x    = get_grid(space) |> first
-    mask = Bool.(zero(x)) .+ true
+    M    = similar(x, Bool) .* false .+ true
 
     for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
@@ -67,16 +70,18 @@ function dirichlet_mask(domain, bcs, indices)
 
         if bc isa DirichletBC
             idx = indices[i]
-            mask[idx] = false
+            if prod(length.(idx)) == 1
+                M[idx...] = false
+            else
+                M[idx...] .= false
+            end
         end
     end
 
-    DiagonalOp(mask)
+    DiagonalOp(M)
 end
 
-struct BoundaryCondition{T,D,Tbcs,Tamasks,
-                         Tmask<:AbstractOperator{Bool,D},
-                         Tamask<:AbstractOperator{Bool,D},
+struct BoundaryCondition{T,D,Tbcs,Tamasks,Tmask,Tamask,
                          Tspace<:AbstractSpace{T,D},
                         } <: AbstractBoundaryCondition{T,D}
     """Dict(Domain_bdry_tag => BCType)"""
@@ -91,13 +96,13 @@ struct BoundaryCondition{T,D,Tbcs,Tamasks,
     space::Tspace
 end
 
-function BoundaryCondition(bcs::Dict, space::AbstractSpace)
+function BoundaryCondition(bcs::Dict, space::AbstractSpace{<:Number,D}) where{D}
     domain    = get_domain(space)
     indices   = boundary_nodes(space)
-    antimasks = boundary_antimasks(domain, indices)
-    mask_dir  = dirichlet_mask(domain, bcs, indices)
+    antimasks = boundary_antimasks(space, domain, indices)
+    mask_dir  = dirichlet_mask(space, domain, indices, bcs)
     amask_dir = IdentityOp{D}() - mask_dir
 
-    BoundaryCondition(bcs, bc_antimasks, mask_dir, amask_dir, space)
+    BoundaryCondition(bcs, antimasks, mask_dir, amask_dir, space)
 end
 #

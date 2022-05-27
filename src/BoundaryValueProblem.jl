@@ -5,11 +5,11 @@ abstract type AbstractBoundaryValueAlgorithm <: SciMLBase.DEAlgorithm end
 struct BoundaryValuePDEProblem{Tu,Tbc,Top,Tf,Tsp} <: AbstractBoundaryValueProblem
     """Neumann Operator"""
     op::Top
-    """Right-hand-side function"""
+    """Right-hand-side vector"""
     f::Tf
     """Initial guess"""
     u::Tu
-    """Boundary condition dictionary"""
+    """Boundary condition object"""
     bc::Tbc
     """Function space"""
     space::Tsp
@@ -71,9 +71,9 @@ function makeRHS(f::AbstractField{<:Number,D},
         amask = antimasks[i]
 
         if bc isa DirichletBC
-            dirichlet += amask * bc.f(grid)
+            dirichlet += amask * bc.f(grid...)
         elseif bc isa NeumannBC
-            neumann += amask * bc.f(grid)
+            neumann += amask * bc.f(grid...)
         elseif bc isa RobinBC
             # TODO
         elseif bc isa PeriodicBC

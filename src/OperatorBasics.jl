@@ -166,11 +166,6 @@ function Base.adjoint(A::AffineOp)
     end
 end
 
-function Base.convert(::Type{AffineOp}, A::AbstractOperator{<:Number,D}) where{D}
-#   A
-    AffineOp(A, NullOp{D}(), true, false)
-end
-
 function init_cache(A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     cache = A.B * u
 end
