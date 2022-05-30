@@ -148,8 +148,8 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
     (nr, ns) = space.npoints
     (Dr, Ds) = space.deriv_mats
 
-    Ir = sparse(I, nr, nr) #TODO replace with IdentityOp{1}
-    Is = sparse(I, ns, ns)
+    Ir = IdentityOp{2,nr}() #sparse(I, nr, nr) #TODO
+    Is = IdentityOp{2,ns}() #sparse(I, ns, ns)
 
     Dx = TensorProductOp2D(Dr, Is)
     Dy = TensorProductOp2D(Ir, Ds)
@@ -163,9 +163,9 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     (Dr, Ds, Dt) = space.deriv_mats
     (nr, ns, nt) = space.npoints
 
-    Ir = sparse(I, nr, nr)
-    Is = sparse(I, ns, ns)
-    It = sparse(I, nt, nt)
+    Ir = IdentityOp{3,nr}() #sparse(I, nr, nr) #TODO
+    Is = IdentityOp{3,ns}() #sparse(I, ns, ns)
+    It = IdentityOp{3,nt}() #sparse(I, nt, nt)
 
     Dx = TensorProductOp3D(Dr, Is, It)
     Dy = TensorProductOp3D(Ir, Ds, It)
