@@ -117,7 +117,7 @@ end
 
 function makeRHS(f::AbstractField{<:Number,D},
                  bc::AbstractBoundaryCondition{<:Number,D}) where{D}
-    @unpack bc_dict, antimasks, dirichlet_mask, space = bc
+    @unpack bc_dict, antimasks, mask_dir, space = bc
 
     M = MassOp(space)
     b = M * f
@@ -144,7 +144,7 @@ function makeRHS(f::AbstractField{<:Number,D},
         end
     end
 
-    b = dirichlet_mask * b + dirichlet - neumann + robin
+    b = mask_dir * b + dirichlet - neumann + robin
 end
 
 function SciMLBase.solve(cache::BoundaryValuePDECache)
