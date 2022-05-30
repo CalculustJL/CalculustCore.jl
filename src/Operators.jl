@@ -153,6 +153,7 @@ function tensor_product!(V,U,A,B,Ct,cache1,cache2) # 3D
     U_re = _reshape(U, (szU[1], szU[2]*szU[3]))
     mul!(cache1, A, U_re)
 
+    # TODO
     # B op - write to cache2. use views
 
     szC = size(cache2)

@@ -50,21 +50,36 @@ end
 Base.size(A::AbstractOperator, d::Integer) = d <= 2 ? size(A)[d] : 1
 
 ###
+# ScaleOp
+###
+struct ScaleOp{T,D,N} <: AbstractOperator{T,D}
+    λ::T
+end
+
+###
 # NullOp
 ###
 
 """ (Square) Null operator """
-struct NullOp{D} <: AbstractOperator{Bool,D} end
+struct NullOp{D,N} <: AbstractOperator{Bool,D} end
 
-Base.zero(::AbstractOperator{<:Number, D}) where{D} = NullOp{D}()
-Base.zero(::Type{<:AbstractOperator{<:Number, D}}) where{D} = NullOp{D}()
+Base.size(::NullOp{D,N}) where{D,N} = (N,N)
+function Base.zero(A::AbstractOperator{<:Number, D}) where{D}
+    @assert issquare(A)
+    N = size(A, 1)
+    NullOp{D,N}()
+end
 
 Base.adjoint(Z::NullOp) = Z
 issquare(::NullOp) = true
 
-Base.:*(::NullOp{D}, u::AbstractField{<:Number,D}) where{D} = u * false
+function Base.:*(::NullOp{D,N}, u::AbstractField{<:Number,D}) where{D,N}
+    @assert length(u) == N
+    zero(u)
+end
 
-function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::NullOp{D}, u::AbstractField{<:Number,D}) where{D}
+function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::NullOp{D,N}, u::AbstractField{<:Number,D}) where{D,N}
+    @assert length(v) == N
     lmul!(false, v)
 end
 
@@ -72,25 +87,53 @@ end
 for op in (
            :*, :∘,
           )
-    @eval $op(::NullOp{D}, ::AbstractOperator{<:Number,D}) where{D} = NullOp{D}()
-    @eval $op(::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = NullOp{D}()
+    @eval function $op(::NullOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
+        @assert size(A,1) == N
+        NullOp{D,N}()
+    end
+
+    @eval function $op(A::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D,N}
+        @assert size(A,2) == N
+        NullOp{D,N}()
+    end
 end
 
-Base.:+(::NullOp{D}, A::AbstractOperator{<:Number,D}) where{D} = A
-Base.:+(A::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = A
+function Base.:+(::NullOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
+    @assert size(A) == (N, N)
+    A
+end
 
-Base.:-(::NullOp{D}, A::AbstractOperator{<:Number,D}) where{D} = -A
-Base.:-(A::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = A
+function Base.:+(A::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D,N}
+    @assert size(A) == (N, N)
+    A
+end
+
+function Base.:-(::NullOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
+    -A
+end
+
+function Base.:-(A::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D,N}
+    A
+end
 
 ###
 # IdentityOp
 ###
 
 """ (Square) Identity operator """
-struct IdentityOp{D} <: AbstractOperator{Bool,D} end
+struct IdentityOp{D,N} <: AbstractOperator{Bool,D} end
 
-Base.one(::AbstractOperator{<:Number, D}) where{D} = IdentityOp{D}()
-Base.one(::Type{<:AbstractOperator{<:Number, D}}) where{D} = IdentityOp{D}()
+Base.size(::IdentityOp{D,N}) where{D,N} = (N, N)
+function Base.one(A::AbstractOperator{<:Number, D}) where{D}
+    @assert issquare(A)
+    N = size(A, 1)
+    IdentityOp{D,N}()
+end
+function Base.one(A::Type{<:AbstractOperator{<:Number, D}}) where{D}
+    @assert issquare(A)
+    N = size(A, 1)
+    IdentityOp{D,N}()
+end
 
 Base.adjoint(Id::IdentityOp) = Id
 Base.inv(Id::IdentityOp) = Id
@@ -103,15 +146,18 @@ SciMLBase.has_ldiv!(::IdentityOp) = true
 Base.:*(::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D} = copy(u)
 Base.:\(::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D} = copy(u)
 
-function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D}
+function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, ::IdentityOp{D,N}, u::AbstractField{<:Number,D}) where{D,N}
+    @assert length(u) == N
     copy!(v, u)
 end
 
-function LinearAlgebra.ldiv!(v::AbstractField{<:Number,D}, ::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D}
+function LinearAlgebra.ldiv!(v::AbstractField{<:Number,D}, ::IdentityOp{D,N}, u::AbstractField{<:Number,D}) where{D,N}
+    @assert length(u) == N
     copy!(v, u)
 end
 
-function LinearAlgebra.ldiv!(Id::IdentityOp{D}, u::AbstractField{<:Number,D}) where{D}
+function LinearAlgebra.ldiv!(Id::IdentityOp{D,N}, u::AbstractField{<:Number,D}) where{D,N}
+    @assert length(u) == N
     u
 end
 
@@ -119,17 +165,31 @@ end
 for op in (
            :*, :∘,
           )
-    @eval $op(::IdentityOp{D}, A::AbstractOperator{<:Number,D}) where{D} = A
-    @eval $op(A::AbstractOperator{<:Number,D}, ::IdentityOp{D}) where{D} = A
+    @eval function $op(::IdentityOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
+        @assert size(A, 1) == N
+        A
+    end
+
+    @eval function $op(A::AbstractOperator{<:Number,D}, ::IdentityOp{D,N}) where{D,N}
+        @assert size(A, 2) == N
+        A
+    end
 end
 
-Base.:/(A::AbstractOperator{<:Number,D}, ::IdentityOp{D}) where{D} = A
+function Base.:/(A::AbstractOperator{<:Number,D}, ::IdentityOp{D,N}) where{D,N}
+    @assert size(A, 2) == N
+    A
+end
 
 for op in (
            :*, :∘,
           )
-    @eval $op(::NullOp{D}, ::IdentityOp{D}) where{D} = NullOp{D}()
-    @eval $op(::IdentityOp{D}, ::NullOp{D}) where{D} = NullOp{D}()
+    @eval function $op(::NullOp{D,N}, ::IdentityOp{D,N}) where{D,N}
+        NullOp{D,N}()
+    end
+    @eval function $op(::IdentityOp{D,N}, ::NullOp{D,N}) where{D,N}
+        NullOp{D,N}()
+    end
 end
 
 ###
@@ -152,15 +212,17 @@ struct AffineOp{T,D,
 
     function AffineOp(A::AbstractOperator{Ta,D}, B::AbstractOperator{Tb,D}, α, β,
                       cache = nothing, isunset = cache === nothing) where{Ta,Tb,D}
+        @assert size(A) == size(B)
         T = promote_type(Ta,Tb)
         new{T,D,typeof(A),typeof(B),typeof(α),typeof(β),typeof(cache)}(A, B, α, β, cache, isunset)
     end
 end
 
+Base.size(A::AffineOp) = size(A.A)
 issquare(A::AffineOp) = issquare(A.A) & issquare(A.B)
 function Base.adjoint(A::AffineOp)
     if issquare(A)
-        AffineOp(A.A',A.B',A.α, A.β, A.cache, A.isunset)
+        AffineOp(A.A',A.B',A.α', A.β', A.cache, A.isunset)
     else
         AffineOp(A.A',A.B',A.α', A.β')
     end
@@ -215,42 +277,50 @@ function Base.:-(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D
 end
 
 function Base.:+(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
-    Id = IdentityOp{D}()
+    N = size(A, 1)
+    Id = IdentityOp{D,N}()
     AffineOp(A, Id, true, λ)
 end
 
 function Base.:+(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
-    Id = IdentityOp{D}()
-    AffineOp(A, Id, true, λ)
+    N = size(A, 1)
+    Id = IdentityOp{D,N}()
+    AffineOp(A, Id, true, λ) # TODO: what if A isn't square
 end
 
 function Base.:-(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
-    Id = IdentityOp{D}()
+    N = size(A, 1)
+    Id = IdentityOp{D,N}()
     AffineOp(A, Id, -true, λ)
 end
 
 function Base.:-(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
-    Id = IdentityOp{D}()
+    N = size(A, 1)
+    Id = IdentityOp{D,N}()
     AffineOp(Id, A, λ, -true)
 end
 
 function Base.:-(A::AbstractOperator{<:Number,D}) where{D}
-    Z = NullOp{D}()
+    N = size(A, 1)
+    Z = NullOp{D,N}()
     AffineOp(A, -true, false, Z)
 end
 
 function Base.:*(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
-    Z = NullOp{D}()
+    N = size(A, 1)
+    Z = NullOp{D,N}()
     AffineOp(A, Z, λ, false)
 end
 
 function Base.:*(λ::Number, A::AbstractOperator{<:Number,D}) where{D}
-    Z = NullOp{D}()
+    N = size(A, 1)
+    Z = NullOp{D,N}()
     AffineOp(A, Z, λ, false)
 end
 
 function Base.:/(A::AbstractOperator{<:Number,D}, λ::Number) where{D}
-    Z = NullOp{D}()
+    N = size(A, 1)
+    Z = NullOp{D,N}()
     AffineOp(A, Z, -true, λ)
 end
 
@@ -258,8 +328,26 @@ end
 # ComposedOp
 ###
 
-""" Lazy Composition A ∘ B """
-struct ComposedOp{T,D,Ti,To,Tc} <: AbstractOperator{T,D}
+#""" Lazy Composition A ∘ B """
+#struct ComposeOp{T,D,Ta,Tc} <: AbstractOperator{T,D} #TODO arbitrarily long compositions
+#    ops::Ta
+#    cache::Tc
+#    isunset::Bool
+#
+#    function ComposedOp(ops...;
+#                        cache = nothing,
+#                        isunset::Bool = cache === nothing
+#                       ) where{Ti,To,D}
+#        for i=1:length(ops)-1
+#            @assert size(ops[i], 2) == size(ops[i+1], 1)
+#        end
+#        T = promote_type(eltype.(ops)...)
+#        isunset = cache === nothing
+#        new{T,D,typeof(ops),typeof(cache)}(inner, outer, cache, isunset)
+#    end
+#end
+
+struct ComposedOp{T,D,Ti,To,Tc} <: AbstractOperator{T,D} #TODO arbitrarily long compositions
     inner::Ti
     outer::To
 
@@ -271,7 +359,7 @@ struct ComposedOp{T,D,Ti,To,Tc} <: AbstractOperator{T,D}
                         cache = nothing,
                         isunset::Bool = cache === nothing
                        ) where{Ti,To,D}
-#       @assert size(outer, 1) == size(inner, 2)
+        @assert size(outer, 1) == size(inner, 2)
         T = promote_type(Ti, To)
         isunset = cache === nothing
         new{T,D,typeof(inner),typeof(outer),typeof(cache)}(inner, outer, cache, isunset)

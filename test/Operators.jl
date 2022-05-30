@@ -29,11 +29,11 @@ T = TensorProductOp2D(A, B)
 T_u = Field(A * u.array * B')
 
 # NullOp
-Z = NullOp{2}()
+Z = NullOp{2,nr*ns}()
 Z_u = u * false
 
 # IdentityOp
-Id = IdentityOp{2}()
+Id = IdentityOp{2,nr*ns}()
 Id_u = copy(u)
 
 ops = (
