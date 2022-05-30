@@ -110,7 +110,7 @@ include("Space.jl")
 include("DeformSpace.jl")
 
 # discretizations
-include("Discretizations.jl")
+#include("Discretizations.jl")
 
 # polynomial spaces
 include("LagrangeMatrices.jl")
@@ -151,6 +151,6 @@ export
        DirichletBC, NeumannBC, RobinBC,
 
        ## Boundary vale problem
-       BoundaryValuePDEProblem, LinearBVPDEAlg, NonLinearBVPDEAlg
+       BoundaryValuePDEProblem, LinearBVPDEAlg, NonlinearBVPDEAlg
 
 end # module

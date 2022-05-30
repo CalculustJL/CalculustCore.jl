@@ -13,3 +13,5 @@ bcs = Dict(
           )
 
 prob = BoundaryValuePDEProblem(op, f, bcs, space)
+alg  = LinearBVPDEAlg()
+sol = solve(prob, alg)

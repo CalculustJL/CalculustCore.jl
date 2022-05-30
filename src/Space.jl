@@ -54,6 +54,18 @@ get indices of boudnary nodes
 """
 function boundary_nodes end
 
+function Base.summary(io::IO, space::AbstractSpace{T,D}) where{T,D}
+    type_color, no_color = SciMLBase.get_colorizers(io)
+    print(io,
+          type_color, nameof(typeof(space)),
+          no_color," over domain ",
+          type_color,typeof(get_domain(space)),
+          no_color," with uType ",
+          type_color,typeof(first(get_grid(space))),
+          no_color
+         )
+end
+
 ### interpolation
 """
 Interpolate function values to to points.

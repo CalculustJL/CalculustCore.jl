@@ -59,14 +59,14 @@ function boundary_antimasks(space, domain, indices)
     DiagonalOp.(antimasks)
 end
 
-function dirichlet_mask(space, domain, indices, bcs)
+function dirichlet_mask(space, domain, indices, bc_dict)
     tags = boundary_tags(domain)
     x    = get_grid(space) |> first
     M    = similar(x, Bool) .* false .+ true
 
     for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
-        bc  = bcs[tag]
+        bc  = bc_dict[tag]
 
         if bc isa DirichletBC
             idx = indices[i]
@@ -85,7 +85,7 @@ struct BoundaryCondition{T,D,Tbcs,Tamasks,Tmask,Tamask,
                          Tspace<:AbstractSpace{T,D},
                         } <: AbstractBoundaryCondition{T,D}
     """Dict(Domain_bdry_tag => BCType)"""
-    bcs::Tbcs
+    bc_dict::Tbcs
     """Vector(boundary_antimasks); antimask = id - mask"""
     antimasks::Tamasks
     """Diagonal Mask operator hiding Dirichlet boundaries"""
@@ -96,13 +96,13 @@ struct BoundaryCondition{T,D,Tbcs,Tamasks,Tmask,Tamask,
     space::Tspace
 end
 
-function BoundaryCondition(bcs::Dict, space::AbstractSpace{<:Number,D}) where{D}
+function BoundaryCondition(bc_dict::Dict, space::AbstractSpace{<:Number,D}) where{D}
     domain    = get_domain(space)
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(space, domain, indices)
-    mask_dir  = dirichlet_mask(space, domain, indices, bcs)
+    mask_dir  = dirichlet_mask(space, domain, indices, bc_dict)
     amask_dir = IdentityOp{D}() - mask_dir
 
-    BoundaryCondition(bcs, antimasks, mask_dir, amask_dir, space)
+    BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space)
 end
 #
