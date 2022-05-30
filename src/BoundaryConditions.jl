@@ -9,7 +9,7 @@ u(x) = f(x), x ∈ ∂Ω
 Defaults to homogeneous.
 """
 Base.@kwdef struct DirichletBC{F}
-    f::F = grid -> zero(grid[1])
+    f::F = (grid...) -> zero(first(grid))
 end
 
 """
@@ -18,7 +18,7 @@ end
 Defaults to homogeneous.
 """
 Base.@kwdef struct NeumannBC{F}
-    f::F = grid -> zero(grid[1])
+    f::F = (grid...) -> zero(first(grid))
 end
 
 """

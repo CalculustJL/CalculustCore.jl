@@ -119,7 +119,7 @@ function makeRHS(f::AbstractField{<:Number,D},
                  bc::AbstractBoundaryCondition{<:Number,D}) where{D}
     @unpack bc_dict, antimasks, mask_dir, space = bc
 
-    M = MassOp(space)
+    M = massOp(space)
     b = M * f
 
     dirichlet = zero(b)
@@ -127,6 +127,7 @@ function makeRHS(f::AbstractField{<:Number,D},
     robin     = zero(b)
 
     grid = get_grid(space)
+    domain = get_domain(space)
 
     for i=1:num_boundaries(domain)
         tag   = boundary_tag(domain, i)
@@ -154,7 +155,7 @@ function SciMLBase.solve(cache::BoundaryValuePDECache)
     lhsOp = makeLHS(op, bc)
     rhs   = makeRHS(f, bc)
 
-    linprob = LinearProblem(lhsOp, b; u0=u)
+    linprob = LinearProblem(lhsOp, rhs; u0=u)
     linsol  = solve(linprob, linalg)
 
     linsol.u

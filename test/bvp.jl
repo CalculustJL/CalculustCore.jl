@@ -1,5 +1,6 @@
 #
 using PDEInterfaces
+using LinearSolve
 
 domain = reference_box(1)
 space = GaussLobattoLegendre1D(32; domain=domain)
@@ -13,5 +14,5 @@ bcs = Dict(
           )
 
 prob = BoundaryValuePDEProblem(op, f, bcs, space)
-alg  = LinearBVPDEAlg()
-sol = solve(prob, alg)
+alg  = LinearBVPDEAlg(linsolve=KrylovJL_CG())
+sol  = solve(prob, alg)
