@@ -54,8 +54,9 @@ Base.size(A::AbstractOperator, d::Integer) = d <= 2 ? size(A)[d] : 1
 ###
 
 """ (Square) Null operator """
-struct NullOp{D} <: AbstractOperator{Bool,D} end
+struct NullOp{D,N} <: AbstractOperator{Bool,D} end
 
+Base.size(::NullOp{D,N}) = (N,N)
 Base.zero(::AbstractOperator{<:Number, D}) where{D} = NullOp{D}()
 Base.zero(::Type{<:AbstractOperator{<:Number, D}}) where{D} = NullOp{D}()
 
@@ -72,8 +73,8 @@ end
 for op in (
            :*, :∘,
           )
-    @eval $op(::NullOp{D}, ::AbstractOperator{<:Number,D}) where{D} = NullOp{D}()
-    @eval $op(::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = NullOp{D}()
+    @eval $op(::NullOp{D,N}, ::AbstractOperator{<:Number,D}) where{D} = NullOp{D,N}()
+    @eval $op(::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D} = NullOp{D,N}()
 end
 
 Base.:+(::NullOp{D}, A::AbstractOperator{<:Number,D}) where{D} = A
@@ -89,6 +90,7 @@ Base.:-(A::AbstractOperator{<:Number,D}, ::NullOp{D}) where{D} = A
 """ (Square) Identity operator """
 struct IdentityOp{D} <: AbstractOperator{Bool,D} end
 
+Base.size(::IdentityOp{D,N}) = (N,N)
 Base.one(::AbstractOperator{<:Number, D}) where{D} = IdentityOp{D}()
 Base.one(::Type{<:AbstractOperator{<:Number, D}}) where{D} = IdentityOp{D}()
 

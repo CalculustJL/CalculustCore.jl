@@ -98,7 +98,7 @@ function interpOp end
 Gradient Operator
 Compute gradient of u∈H¹(Ω).
 
-Continuity isn't enforced across
+Continuity isn't necessarily enforced across
 element boundaries for gradients
 
 args:

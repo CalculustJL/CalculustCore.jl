@@ -145,7 +145,7 @@ function makeRHS(f::AbstractField{<:Number,D},
         end
     end
 
-    b = mask_dir * b + dirichlet - neumann + robin
+    b = (mask_dir * b) + dirichlet - neumann + robin
 end
 
 function SciMLBase.solve(cache::BoundaryValuePDECache)
