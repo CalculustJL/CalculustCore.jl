@@ -50,6 +50,29 @@ get number of points
 function numpoints end
 
 """
+length of vector in space
+"""
+function Base.length(space::AbstractSpace{<:Number,D}) where{D}
+    *(numpoints(space)...)
+end
+
+"""
+space identity operator
+"""
+function IdentityOp(space::AbstractSpace{<:Number,D}) where{D}
+    N = length(space)
+    IdentityOp{D,N}()
+end
+
+"""
+space null operator
+"""
+function IdentityOp(space::AbstractSpace{<:Number,D}) where{D}
+    N = length(space)
+    NullOp{D,N}()
+end
+
+"""
 get indices of boudnary nodes
 """
 function boundary_nodes end

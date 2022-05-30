@@ -101,7 +101,7 @@ function BoundaryCondition(bc_dict::Dict, space::AbstractSpace{<:Number,D}) wher
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(space, domain, indices)
     mask_dir  = dirichlet_mask(space, domain, indices, bc_dict)
-    amask_dir = IdentityOp{D}() - mask_dir
+    amask_dir = IdentityOp(space) - mask_dir
 
     BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space)
 end

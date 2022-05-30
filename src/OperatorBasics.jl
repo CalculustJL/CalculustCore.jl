@@ -218,6 +218,7 @@ struct AffineOp{T,D,
     end
 end
 
+Base.size(A::AffineOp) = size(A.A)
 issquare(A::AffineOp) = issquare(A.A) & issquare(A.B)
 function Base.adjoint(A::AffineOp)
     if issquare(A)
