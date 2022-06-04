@@ -9,10 +9,10 @@ struct MatrixOp{T,Tm<:AbstractMatrix{T}} <: AbstractOperator{T,1}
 end
 
 @forward MatrixOp.mat (
-                       Base.size, issquare,
-                       SciMLBase.has_ldiv, SciMLBase.has_ldiv!
+                       issquare, SciMLBase.has_ldiv, SciMLBase.has_ldiv!
                       )
 
+Base.size(A::MatrixOp) = size(A.mat)
 Base.adjoint(A::MatrixOp) =  MatrixOp(A.mat')
 Base.inv(A::MatrixOp) = MatrixOp(inv(A.mat))
 
@@ -35,9 +35,13 @@ function LinearAlgebra.ldiv!(v::AbstractField{<:Number,1}, A::MatrixOp, u::Abstr
 end
 
 # fusion
-function Base.:*(A::MatrixOp, B::MatrixOp)
-    M = A.mat * B.mat
-    MatrixOp(M)
+for op in (
+           :+, :-, :*,
+          )
+    @eval function Base.$op(A::MatrixOp, B::MatrixOp)
+        M = A.mat * B.mat
+        MatrixOp(M)
+    end
 end
 
 ###

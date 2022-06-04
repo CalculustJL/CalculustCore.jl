@@ -34,6 +34,10 @@ Base.size(u::Field) = (length(u.array),)
 # allocation
 Base.similar(u::Field, ::Type{T} = eltype(u), dims::Dims = size(u.array)) where{T} = Field(similar(u.array, T, dims))
 Base.zero(u::Field, dims::Dims) = zero(u) # ignore dims since <: AbstractVector
+function Field{T,D}(val, n) where{T,D} # TODO - Krylov.jl
+    vec = Vector{T}(val, n)
+    Field(vec)
+end
 
 # broadcast
 Base.Broadcast.BroadcastStyle(::Type{<:Field}) = Broadcast.ArrayStyle{Field}()

@@ -67,7 +67,7 @@ end
 """
 space null operator
 """
-function IdentityOp(space::AbstractSpace{<:Number,D}) where{D}
+function NullOp(space::AbstractSpace{<:Number,D}) where{D}
     N = length(space)
     NullOp{D,N}()
 end

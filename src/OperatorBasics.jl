@@ -87,12 +87,12 @@ end
 for op in (
            :*, :∘,
           )
-    @eval function $op(::NullOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
+    @eval function Base.$op(::NullOp{D,N}, A::AbstractOperator{<:Number,D}) where{D,N}
         @assert size(A,1) == N
         NullOp{D,N}()
     end
 
-    @eval function $op(A::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D,N}
+    @eval function Base.$op(A::AbstractOperator{<:Number,D}, ::NullOp{D,N}) where{D,N}
         @assert size(A,2) == N
         NullOp{D,N}()
     end
@@ -243,9 +243,8 @@ function Base.:*(A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
     end
 end
 
-function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, A::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
-    mul!(v, A.A, u)
-    lmul!(A.α, v)
+function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, Op::AffineOp{<:Number,D}, u::AbstractField{<:Number,D}) where{D}
+    @unpack A, B, α, β, cache, isunset = Op
 
     if iszero(α) | (A isa NullOp)
         mul!(v, B, u)
@@ -257,15 +256,17 @@ function LinearAlgebra.mul!(v::AbstractField{<:Number,D}, A::AffineOp{<:Number,D
         return v
     end
 
+    mul!(v, A, u)
+    lmul!(α, v)
+
     if isunset
-        cache = init_cache(A,u)
-        A = set_cache(A, cache)
-    else
-        mul!(A.cache, A.B, u)
+        cache = init_cache(Op, u)
+        Op = set_cache(Op, cache)
     end
 
-    lmul!(A.β, A.cache)
-    axpy!(true, A.cache, v)
+    mul!(cache, B, u)
+    lmul!(β, cache)
+    axpy!(true, cache, v)
 end
 
 function Base.:+(A::AbstractOperator{<:Number,D}, B::AbstractOperator{<:Number,D}) where{D}
