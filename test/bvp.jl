@@ -1,6 +1,5 @@
 #
-using PDEInterfaces
-using LinearSolve
+using PDEInterfaces, LinearSolve, Plots
 
 domain = reference_box(1)
 space = GaussLobattoLegendre1D(32; domain=domain)
@@ -18,5 +17,6 @@ alg  = LinearBVPDEAlg(
 #                     linalg=IterativeSolversJL_GMRES()
                       linalg=KrylovJL_GMRES()
                      )
-sol  = solve(prob, alg)
+sol = solve(prob, alg)
+plt = plot(sol)
 #
