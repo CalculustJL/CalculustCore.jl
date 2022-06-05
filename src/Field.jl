@@ -1,4 +1,13 @@
 #
+import Base: summary, show, similar, zero
+import Base: size, getindex, setindex!, IndexStyle
+import Base.Broadcast: BroadcastStyle
+
+# overload maths
+import Base: +, -, *, /, \, adjoint, ∘, inv, one, convert
+import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot, axpy!, axpby!
+
+#
 # TODO: Fourier spectral, SpectralElements will require different functionality
 #   - move broadcasting/indexing to AbstractField,
 #   - if Fourier can be handled with vanilla Field, then rename it
@@ -7,6 +16,7 @@
 # TODO: create SpectralElementField and overload inner product by
 #   - overload *(Adjoint{Field}, Field), norm(::Field, 2)
 #
+abstract type AbstractField{T,D} <: DenseVector{T} end
 """ Scalar function field in D-dimensional space over a spectral basis"""
 struct Field{T,D,Tarr <: AbstractArray{T,D}} <: AbstractField{T,D}
     array::Tarr
@@ -35,10 +45,11 @@ function Base.similar(u::Field, ::Type{T}=eltype(u), dims::Dims=size(u.array)) w
     Field(similar(u.array, T, dims))
 end
 Base.zero(u::Field, dims::Dims) = zero(u) # ignore dims since <: AbstractVector
-function Field{T,D, Tarr}(::UndefInitializer, n) where{T,D,Tarr} # TODO - Krylov.jl hack. 
-    vec = Vector{T}(undef, n)
-    Field(vec)
-end
+## TODO - Krylov.jl hack. 
+#function Field{T,D, Tarr}(::UndefInitializer, n) where{T,D,Tarr}
+#    vec = Vector{T}(undef, n)
+#    Field(vec)
+#end
 
 # broadcast
 Base.Broadcast.BroadcastStyle(::Type{<:Field}) = Broadcast.ArrayStyle{Field}()

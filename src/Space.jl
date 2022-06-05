@@ -8,6 +8,8 @@
 # AbstractSpace interface
 ###
 
+import Base: length, summary, size
+
 """
 args:
     space::AbstractSpace{T,D}
@@ -20,7 +22,7 @@ function get_grid end
 args:
     space::AbstractSpace{T,D}
 ret:
-    AbstractField{Integer, D}
+    AbstractVector{Integer, D}
 """
 function get_global_numbering end
 
@@ -57,22 +59,6 @@ function Base.length(space::AbstractSpace{<:Number,D}) where{D}
 end
 
 """
-space identity operator
-"""
-function IdentityOp(space::AbstractSpace{<:Number,D}) where{D}
-    N = length(space)
-    IdentityOp{D,N}()
-end
-
-"""
-space null operator
-"""
-function NullOp(space::AbstractSpace{<:Number,D}) where{D}
-    N = length(space)
-    NullOp{D,N}()
-end
-
-"""
 get indices of boudnary nodes
 """
 function boundary_nodes end
@@ -95,7 +81,7 @@ Interpolate function values to to points.
 
 args:
     points::vector of coordinates
-    u::AbstractField
+    u::AbstractVector
     space::AbstractSpace{T,D}
 ret:
     u interpolated to points
@@ -140,7 +126,7 @@ args:
     space::AbstractSpace{T,D}
     space_dealias
 ret:
-    massOp: AbstractField -> AbstractField
+    massOp: AbstractVector -> AbstractVector
 """
 function massOp end
 
@@ -156,12 +142,12 @@ args:
     space::AbstractSpace{T,D}
     space_dealias
 ret:
-    laplaceOp: AbstractField -> AbstractField
+    laplaceOp: AbstractVector -> AbstractVector
 """
 function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
     DD = gradOp(space)
     M  = massOp(space)
-    MM = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
+    MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
 
     lapl = DD' * MM * DD
     first(lapl)
@@ -170,10 +156,10 @@ end
 """
 args:
     space::AbstractSpace{<:Number,D}
-    vel...::AbstractField{<:Number,D}
+    vel...::AbstractVector
     space_dealias
 ret:
-    advectionOp: AbstractField -> AbstractField
+    advectionOp: AbstractVector -> AbstractVector
 
 for v,u,T in H¹₀(Ω)
 
@@ -190,12 +176,12 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
                    [Dx]
 """
 function advectionOp(space::AbstractSpace{<:Number,D},
-                     vel::AbstractField{<:Number,D}...) where{D}
+                     vel::AbstractVector...) where{D}
 
-    VV = AbstractOperator{<:Number,D}[DiagonalOp.(vel)...]
+    VV = AbstractSciMLOperator[DiagonalOperator.(vel)...]
     DD = gradOp(space)
     M  = massOp(space)
-    MM = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
+    MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
 
     advectOp = VV' * MM * DD
     first(advectOp)
@@ -229,7 +215,7 @@ function laplaceOp(space1::AbstractSpace{<:Number,D},
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
     M2  = massOp(space2)
-    MM2 = Diagonal(AbstractOperator{<:Number,D}[M2 for i=1:D])
+    MM2 = Diagonal(AbstractSciMLOperator[M2 for i=1:D])
 
     DD1 = gradOp(space1)
     JDD = J12 .* DD1
@@ -247,15 +233,15 @@ so we don't commit any
 """
 function advectionOp(space1::AbstractSpace{<:Number,D},
                      space2::AbstractSpace{<:Number,D},
-                     vel::AbstractField{<:Number,D}...;
+                     vel::AbstractVector...;
                      J = nothing,
                     ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
-    VV1 = AbstractOperator{<:Number,D}[DiagonalOp.(vel)...]
+    VV1 = AbstractSciMLOperator[DiagonalOperator.(vel)...]
     VV2 = J12 .* V1
     M2  = massOp(space2)
-    MM2 = Diagonal(AbstractOperator{<:Number,D}[M for i=1:D])
+    MM2 = Diagonal(AbstractSciMLOperator[M for i=1:D])
     DD1 = gradOp(space1)
 
     advectOp = J12' .* (VV2' * MM2 * (J12 .* DD1))

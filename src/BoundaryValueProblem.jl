@@ -4,7 +4,15 @@ abstract type AbstractBoundaryValuePDECache <: SciMLBase.DECache end
 abstract type AbstractBoundaryValuePDEAlgorithm <: SciMLBase.DEAlgorithm end
 
 struct BoundaryValuePDEProblem{
-                               isinplace,F,fType,uType,Tbcs,Tspace,P,K,
+                               isinplace,
+                               T,
+                               F,
+                               fType,
+                               uType,
+                               Tbcs,
+                               Tspace<:AbstractSpace{T},
+                               P,
+                               K,
                               } <: AbstractBoundaryValuePDEProblem
     """Neumann Operator"""
     op::F
@@ -22,16 +30,17 @@ struct BoundaryValuePDEProblem{
     kwargs::K
 
     SciMLBase.@add_kwonly function BoundaryValuePDEProblem(
-         op::AbstractOperator{<:Number,D},
-         f::AbstractField{<:Number,D},
+         op::AbstractSciMLOperator,
+         f::AbstractVector,
          bc_dict::Dict,
-         space::AbstractSpace{<:Number,D},
+         space::AbstractSpace{T},
          p = SciMLBase.NullParameters();
-         u0::Union{AbstractField{<:Number,D},Nothing} = nothing,
+         u0::Union{AbstractVector,Nothing} = nothing,
          kwargs...
-        ) where{D}
+        ) where{T}
 
         new{true,
+            eltype(space),
             typeof(op),
             typeof(f),
             typeof(u0),
@@ -98,8 +107,7 @@ Base.@kwdef struct NonlinearBVPDEAlg{Tnl} <: AbstractBoundaryValuePDEAlgorithm
     nlalg::Tnl = nothing
 end
 
-function makeLHS(op::AbstractOperator{<:Number,D},
-                 bc::AbstractBoundaryCondition{<:Number,D}) where{D}
+function makeLHS(op::AbstractSciMLOperator, bc::AbstractBoundaryCondition)
     @unpack mask_dir, amask_dir = bc
 
     #TODO
@@ -115,8 +123,7 @@ function makeLHS(op::AbstractOperator{<:Number,D},
     lhs = mask_dir * op + amask_dir
 end
 
-function makeRHS(f::AbstractField{<:Number,D},
-                 bc::AbstractBoundaryCondition{<:Number,D}) where{D}
+function makeRHS(f::AbstractVector, bc::AbstractBoundaryCondition)
     @unpack bc_dict, antimasks, mask_dir, space = bc
 
     M = massOp(space)

@@ -4,10 +4,12 @@
 ###
 
 """ Lagrange polynomial spectral space """
-struct LagrangePolynomialSpace{T,D,Tpts,
+struct LagrangePolynomialSpace{T,D,
+                               Tpts,
                                Tdom<:AbstractDomain{T,D},
-                               Tquad,Tgrid,
-                               Tmass<:AbstractField{T,D},
+                               Tquad,
+                               Tgrid,
+                               Tmass,
                                Tderiv,
 #                              Tl2g,
                               } <: AbstractSpectralSpace{T,D}
@@ -47,8 +49,8 @@ function LagrangePolynomialSpace(n::Integer;
     domain = T(domain)
     npoints = (n,)
     quadratures = ((z, w),)
-    grid = (Field(z),)
-    mass_matrix = Field(w)
+    grid = (_vec(z),)
+    mass_matrix = _vec(w)
     deriv_mats = (D,)
 
     space = LagrangePolynomialSpace(
@@ -91,8 +93,8 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain = T(domain)
     npoints = (nr, ns,)
     quadratures = ((zr, wr), (zs, ws),)
-    grid = (Field(r), Field(s))
-    mass_matrix = Field(wr * ws')
+    grid = (_vec(r), _vec(s),)
+    mass_matrix = _vec(wr * ws')
     deriv_mats = (Dr, Ds,)
 
     space = LagrangePolynomialSpace(
@@ -132,15 +134,15 @@ end
 function massOp(space::LagrangePolynomialSpace)
     @unpack mass_matrix = space
 
-    DiagonalOp(mass_matrix)
+    DiagonalOperator(mass_matrix)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,1})
     (Dr,) = space.deriv_mats
 
-    Dx = MatrixOp(Dr)
+    Dx = MatrixOperator(Dr)
 
-    DD = AbstractOperator{<:Number,1}[Dx]
+    DD = AbstractSciMLOperator[Dx]
     reshape(DD, 1, 1)
 end
 
@@ -148,14 +150,14 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
     (nr, ns) = space.npoints
     (Dr, Ds) = space.deriv_mats
 
-    Ir = IdentityOp{2,nr}() #sparse(I, nr, nr) #TODO
-    Is = IdentityOp{2,ns}() #sparse(I, ns, ns)
+    Ir = IdentityOperator{nr}()
+    Is = IdentityOperator{ns}()
 
-    Dx = TensorProductOp2D(Dr, Is)
-    Dy = TensorProductOp2D(Ir, Ds)
+    Dx = ⊗(Dr, Is)
+    Dy = ⊗(Ir, Ds)
 
-    DD = AbstractOperator{<:Number,2}[Dx
-                                      Dy]
+    DD = AbstractSciMLOperator[Dx
+                               Dy]
     reshape(DD, 2, 1)
 end
 
@@ -163,17 +165,17 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     (Dr, Ds, Dt) = space.deriv_mats
     (nr, ns, nt) = space.npoints
 
-    Ir = IdentityOp{3,nr}() #sparse(I, nr, nr) #TODO
-    Is = IdentityOp{3,ns}() #sparse(I, ns, ns)
-    It = IdentityOp{3,nt}() #sparse(I, nt, nt)
+    Ir = IdentityOperator{nr}()
+    Is = IdentityOperator{ns}()
+    It = IdentityOperator{nt}()
 
-    Dx = TensorProductOp3D(Dr, Is, It)
-    Dy = TensorProductOp3D(Ir, Ds, It)
-    Dz = TensorProductOp3D(Ir, Is, Dt)
+    Dx = ⊗(Dr, Is, It)
+    Dy = ⊗(Ir, Ds, It)
+    Dz = ⊗(Ir, Is, Dt)
 
-    DD = AbstractOperator{<:Number,2}[Dx
-                                      Dy
-                                      Dz]
+    DD = AbstractSciMLOperator[Dx
+                               Dy
+                               Dz]
     reshape(DD, 3, 1)
 end
 
@@ -186,7 +188,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,1},
 
     J = lagrange_interp_mat(r2, r1) # from 1 to 2
 
-    MatrixOp(J)
+    MatrixOperator(J)
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
@@ -200,7 +202,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
     Jr = lagrange_interp_mat(r2, r1) # from 1 to 2
     Js = lagrange_interp_mat(s2, s1)
 
-    TensorProductOp2D(Jr, Js)
+    ⊗(Jr, Js)
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,3},
@@ -218,6 +220,6 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,3},
     Js = lagrange_interp_mat(s2, s1)
     Jt = lagrange_interp_mat(t2, t1)
 
-    TensorProductOp3D(Jr, Js, Jt)
+    ⊗(Jr, Js, Jt)
 end
 #

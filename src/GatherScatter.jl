@@ -3,6 +3,8 @@
 # Gather-Scatter Operators - enforce continuity/ periodicity
 ###
 
+abstract type AbstractGatherScatterOperator{D} <: SciMLOperators.AbstractSciMLOperator{Bool} end
+
 Base.adjoint(A::AbstractGatherScatterOperator) = A
 
 # TODO write GatherScatterOp that calls NNlib.gather, scatter
