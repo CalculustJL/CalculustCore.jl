@@ -12,3 +12,22 @@ issquare(::UniformScaling) = true
 issquare(A) = size(A,1) === size(A,2)
 issquare(A...) = @. (&)(issquare(A)...)
 #
+
+struct TensorProduct2DOperator{T} <: SciMLOperators.AbstractSciMLOperator{T}
+    A
+    B
+
+    cache
+    isset
+end
+
+Base.size(L::TensorProduct2DOperator) = size(A.A) .* size(A.B)
+function Base.adjoint(L::TensorProduct2DOperator)
+    TensorProduct2DOperator(L.A', L.B'; cache = issquare(A) ? L.cache : nothing)
+end
+
+function Base.:*(L::TensorProduct2DOperator, u::AbstractVector)
+    sz = (size(A, 2), size(B, 2))
+    u = _reshape(u, sz)
+    v = A * u * B'
+end
