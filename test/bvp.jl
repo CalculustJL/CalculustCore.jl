@@ -14,5 +14,9 @@ bcs = Dict(
           )
 
 prob = BoundaryValuePDEProblem(op, f, bcs, space)
-alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
+alg  = LinearBVPDEAlg(
+#                     linalg=IterativeSolversJL_GMRES()
+                      linalg=KrylovJL_GMRES()
+                     )
 sol  = solve(prob, alg)
+#

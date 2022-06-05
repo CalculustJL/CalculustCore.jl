@@ -1,5 +1,4 @@
 #
-#
 # TODO: Fourier spectral, SpectralElements will require different functionality
 #   - move broadcasting/indexing to AbstractField,
 #   - if Fourier can be handled with vanilla Field, then rename it
@@ -32,10 +31,12 @@ Base.setindex!(u::Field, v, i::Int) = setindex!(u.array, v, i)
 Base.size(u::Field) = (length(u.array),)
 
 # allocation
-Base.similar(u::Field, ::Type{T} = eltype(u), dims::Dims = size(u.array)) where{T} = Field(similar(u.array, T, dims))
+function Base.similar(u::Field, ::Type{T}=eltype(u), dims::Dims=size(u.array)) where{T}
+    Field(similar(u.array, T, dims))
+end
 Base.zero(u::Field, dims::Dims) = zero(u) # ignore dims since <: AbstractVector
-function Field{T,D}(val, n) where{T,D} # TODO - Krylov.jl
-    vec = Vector{T}(val, n)
+function Field{T,D, Tarr}(::UndefInitializer, n) where{T,D,Tarr} # TODO - Krylov.jl hack. 
+    vec = Vector{T}(undef, n)
     Field(vec)
 end
 
@@ -53,6 +54,20 @@ find_fld(x) = x
 find_fld(::Tuple{}) = nothing
 find_fld(a::Field, rest) = a
 find_fld(::Any, rest) = find_fld(rest)
+
+LinearAlgebra.norm(u::Field, p::Real=2) = norm(u.array, p)
+
+function LinearAlgebra.axpy!(a::Number, x::Field{<:Number,D}, y::Field{<:Number,D}) where{D}
+    axpy!(a, x.array, y.array)
+end
+
+function LinearAlgebra.axpby!(a::Number, x::Field{<:Number,D}, b::Number, y::Field{<:Number,D}) where{D}
+    axpby!(a, x.array, b, y.array)
+end
+
+function LinearAlgebra.dot(u::Field{<:Number,D}, v::Field{<:Number,D}) where{D}
+    dot( _vec(u.array), _vec(v.array))
+end
 
 #TODO - implement lazy adjoint Adjoint(u::Field). overload ', adjoint. then
 # overload (u' * A) \defeq  (A' * u)' in OperatorBasics.jl

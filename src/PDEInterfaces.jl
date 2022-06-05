@@ -24,14 +24,14 @@ import Base.Broadcast: BroadcastStyle
 
 # overload maths
 import Base: +, -, *, /, \, adjoint, ∘, inv, one, convert
-import LinearAlgebra: mul!, ldiv!, lmul!, rmul!
+import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot
 
 ###
 # Abstract Supertypes
 ###
 
 """ Scalar function field in D-Dimensional space """
-abstract type AbstractField{T,D} <: AbstractVector{T} end
+abstract type AbstractField{T,D} <: DenseVector{T} end # AbstractVector{T} end
 """ Operators acting on fields in D-Dimensional space """
 abstract type AbstractOperator{T,D} <: AbstractDiffEqOperator{T} end
 """ D-Dimensional physical domain """
@@ -135,6 +135,9 @@ export
 
        ## Fields
        Field,
+
+       ## Operators
+       DiagonalOp, MatrixOp,
 
        ## Spaces
        get_grid, get_domain, numpoints,

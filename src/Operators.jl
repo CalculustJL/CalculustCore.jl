@@ -17,20 +17,22 @@ Base.adjoint(A::MatrixOp) =  MatrixOp(A.mat')
 Base.inv(A::MatrixOp) = MatrixOp(inv(A.mat))
 
 function Base.:*(A::MatrixOp, u::AbstractField{<:Number,1})
-    A.mat * _vec(u)
+    v = A.mat * u.array
+    Field(v)
 end
 
 function Base.:\(A::MatrixOp, u::AbstractField{<:Number,1})
-    A.mat \ _vec(u)
+    v = A.mat \ u.array
+    Field(v)
 end
 
 function LinearAlgebra.mul!(v::AbstractField{<:Number,1}, A::MatrixOp, u::AbstractField{<:Number,1})
-    mul!(_vec(v), A.mat, _vec(u))
+    mul!(v.array, A.mat, u.array)
     return v
 end
 
 function LinearAlgebra.ldiv!(v::AbstractField{<:Number,1}, A::MatrixOp, u::AbstractField{<:Number,1})
-    ldiv!(_vec(v), A.mat, _vec(u))
+    ldiv!(v.array, A.mat, u.array)
     return v
 end
 
