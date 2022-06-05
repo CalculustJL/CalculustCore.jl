@@ -1,5 +1,4 @@
 #
-using PDEInterfaces
 using Test, SafeTestsets
 
 @testset "PDEInterfaces.jl" begin
