@@ -18,12 +18,15 @@ Goals:
   - [ ] general meshes
   - [ ] signed distance geometries
 - [ ] Abstract Field interface `<: AbstractVector`
-  - [X] spectral
-  - [ ] spectral element - overload inner product
+  - [X] Spectral polynomial
+  - [ ] Transformation based spectral (fourier, some chebychev, etc)
+  - [ ] BoxSpectralEmeent
+  - [ ] Full SpectralElement
 - [ ] Operator interface `<: AbstractDiffEqOperator`
   - [X] linear algebra operations
   - [X] lazy composition
   - [X] can use array reductions
+  - [ ] move as much as possible to `SciMLOperators`
   - [ ] caching
   - [ ] Gather-Scatter operator using `NNlib`
   - [ ] General interpolation operator on element-meshes
@@ -37,7 +40,7 @@ Goals:
   - [ ] Space is how to represent functions
   - [ ] Discretization is how you form operators
 - [ ] Boundary Condition interface
-  - [X] apply "this" boundary condition based on "that" domain tag (use `Dict`)
+  - [X] apply "this" boundary condition based on "that" domain boundary
   - [ ] Dirichlet
   - [ ] Neumann
   - [ ] Robin
