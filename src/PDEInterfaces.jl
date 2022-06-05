@@ -18,6 +18,7 @@ import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
 import FFTW: plan_rfft, plan_irfft
 
 # operator interface
+import SciMLOperators
 import SciMLOperators: MatrixOperator, DiagonalOperator
 
 # AbstractVector subtyping
@@ -140,7 +141,7 @@ export
        Field,
 
        ## Operators
-       DiagonalOp, MatrixOp,
+       TensorProduct2DOperator,
 
        ## Spaces
        get_grid, get_domain, numpoints,

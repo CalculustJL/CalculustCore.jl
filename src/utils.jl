@@ -13,12 +13,25 @@ issquare(A) = size(A,1) === size(A,2)
 issquare(A...) = @. (&)(issquare(A)...)
 #
 
+# make this multidimensional by using the multidimensional indexing
+# trick in domains
 struct TensorProduct2DOperator{T} <: SciMLOperators.AbstractSciMLOperator{T}
     A
     B
 
     cache
     isset
+
+    function TensorProduct2DOperator(A, B, cache, isset)
+        T = promote_type(eltype.((A, B))...)
+        isset = cache !== nothing
+        new{T}(A, B, cache, isset)
+    end
+end
+
+function TensorProduct2DOperator(A::AbstractMatrix, B::AbstractMatrix; cache = nothing)
+    isset = cache !== nothing
+    TensorProduct2DOperator(A, B, cache, isset)
 end
 
 Base.size(L::TensorProduct2DOperator) = size(A.A) .* size(A.B)
@@ -27,7 +40,7 @@ function Base.adjoint(L::TensorProduct2DOperator)
 end
 
 function Base.:*(L::TensorProduct2DOperator, u::AbstractVector)
-    sz = (size(A, 2), size(B, 2))
+    sz = (size(L.A, 2), size(L.B, 2))
     u = _reshape(u, sz)
-    v = A * u * B'
+    v = L.A * u * L.B'
 end
