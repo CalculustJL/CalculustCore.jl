@@ -17,6 +17,7 @@ alg  = LinearBVPDEAlg(
 #                     linalg=IterativeSolversJL_GMRES()
                       linalg=KrylovJL_GMRES()
                      )
-sol = solve(prob, alg)
-plt = plot(sol)
+u = solve(prob, alg)
+plt = plot(x, u)
+savefig(plt, "bvp_dn")
 #

@@ -26,3 +26,6 @@ Manifest.toml
 # Editor generatoed file
 .*.swp
 .*.swo
+
+# MacOS
+.DS_Store
