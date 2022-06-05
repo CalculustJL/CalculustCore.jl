@@ -22,12 +22,12 @@ Goals:
   - [ ] Transformation based spectral (fourier, some chebychev, etc)
   - [ ] BoxSpectralEmeent
   - [ ] Full SpectralElement
-- [ ] Operator interface `<: AbstractDiffEqOperator`
+- [ ] Operator interface
   - [X] linear algebra operations
   - [X] lazy composition
   - [X] can use array reductions
-  - [ ] move as much as possible to `SciMLOperators`
-  - [ ] caching
+  - [X] move as much as possible to `SciMLOperators`
+  - [X] caching
   - [ ] Gather-Scatter operator using `NNlib`
   - [ ] General interpolation operator on element-meshes
 - [ ] Spaces
