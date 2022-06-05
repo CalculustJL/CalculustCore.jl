@@ -3,6 +3,8 @@
 # AbstractDomain interface #TODO
 ###
 
+import Base: *
+
 """
 args:
     AbstractDomain{T,D}

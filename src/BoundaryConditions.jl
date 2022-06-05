@@ -1,4 +1,6 @@
 #
+abstract type AbstractBoundaryCondition{T} end
+
 ###
 # BC Types
 ###
@@ -56,7 +58,7 @@ function boundary_antimasks(space, domain, indices)
         push!(antimasks, M)
     end
 
-    DiagonalOp.(antimasks)
+    DiagonalOperator.(antimasks)
 end
 
 function dirichlet_mask(space, domain, indices, bc_dict)
@@ -78,12 +80,12 @@ function dirichlet_mask(space, domain, indices, bc_dict)
         end
     end
 
-    DiagonalOp(M)
+    DiagonalOperator(M)
 end
 
 struct BoundaryCondition{T,D,Tbcs,Tamasks,Tmask,Tamask,
                          Tspace<:AbstractSpace{T,D},
-                        } <: AbstractBoundaryCondition{T,D}
+                        } <: AbstractBoundaryCondition{T}
     """Dict(Domain_bdry_tag => BCType)"""
     bc_dict::Tbcs
     """Vector(boundary_antimasks); antimask = id - mask"""
@@ -101,7 +103,7 @@ function BoundaryCondition(bc_dict::Dict, space::AbstractSpace{<:Number,D}) wher
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(space, domain, indices)
     mask_dir  = dirichlet_mask(space, domain, indices, bc_dict)
-    amask_dir = IdentityOp(space) - mask_dir
+    amask_dir = IdentityOperator{length(space)}() - mask_dir
 
     BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space)
 end

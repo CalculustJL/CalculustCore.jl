@@ -2,57 +2,35 @@ module PDEInterfaces
 
 using Reexport
 
-@reexport using SciMLBase
+##########################################
+#@reexport using SciMLBase
+import SciMLBase
+import SciMLBase:solve, init
+export solve, init
+
+using SciMLOperators
+import SciMLOperators: ⊗, IdentityOperator
+import SciMLOperators: AbstractSciMLOperator, _reshape, _vec
+##########################################
 
 using LinearAlgebra
 using LinearSolve
 
 import UnPack: @unpack
 import Setfield: @set!
-import Base.ReshapedArray
-import SciMLBase: AbstractDiffEqOperator
-import Lazy: @forward
 import SparseArrays: sparse
 import NNlib: gather, scatter
 import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
 import FFTW: plan_rfft, plan_irfft
 
-# operator interface
-import SciMLOperators: MatrixOperator, DiagonalOperator
-
-# AbstractVector subtyping
-import Base: summary, show, similar, zero
-import Base: size, getindex, setindex!, IndexStyle
-import Base.Broadcast: BroadcastStyle
-
-# overload maths
-import Base: +, -, *, /, \, adjoint, ∘, inv, one, convert
-import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot, axpy!, axpby!
-
 ###
 # Abstract Supertypes
 ###
 
-""" Scalar function field in D-Dimensional space """
-abstract type AbstractField{T,D} <: DenseVector{T} end # AbstractVector{T} end
-""" Operators acting on fields in D-Dimensional space """
-abstract type AbstractOperator{T,D} <: AbstractDiffEqOperator{T} end
 """ D-Dimensional physical domain """
 abstract type AbstractDomain{T,D} end
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
-""" Boundary condition on domain in D-Dimensional space """
-abstract type AbstractBonudaryCondition{T,D} end
-
-###
-# AbstractOperator subtypes
-###
-
-""" Tensor product operator in D-Dimensional space """
-abstract type AbstractTensorProductOperator{T,D} <: AbstractOperator{T,D} end
-
-""" Gather-Scatter operator in D-Dimensional space """
-abstract type AbstractGatherScatterOperator{T,D} <: AbstractOperator{T,D} end
 
 ###
 # AbstractSpace subtypes
@@ -64,41 +42,21 @@ abstract type AbstractSpectralSpace{T,D} <: AbstractSpace{T,D} end
 """ D-Dimensional tensor-product space """
 abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 
-###
-# other abstract types
-###
-
-""" Boundary Condition on D-Dimensional domain """
-abstract type AbstractBoundaryCondition{T,D} end
-
 AbstractSupertypes{T,D} = Union{
-                                AbstractField{T,D},
-                                AbstractOperator{T,D},
                                 AbstractSpace{T,D},
                                 AbstractDomain{T,D},
-                                AbstractBonudaryCondition{T,D}
                                }
 
 # traits
-
 dims(::AbstractSupertypes{T,D}) where{T,D} = D
 Base.eltype(::Union{
                     AbstractSpace{T,D},
                     AbstractDomain{T,D},
-                    AbstractBoundaryCondition{T,D},
                    }
            ) where{T,D} = T
 
 # misc
-include("utils.jl")
 include("NDgrid.jl")
-
-# field
-include("Field.jl")
-
-# operators
-include("OperatorBasics.jl")
-include("Operators.jl")
 
 # domain
 include("Domain.jl")
@@ -138,9 +96,6 @@ export
 
        ## Fields
        Field,
-
-       ## Operators
-       DiagonalOp, MatrixOp,
 
        ## Spaces
        get_grid, get_domain, numpoints,

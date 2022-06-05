@@ -1,7 +1,7 @@
 #
 
 #""" D-Dimensional domain maps """
-abstract type AbstractMap{D} end # <: AbstractOperator # field to field map
+abstract type AbstractMap{D} end
 
 # TODO - make a struct for mappings
 struct Deformations{D,Tmap} <: AbstractMap{D}
