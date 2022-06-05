@@ -17,6 +17,9 @@ import NNlib: gather, scatter
 import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
 import FFTW: plan_rfft, plan_irfft
 
+# operator interface
+import SciMLOperators: MatrixOperator, DiagonalOperator
+
 # AbstractVector subtyping
 import Base: summary, show, similar, zero
 import Base: size, getindex, setindex!, IndexStyle
@@ -24,7 +27,7 @@ import Base.Broadcast: BroadcastStyle
 
 # overload maths
 import Base: +, -, *, /, \, adjoint, ∘, inv, one, convert
-import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot
+import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot, axpy!, axpby!
 
 ###
 # Abstract Supertypes

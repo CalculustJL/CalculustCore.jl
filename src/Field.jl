@@ -55,7 +55,11 @@ find_fld(::Tuple{}) = nothing
 find_fld(a::Field, rest) = a
 find_fld(::Any, rest) = find_fld(rest)
 
-LinearAlgebra.norm(u::Field, p::Real=2) = norm(u.array, p)
+LinearAlgebra.norm(u::Field, p::Real=2) = norm(_vec(u.array), p)
+
+function LinearAlgebra.dot(u::Field{<:Number,D}, v::Field{<:Number,D}) where{D}
+    dot( _vec(u.array), _vec(v.array))
+end
 
 function LinearAlgebra.axpy!(a::Number, x::Field{<:Number,D}, y::Field{<:Number,D}) where{D}
     axpy!(a, x.array, y.array)
@@ -63,10 +67,6 @@ end
 
 function LinearAlgebra.axpby!(a::Number, x::Field{<:Number,D}, b::Number, y::Field{<:Number,D}) where{D}
     axpby!(a, x.array, b, y.array)
-end
-
-function LinearAlgebra.dot(u::Field{<:Number,D}, v::Field{<:Number,D}) where{D}
-    dot( _vec(u.array), _vec(v.array))
 end
 
 #TODO - implement lazy adjoint Adjoint(u::Field). overload ', adjoint. then
