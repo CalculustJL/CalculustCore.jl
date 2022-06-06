@@ -31,11 +31,11 @@ struct BoundaryValuePDEProblem{
 
     SciMLBase.@add_kwonly function BoundaryValuePDEProblem(
          op::AbstractSciMLOperator,
-         f::AbstractVector,
+         f,
          bc_dict::Dict,
          space::AbstractSpace{T},
          p = SciMLBase.NullParameters();
-         u0::Union{AbstractVector,Nothing} = nothing,
+         u0 = nothing,
          kwargs...
         ) where{T}
 
@@ -123,7 +123,7 @@ function makeLHS(op::AbstractSciMLOperator, bc::AbstractBoundaryCondition)
     lhs = mask_dir * op + amask_dir
 end
 
-function makeRHS(f::AbstractVector, bc::AbstractBoundaryCondition)
+function makeRHS(f, bc::AbstractBoundaryCondition)
     @unpack bc_dict, antimasks, mask_dir, space = bc
 
     M = massOp(space)
@@ -160,12 +160,13 @@ function SciMLBase.solve(cache::BoundaryValuePDECache)
     @unpack linalg = alg
 
     lhsOp = makeLHS(op, bc)
+    lhsOp = cache_operator(lhsOp, f)
     rhs   = makeRHS(f, bc)
 
-    linprob = LinearProblem(lhsOp, rhs; u0=u)
+    linprob = LinearProblem(lhsOp, rhs; u0=_vec(u))
     linsol  = solve(linprob, linalg)
 
-    linsol.u
+    u
 end
 
 function SciMLBase.init(prob::AbstractBoundaryValuePDEProblem, alg::AbstractBoundaryValuePDEAlgorithm = nothing)

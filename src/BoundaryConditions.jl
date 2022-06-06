@@ -44,17 +44,13 @@ end
 ###
 
 function boundary_antimasks(space, domain, indices)
-    x = get_grid(space) |> first
+    loc_num = local_numbering(space)
 
     antimasks = []
     for i=1:num_boundaries(domain)
+        M = similar(loc_num, Bool) * false |> _vec
         idx = indices[i]
-        M = similar(x, Bool) .* false
-        if prod(length.(idx)) == 1
-            M[idx...] = true
-        else
-            M[idx...] .= true
-        end
+        M[idx] = [true for i in 1:length(idx)]
         push!(antimasks, M)
     end
 
@@ -64,7 +60,7 @@ end
 function dirichlet_mask(space, domain, indices, bc_dict)
     tags = boundary_tags(domain)
     x    = get_grid(space) |> first
-    M    = similar(x, Bool) .* false .+ true
+    M    = similar(x, Bool) * false .+ true |> _vec
 
     for i=1:num_boundaries(domain)
         tag = boundary_tag(domain, i)
@@ -72,19 +68,15 @@ function dirichlet_mask(space, domain, indices, bc_dict)
 
         if bc isa DirichletBC
             idx = indices[i]
-            if prod(length.(idx)) == 1
-                M[idx...] = false
-            else
-                M[idx...] .= false
-            end
+            M[idx] = [false for i in 1:length(idx)]
         end
     end
 
     DiagonalOperator(M)
 end
 
-struct BoundaryCondition{T,D,Tbcs,Tamasks,Tmask,Tamask,
-                         Tspace<:AbstractSpace{T,D},
+struct BoundaryCondition{T,Tbcs,Tamasks,Tmask,Tamask,
+                         Tspace<:AbstractSpace{T},
                         } <: AbstractBoundaryCondition{T}
     """Dict(Domain_bdry_tag => BCType)"""
     bc_dict::Tbcs

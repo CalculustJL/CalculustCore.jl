@@ -11,22 +11,6 @@
 import Base: length, summary, size
 
 """
-args:
-    space::AbstractSpace{T,D}
-ret:
-    (x1, ..., xD,) # incl end points
-"""
-function get_grid end
-
-"""
-args:
-    space::AbstractSpace{T,D}
-ret:
-    AbstractVector{Integer, D}
-"""
-function get_global_numbering end
-
-"""
 get domain
 
 args:
@@ -34,7 +18,31 @@ args:
 ret:
     AbstractDomain
 """
-function get_domain end
+function get_domain end # TODO rename to domain
+
+"""
+args:
+    space::AbstractSpace{T,D}
+ret:
+    (x1, ..., xD,) # incl end points
+"""
+function get_grid end # TODO rename to grid
+
+"""
+args:
+    space::AbstractSpace{T,D}
+ret:
+    AbstractArray of size size(space)
+"""
+function local_numbering end
+
+"""
+args:
+    space::AbstractSpace{T,D}
+ret:
+    AbstractArray of size size(space)
+"""
+function global_numbering end
 
 """
 args:
@@ -49,13 +57,13 @@ function basis end
 """
 get number of points
 """
-function numpoints end
+Base.size
 
 """
 length of vector in space
 """
 function Base.length(space::AbstractSpace{<:Number,D}) where{D}
-    *(numpoints(space)...)
+    prod(size(space))
 end
 
 """

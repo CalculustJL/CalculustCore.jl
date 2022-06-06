@@ -11,6 +11,7 @@ struct LagrangePolynomialSpace{T,D,
                                Tgrid,
                                Tmass,
                                Tderiv,
+                               Tloc,
 #                              Tl2g,
                               } <: AbstractSpectralSpace{T,D}
     domain::Tdom
@@ -19,6 +20,7 @@ struct LagrangePolynomialSpace{T,D,
     grid::Tgrid
     mass_matrix::Tmass
     deriv_mats::Tderiv
+    local_numbering::Tloc
 #   local2global::Tl2g # TODO
 end
 
@@ -49,13 +51,15 @@ function LagrangePolynomialSpace(n::Integer;
     domain = T(domain)
     npoints = (n,)
     quadratures = ((z, w),)
-    grid = (_vec(z),)
+    grid = _vec.(z,)
     mass_matrix = _vec(w)
     deriv_mats = (D,)
+    local_numbering = reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
                                     mass_matrix, deriv_mats, 
+                                    local_numbering,
                                    )
 
     domain isa DeformedDomain ? deform(space, mapping) : space
@@ -93,13 +97,15 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain = T(domain)
     npoints = (nr, ns,)
     quadratures = ((zr, wr), (zs, ws),)
-    grid = (_vec(r), _vec(s),)
+    grid = _vec.((r, s,))
     mass_matrix = _vec(wr * ws')
     deriv_mats = (Dr, Ds,)
+    local_numbering = reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
-                                    mass_matrix, deriv_mats, 
+                                    mass_matrix, deriv_mats,
+                                    local_numbering,
                                    )
 
     domain isa DeformedDomain ? deform(space, mapping) : space
@@ -113,17 +119,20 @@ GaussChebychev2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadratu
 
 get_grid(space::LagrangePolynomialSpace) = space.grid
 get_domain(space::LagrangePolynomialSpace) = space.domain
-numpoints(space::LagrangePolynomialSpace) = space.npoints
+local_numbering(space::LagrangePolynomialSpace) = space.local_numbering
+Base.size(space::LagrangePolynomialSpace) = space.npoints
 
 function boundary_nodes(space::LagrangePolynomialSpace{<:Number,D}) where{D}
-    npoints = numpoints(space)
-    indices = []
+    npoints = size(space)
+    loc_num = local_numbering(space)
+
+    indices = ()
     for i=1:D
         n = npoints[i]
-        range_lower = ([Colon() for j=1:i-1]..., 1, [Colon() for j=i+1:D]...)
-        range_upper = ([Colon() for j=1:i-1]..., n, [Colon() for j=i+1:D]...)
-        push!(indices, range_lower)
-        push!(indices, range_upper)
+        range_lower = ([1:npoints[j] for j=1:i-1]..., 1, [1:npoints[j] for j=i+1:D]...)
+        range_upper = ([1:npoints[j] for j=1:i-1]..., n, [1:npoints[j] for j=i+1:D]...)
+        indices = (indices..., loc_num[range_lower...])
+        indices = (indices..., loc_num[range_upper...])
     end
 
     indices
@@ -150,8 +159,8 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
     (nr, ns) = space.npoints
     (Dr, Ds) = space.deriv_mats
 
-    Ir = IdentityOperator{nr}()
-    Is = IdentityOperator{ns}()
+    Ir = Diagonal([true for i=1:nr]) # IdentityOperator{nr}()
+    Is = Diagonal([true for i=1:ns])
 
     Dx = ⊗(Dr, Is)
     Dy = ⊗(Ir, Ds)
@@ -165,9 +174,9 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     (Dr, Ds, Dt) = space.deriv_mats
     (nr, ns, nt) = space.npoints
 
-    Ir = IdentityOperator{nr}()
-    Is = IdentityOperator{ns}()
-    It = IdentityOperator{nt}()
+    Ir = Diagonal([true for i=1:nr])
+    Is = Diagonal([true for i=1:ns])
+    It = Diagonal([true for i=1:nt])
 
     Dx = ⊗(Dr, Is, It)
     Dy = ⊗(Ir, Ds, It)
