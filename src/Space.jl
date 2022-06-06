@@ -62,9 +62,15 @@ Base.size
 """
 length of vector in space
 """
-function Base.length(space::AbstractSpace{<:Number,D}) where{D}
-    prod(size(space))
-end
+Base.length(space::AbstractSpace) = prod(size(space))
+
+"""
+plot of function over space
+args:
+    - u scalar field
+    - space AbstractSpace
+"""
+Plots.plot
 
 """
 get indices of boudnary nodes

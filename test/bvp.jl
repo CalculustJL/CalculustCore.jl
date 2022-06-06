@@ -2,7 +2,6 @@
 using PDEInterfaces, LinearSolve
 using Plots
 
-#=
 @testset "1D Laplace" begin
     domain = reference_box(1)
     space = GaussLobattoLegendre1D(32; domain=domain)
@@ -39,7 +38,6 @@ using Plots
         savefig(plt, "bvp_dn")
     end
 end
-=#
 
 @testset "2D Laplace" begin
     domain = reference_box(2)
@@ -60,7 +58,7 @@ end
         prob = BoundaryValuePDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
         u = solve(prob, alg)
-        plt = plot(x, u)
+        plt = plot(u, space)
         savefig(plt, "bvp2d_dd")
     end
 end

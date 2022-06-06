@@ -51,7 +51,7 @@ function LagrangePolynomialSpace(n::Integer;
     domain = T(domain)
     npoints = (n,)
     quadratures = ((z, w),)
-    grid = _vec.(z,)
+    grid = _vec.((z,))
     mass_matrix = _vec(w)
     deriv_mats = (D,)
     local_numbering = reshape(1:prod(npoints), npoints)
@@ -120,7 +120,22 @@ GaussChebychev2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadratu
 get_grid(space::LagrangePolynomialSpace) = space.grid
 get_domain(space::LagrangePolynomialSpace) = space.domain
 local_numbering(space::LagrangePolynomialSpace) = space.local_numbering
+
 Base.size(space::LagrangePolynomialSpace) = space.npoints
+
+function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2};a=45,b=60)
+    npts = size(space)
+    (x,y,) = grid = get_grid(space)
+
+    u = _reshape(u, npts)
+    x = _reshape(x, npts)
+    y = _reshape(y, npts)
+
+    p = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
+    p = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
+
+    p
+end
 
 function boundary_nodes(space::LagrangePolynomialSpace{<:Number,D}) where{D}
     npoints = size(space)

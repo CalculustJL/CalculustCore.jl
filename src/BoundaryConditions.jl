@@ -43,6 +43,20 @@ end
 # BC implementation
 ###
 
+function set_val!(M, val, idx)
+    len = length(idx)
+
+    if len < 1
+        M
+    elseif len == 1
+        M[idx] = val
+    else
+        M[idx] = [val for i in 1:length(idx)]
+    end
+
+    M
+end
+
 function boundary_antimasks(space, domain, indices)
     loc_num = local_numbering(space)
 
@@ -50,7 +64,8 @@ function boundary_antimasks(space, domain, indices)
     for i=1:num_boundaries(domain)
         M = similar(loc_num, Bool) * false |> _vec
         idx = indices[i]
-        M[idx] = [true for i in 1:length(idx)]
+#       M[idx] = [true for i in 1:length(idx)]
+        set_val!(M, true, idx)
         push!(antimasks, M)
     end
 
@@ -68,7 +83,8 @@ function dirichlet_mask(space, domain, indices, bc_dict)
 
         if bc isa DirichletBC
             idx = indices[i]
-            M[idx] = [false for i in 1:length(idx)]
+#           M[idx] = [false for i in 1:length(idx)]
+            set_val!(M, false, idx)
         end
     end
 

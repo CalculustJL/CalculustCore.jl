@@ -15,6 +15,7 @@ import SciMLOperators: AbstractSciMLOperator, _reshape, _vec
 
 using LinearAlgebra
 using LinearSolve
+using Plots
 
 import UnPack: @unpack
 import Setfield: @set!
