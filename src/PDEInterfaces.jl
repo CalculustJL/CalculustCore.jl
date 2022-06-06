@@ -57,6 +57,7 @@ Base.eltype(::Union{
            ) where{T,D} = T
 
 # misc
+include("utils.jl")
 include("NDgrid.jl")
 
 # domain
