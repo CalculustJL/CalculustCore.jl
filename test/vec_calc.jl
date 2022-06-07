@@ -1,5 +1,7 @@
 #
 using PDEInterfaces, LinearAlgebra
+using PDEInterfaces.LinearSolve
+using PDEInterfaces:solve
 using PDEInterfaces.SciMLOperators
 
 @testset "1D GLL" begin
@@ -18,7 +20,7 @@ using PDEInterfaces.SciMLOperators
 
     u0 = @. 0*x + 1
     u1 = @. 1.0*x
-    u2 = @. sin(π * x)
+    u2 = @. sin(10π * x)
     u4 = @. exp(x) / cos(x)
     u5 = @. 1 / (1+16x^2)
 
@@ -31,7 +33,7 @@ using PDEInterfaces.SciMLOperators
     # Gradient
     @test ≈(D * u0, @. 0.0*x; atol=1e-8)
     @test ≈(D * u1, @. 0.0*x + 1.0; atol=1e-8)
-    @test ≈(D * u2, @. π * cos(π * x); atol=1e-8)
+    @test ≈(D * u2, @. (10π) * cos(10π * x); atol=1e-8)
 
     # Mass
     @test ≈(sum(M * u0), 2.0; atol=1e-8)
@@ -45,8 +47,9 @@ using PDEInterfaces.SciMLOperators
     MM = R * M
 
     bb = MM * u2
+#   sol = solve(LinearProblem(AA, bb), IterativeSolversJL_CG(); verbose=true)
     uu = AA \ bb
     u  = R' * uu
-    @test ≈(-u, -(1 / π^2) .* u2; atol=1e-8)
+    @test ≈(-u, -(1 / (10π)^2) .* u2; atol=1e-8)
 end
 #
