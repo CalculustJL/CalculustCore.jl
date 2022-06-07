@@ -1,4 +1,7 @@
 #
+import SciMLOperators: AbstractSciMLOperator, _reshape, _vec
+import LinearSolve: default_tol
+
 function set_val!(M, val, idx)
     len = length(idx)
 

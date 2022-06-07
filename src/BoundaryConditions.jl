@@ -24,7 +24,7 @@ Base.@kwdef struct NeumannBC{F}
 end
 
 """
-    f1(x)u(x) + f2(x)(n⋅∇)u(x) = f3(x), x ∈ ∂Ω
+f1(x)u(x) + f2(x)(n⋅∇)u(x) = f3(x), x ∈ ∂Ω
 """
 struct RobinBC{F1,F2,F3}
     f1::F1

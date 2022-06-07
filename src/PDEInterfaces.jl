@@ -10,11 +10,11 @@ export solve, init
 
 using SciMLOperators
 import SciMLOperators: ⊗, IdentityOperator
-import SciMLOperators: AbstractSciMLOperator, _reshape, _vec
 ##########################################
 
 using LinearAlgebra
 using LinearSolve
+
 using Plots
 
 import UnPack: @unpack
@@ -114,6 +114,6 @@ export
        DirichletBC, NeumannBC, RobinBC,
 
        ## Boundary vale problem
-       BoundaryValuePDEProblem, LinearBVPDEAlg, NonlinearBVPDEAlg
+       BVPDEProblem, LinearBVPDEAlg, NonlinearBVPDEAlg
 
 end # module

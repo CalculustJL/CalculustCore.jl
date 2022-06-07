@@ -15,9 +15,9 @@ using Plots
                    :Upper1 => DirichletBC(),
                   )
         
-        prob = BoundaryValuePDEProblem(op, f, bcs, space)
+        prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
-        u = solve(prob, alg)
+        u = solve(prob, alg; verbose=true)
         plt = plot(x, u)
         savefig(plt, "bvp_dd")
     end
@@ -30,10 +30,10 @@ using Plots
                    :Upper1 => NeumannBC(),
                   )
         
-        prob = BoundaryValuePDEProblem(op, f, bcs, space)
+        prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
     
-        u = solve(prob, alg)
+        u = solve(prob, alg; verbose=true)
         plt = plot(x, u)
         savefig(plt, "bvp_dn")
     end
@@ -46,7 +46,8 @@ end
 
     @testset "Homogeneous Dirichlet" begin
         op = laplaceOp(space)
-        f  = @. 0*x + 1
+        f  = @. sin(4π*x) * sin(3π*y)
+#       f  = @. x * 0 + 1
         bcs = Dict(
                    :Lower1 => DirichletBC(),
                    :Upper1 => DirichletBC(),
@@ -55,11 +56,29 @@ end
                    :Upper2 => DirichletBC(),
                   )
 
-        prob = BoundaryValuePDEProblem(op, f, bcs, space)
+        prob = BVPDEProblem(op, f, bcs, space)
+        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
+        u = solve(prob, alg; verbose=true)
+        plt = plot(u, space)
+        savefig(plt, "bvp2d_dd")
+    end
+
+    @testset "Dirichlet-Neumann" begin
+        op = laplaceOp(space)
+        f  = @. 0*x + 1
+        bcs = Dict(
+                   :Lower1 => NeumannBC(),
+                   :Upper1 => DirichletBC(),
+
+                   :Lower2 => DirichletBC(),
+                   :Upper2 => NeumannBC(),
+                  )
+
+        prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
         u = solve(prob, alg)
         plt = plot(u, space)
-        savefig(plt, "bvp2d_dd")
+        savefig(plt, "bvp2d_dn")
     end
 end
 #

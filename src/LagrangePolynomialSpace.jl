@@ -54,7 +54,7 @@ function LagrangePolynomialSpace(n::Integer;
     grid = _vec.((z,))
     mass_matrix = _vec(w)
     deriv_mats = (D,)
-    local_numbering = reshape(1:prod(npoints), npoints)
+    local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
@@ -65,9 +65,12 @@ function LagrangePolynomialSpace(n::Integer;
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendre1D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendre1D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychev1D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
+GaussLobattoLegendre1D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
+GaussLegendre1D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
+GaussChebychev1D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
 function LagrangePolynomialSpace(nr::Integer, ns::Integer;
         domain::AbstractDomain{<:Number,2}=reference_box(2),
@@ -100,7 +103,7 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     grid = _vec.((r, s,))
     mass_matrix = _vec(wr * ws')
     deriv_mats = (Dr, Ds,)
-    local_numbering = reshape(1:prod(npoints), npoints)
+    local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
                                     domain, npoints, quadratures, grid,
@@ -111,9 +114,12 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendre2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendre2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychev2D(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
+GaussLobattoLegendre2D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
+GaussLegendre2D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
+GaussChebychev2D(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
 ### abstract interface
 
@@ -167,7 +173,6 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,1})
     Dx = MatrixOperator(Dr)
 
     DD = AbstractSciMLOperator[Dx]
-    reshape(DD, 1, 1)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,2})
@@ -182,7 +187,6 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
 
     DD = AbstractSciMLOperator[Dx
                                Dy]
-    reshape(DD, 2, 1)
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,3})
@@ -200,7 +204,6 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     DD = AbstractSciMLOperator[Dx
                                Dy
                                Dz]
-    reshape(DD, 3, 1)
 end
 
 ### interpolation operators

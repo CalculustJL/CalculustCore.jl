@@ -163,8 +163,7 @@ function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
     M  = massOp(space)
     MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
 
-    lapl = DD' * MM * DD
-    first(lapl)
+    DD' * MM * DD
 end
 
 """
@@ -197,8 +196,7 @@ function advectionOp(space::AbstractSpace{<:Number,D},
     M  = massOp(space)
     MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
 
-    advectOp = VV' * MM * DD
-    first(advectOp)
+    VV' * MM * DD
 end
 
 """
@@ -206,7 +204,7 @@ Divergence
 """
 function divergenceOp(space::AbstractSpace{<:Number,D}) where{D}
     Dx = gradOp(space)
-    return reshape(Dx, 1, D)
+    return _reshape(Dx, 1, D)
 end
 
 ### dealiased operators
@@ -234,8 +232,7 @@ function laplaceOp(space1::AbstractSpace{<:Number,D},
     DD1 = gradOp(space1)
     JDD = J12 .* DD1
 
-    laplOp = JDD' * MM2 * JDD
-    first(laplOp)
+    JDD' * MM2 * JDD
 end
 
 """
@@ -253,13 +250,12 @@ function advectionOp(space1::AbstractSpace{<:Number,D},
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
     VV1 = AbstractSciMLOperator[DiagonalOperator.(vel)...]
-    VV2 = J12 .* V1
+    VV2 = J12 .* VV1
     M2  = massOp(space2)
     MM2 = Diagonal(AbstractSciMLOperator[M for i=1:D])
     DD1 = gradOp(space1)
 
-    advectOp = J12' .* (VV2' * MM2 * (J12 .* DD1))
-    first(advectOp)
+    VV2' * MM2 * (J12 .* DD1)
 end
 
 ###
