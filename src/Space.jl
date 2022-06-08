@@ -163,7 +163,7 @@ function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
     M  = massOp(space)
     MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
 
-    DD' * MM * DD
+    -(DD' * MM * DD)
 end
 
 """
@@ -232,7 +232,7 @@ function laplaceOp(space1::AbstractSpace{<:Number,D},
     DD1 = gradOp(space1)
     JDD = J12 .* DD1
 
-    JDD' * MM2 * JDD
+    -(JDD' * MM2 * JDD)
 end
 
 """

@@ -51,6 +51,6 @@ using PDEInterfaces.LinearSolve
     @time sol = solve(LinearProblem(AA, bb), IterativeSolversJL_CG(); verbose=false)
     uu = sol.u
     u  = R' * uu
-    @test ≈(-u, -(1 / (10π)^2) .* u2; atol=1e-8)
+    @test ≈(u, -(1 / (10π)^2) .* u2; atol=1e-8)
 end
 #
