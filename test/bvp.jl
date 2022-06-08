@@ -19,8 +19,8 @@ using PDEInterfaces.LinearSolve
         prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
-        sol = solve(prob, alg; verbose=false)
-        plt = plot(x, sol)
+        @time sol = solve(prob, alg; verbose=false)
+        plt = plot(sol)
         savefig(plt, "bvp_dd")
     end
     
@@ -35,8 +35,8 @@ using PDEInterfaces.LinearSolve
         prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
-        sol = solve(prob, alg; verbose=false)
-        plt = plot(x, sol)
+        @time sol = solve(prob, alg; verbose=false)
+        plt = plot(sol)
         savefig(plt, "bvp_dn")
     end
 end
@@ -61,8 +61,8 @@ end
         prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
 
-        sol = solve(prob, alg; verbose=false)
-        plt = plot(sol, space)
+        @time sol = solve(prob, alg; verbose=false)
+        plt = plot(sol)
         savefig(plt, "bvp2d_dd")
     end
 
@@ -80,8 +80,8 @@ end
         prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
-        sol = solve(prob, alg; verbose=false)
-        plt = plot(sol, space)
+        @time sol = solve(prob, alg; verbose=false)
+        plt = plot(sol)
         savefig(plt, "bvp2d_dn")
     end
 end

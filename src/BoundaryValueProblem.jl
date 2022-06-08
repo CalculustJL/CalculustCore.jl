@@ -54,7 +54,7 @@ struct BVPDEProblem{
     end
 end
 
-function Base.summary(io::IO, prob::AbstractBVPDEProblem)
+function Base.summary(io::IO, prob::BVPDEProblem)
     type_color, no_color = SciMLBase.get_colorizers(io)
     print(io,
           type_color, nameof(typeof(prob)),
@@ -68,7 +68,7 @@ function Base.summary(io::IO, prob::AbstractBVPDEProblem)
          )
 end
 
-function Base.show(io::IO, mime::MIME"text/plain", A::AbstractBVPDEProblem)
+function Base.show(io::IO, mime::MIME"text/plain", A::BVPDEProblem)
     summary(io, A)
     println(io)
     println(io, "u0: ")
@@ -96,6 +96,47 @@ struct BVPDECache{Top,Tu,Tbc,Tsp,Talg} <: AbstractBVPDECache
     space::Tsp
     """ Algorithm """
     alg::Talg
+end
+
+struct BVPDESolution{
+                     T,D,uType<:AbstractArray{T,D},R,A,C
+                    } #<: SciMLBase.AbstractDAESolution{T,D}
+  u::uType
+  resid::R
+  alg::A
+  retcode::Symbol
+  iters::Int
+  cache::C
+end
+
+function build_bvpde_solution(alg, u, resid, cache; retcode=:Default, iters=0)
+    BVPDESolution(u, resid, alg, retcode, iters, cache)
+end
+
+function Plots.plot(sol::BVPDESolution{<:Number,1})
+    @unpack u, cache = sol
+    @unpack space = cache
+
+    (x,) = grid = get_grid(space)
+
+    plt = plot(x, u, legend=false)
+end
+
+function Plots.plot(sol::BVPDESolution{<:Number,2}; a=45, b=60)
+    @unpack u, cache = sol
+    @unpack space = cache
+
+    npts = size(space)
+    (x,y,) = grid = get_grid(space)
+
+    u = _reshape(u, npts)
+    x = _reshape(x, npts)
+    y = _reshape(y, npts)
+
+    plt = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
+    plt = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
+
+    plt
 end
 
 Base.@kwdef struct LinearBVPDEAlg{Tl} <: AbstractBVPDEAlgorithm
@@ -164,16 +205,11 @@ function SciMLBase.solve(cache::BVPDECache; kwargs...)
     rhs   = makeRHS(f, bc)
 
     linprob = LinearProblem(lhsOp, rhs; u0=_vec(u))
-    @time linsol  = solve(linprob, linalg; kwargs...)
-    @show linsol.iters
+    linsol  = solve(linprob, linalg; kwargs...)
 
-    # TODO - build solution object
-    # - residual
-    # - iters
-    # - retcode
-    # - space
+    resid = norm(lhsOp * linsol.u - rhs, Inf)
 
-    u
+    build_bvpde_solution(alg, u, resid, cache; iters=linsol.iters)
 end
 
 # TODO - plot recipe for sol

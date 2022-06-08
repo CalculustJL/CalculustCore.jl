@@ -129,20 +129,6 @@ local_numbering(space::LagrangePolynomialSpace) = space.local_numbering
 
 Base.size(space::LagrangePolynomialSpace) = space.npoints
 
-function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2};a=45,b=60)
-    npts = size(space)
-    (x,y,) = grid = get_grid(space)
-
-    u = _reshape(u, npts)
-    x = _reshape(x, npts)
-    y = _reshape(y, npts)
-
-    p = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
-    p = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
-
-    p
-end
-
 function boundary_nodes(space::LagrangePolynomialSpace{<:Number,D}) where{D}
     npoints = size(space)
     loc_num = local_numbering(space)
