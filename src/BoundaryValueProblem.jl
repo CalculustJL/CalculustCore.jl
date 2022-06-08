@@ -98,15 +98,28 @@ struct BVPDECache{Top,Tu,Tbc,Tsp,Talg} <: AbstractBVPDECache
     alg::Talg
 end
 
-struct BVPDESolution{
-                     T,D,uType<:AbstractArray{T,D},R,A,C
-                    } #<: SciMLBase.AbstractDAESolution{T,D}
+struct BVPDESolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
   u::uType
   resid::R
   alg::A
   retcode::Symbol
   iters::Int
   cache::C
+
+  function BVPDESolution(u, resid, alg, retcode, iters, cache)
+      @unpack space = cache
+
+      new{
+          eltype(space),
+          dims(space),
+          typeof(u),
+          typeof(resid),
+          typeof(alg),
+          typeof(cache),
+         }(
+           u, resid, alg, retcode, iters, cache,
+          )
+  end
 end
 
 function build_bvpde_solution(alg, u, resid, cache; retcode=:Default, iters=0)
