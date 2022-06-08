@@ -20,6 +20,7 @@ using PDEInterfaces.LinearSolve
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
         @time sol = solve(prob, alg; verbose=false)
+        @test sol.resid < 1e-8
         plt = plot(sol)
         savefig(plt, "bvp_dd")
     end
@@ -36,6 +37,7 @@ using PDEInterfaces.LinearSolve
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
         @time sol = solve(prob, alg; verbose=false)
+        @test sol.resid < 1e-8
         plt = plot(sol)
         savefig(plt, "bvp_dn")
     end
@@ -62,6 +64,7 @@ end
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
 
         @time sol = solve(prob, alg; verbose=false)
+        @test sol.resid < 1e-8
         plt = plot(sol)
         savefig(plt, "bvp2d_dd")
     end
@@ -81,6 +84,7 @@ end
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
 
         @time sol = solve(prob, alg; verbose=false)
+        @test sol.resid < 1e-8
         plt = plot(sol)
         savefig(plt, "bvp2d_dn")
     end

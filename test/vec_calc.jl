@@ -49,7 +49,6 @@ using PDEInterfaces.LinearSolve
     bb = MM * u2
     AA = cache_operator(AA, bb)
     @time sol = solve(LinearProblem(AA, bb), IterativeSolversJL_CG(); verbose=false)
-    @show sol.iters
     uu = sol.u
     u  = R' * uu
     @test ≈(-u, -(1 / (10π)^2) .* u2; atol=1e-8)
