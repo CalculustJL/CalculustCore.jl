@@ -164,10 +164,19 @@ function SciMLBase.solve(cache::BVPDECache; kwargs...)
     rhs   = makeRHS(f, bc)
 
     linprob = LinearProblem(lhsOp, rhs; u0=_vec(u))
-    linsol  = solve(linprob, linalg; kwargs...)
+    @time linsol  = solve(linprob, linalg; kwargs...)
+    @show linsol.iters
+
+    # TODO - build solution object
+    # - residual
+    # - iters
+    # - retcode
+    # - space
 
     u
 end
+
+# TODO - plot recipe for sol
 
 function SciMLBase.init(prob::AbstractBVPDEProblem,
                         alg::AbstractBVPDEAlgorithm = nothing;

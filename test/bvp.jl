@@ -1,6 +1,7 @@
 #
-using PDEInterfaces, LinearSolve
-using Plots
+using PDEInterfaces, Plots
+using PDEInterfaces.SciMLOperators
+using PDEInterfaces.LinearSolve
 
 @testset "1D Laplace" begin
     domain = reference_box(1)
@@ -16,9 +17,10 @@ using Plots
                   )
         
         prob = BVPDEProblem(op, f, bcs, space)
-        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
-        u = solve(prob, alg; verbose=true)
-        plt = plot(x, u)
+        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
+
+        sol = solve(prob, alg; verbose=false)
+        plt = plot(x, sol)
         savefig(plt, "bvp_dd")
     end
     
@@ -31,10 +33,10 @@ using Plots
                   )
         
         prob = BVPDEProblem(op, f, bcs, space)
-        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
-    
-        u = solve(prob, alg; verbose=true)
-        plt = plot(x, u)
+        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
+
+        sol = solve(prob, alg; verbose=false)
+        plt = plot(x, sol)
         savefig(plt, "bvp_dn")
     end
 end
@@ -58,8 +60,9 @@ end
 
         prob = BVPDEProblem(op, f, bcs, space)
         alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
-        u = solve(prob, alg; verbose=true)
-        plt = plot(u, space)
+
+        sol = solve(prob, alg; verbose=false)
+        plt = plot(sol, space)
         savefig(plt, "bvp2d_dd")
     end
 
@@ -75,9 +78,10 @@ end
                   )
 
         prob = BVPDEProblem(op, f, bcs, space)
-        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_GMRES())
-        u = solve(prob, alg)
-        plt = plot(u, space)
+        alg  = LinearBVPDEAlg(linalg=IterativeSolversJL_CG())
+
+        sol = solve(prob, alg; verbose=false)
+        plt = plot(sol, space)
         savefig(plt, "bvp2d_dn")
     end
 end
