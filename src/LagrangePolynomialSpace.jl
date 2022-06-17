@@ -157,7 +157,7 @@ end
 
 grid(space::LagrangePolynomialSpace) = space.points
 domain(space::LagrangePolynomialSpace) = space.dom
-quadrature(space::LagrangePolynomialSpace) = space.quads
+quadratures(space::LagrangePolynomialSpace) = space.quads
 local_numbering(space::LagrangePolynomialSpace) = space.loc_num
 
 function global_numbering(space::AbstractSpace)
