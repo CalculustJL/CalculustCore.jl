@@ -1,23 +1,14 @@
 #
 ###
-# Gather-Scatter Operators - enforce continuity/ periodicity
+# Gather-Scatter Operators
 ###
-
-abstract type AbstractGatherScatterOperator{D} <: SciMLOperators.AbstractSciMLOperator{Bool} end
-
-Base.adjoint(A::AbstractGatherScatterOperator) = A
-
-# TODO write GatherScatterOp that calls NNlib.gather, scatter
-# implement mul!, *
-struct GatherScatter{D} <: AbstractGatherScatterOperator{D}
-    global_numbering
-    implementation
-end
 
 """
 Q*Q'*u where Q: local -> global operator
+
+TODO write GatherScatterOp that calls NNlib.gather, scatter
 """
-function DSS(u,l2g,g2l)
+function DSS(u,loc_num,glo_num)
 
     Qu   = NNlib.scatter(+,u,l2g) # Q
     QQtu = NNlib.gather(Qu,g2l)   # Q'
@@ -25,9 +16,30 @@ function DSS(u,l2g,g2l)
     return v
 end
 
-"""
-map from local vector to global vector
-"""
+function gatherScatterOp(space::AbstractSpace)
+
+    N = length(space)
+    loc_num = local_numbering(space)
+    glo_num = global_numbering(space)
+
+    # DSS
+    op  = (du, u, p, t) -> ()
+    opi = (du, u, p, t) -> ()
+
+    FunctionOperator(
+                     op;
+
+                     isinplace=true,
+                     T=Bool,
+                     size=(N,N),
+
+                     op_inverse=opi,
+
+                     issymmetric=true,
+                     ishermitian=true,
+                    )
+end
+
 function Qmatrix(n::Integer, periodic::Bool)
     Q = sparse(I,n, n-1)
 
@@ -38,25 +50,23 @@ function Qmatrix(n::Integer, periodic::Bool)
     Q
 end
 
+# replace with call to NNlib gather-scatter
 function GatherScatter(space::AbstractSpectralSpace{<:Number,D}) where{D}
     domain = get_domain(space)
     periodic = isperiodic(domain)
     npoints = get_numpoints(space)
 
     if !prod(periodic...)
-        return IdentityOp{D}()
+        return IdentityOp{N}()
     end
 
     Qmats = Qmatrix.(npoints, periodic)
 
     Q = if D == 1
         MatrixOp(Qmats...)
-    elseif D == 2
-        TensorProductOp2D(Qmats...)
-    elseif D == 3
-        TensorProductOp3D(Qmats...)
-    end
+    else
+        TensorProductOperator(Qmats...)
 
-    QQt = Q * Q' # replace with call to NNlib gather-scatter
+    QQt = Q * Q'
 end
 #

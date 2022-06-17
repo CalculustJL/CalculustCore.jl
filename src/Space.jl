@@ -9,6 +9,37 @@
 ###
 
 import Base: length, summary, size
+import Plots: plot
+
+"""
+get number of points
+"""
+Base.size
+
+"""
+length of vector in space
+"""
+Base.length(space::AbstractSpace) = prod(size(space))
+
+function Base.summary(io::IO, space::AbstractSpace{T,D}) where{T,D}
+    type_color, no_color = SciMLBase.get_colorizers(io)
+    print(io,
+          type_color, nameof(typeof(space)),
+          no_color," over domain ",
+          type_color,typeof(domain(space)),
+          no_color," with uType ",
+          type_color,typeof(first(grid(space))),
+          no_color
+         )
+end
+
+"""
+plot of function over space
+args:
+    - u scalar field
+    - space AbstractSpace
+"""
+Plots.plot
 
 """
 get domain
@@ -18,7 +49,7 @@ args:
 ret:
     AbstractDomain
 """
-function get_domain end # TODO rename to domain
+function domain end
 
 """
 args:
@@ -26,7 +57,7 @@ args:
 ret:
     (x1, ..., xD,) # incl end points
 """
-function get_grid end # TODO rename to grid
+function grid end
 
 """
 args:
@@ -55,39 +86,9 @@ ret:
 function basis end
 
 """
-get number of points
-"""
-Base.size
-
-"""
-length of vector in space
-"""
-Base.length(space::AbstractSpace) = prod(size(space))
-
-"""
-plot of function over space
-args:
-    - u scalar field
-    - space AbstractSpace
-"""
-Plots.plot
-
-"""
 get indices of boudnary nodes
 """
 function boundary_nodes end
-
-function Base.summary(io::IO, space::AbstractSpace{T,D}) where{T,D}
-    type_color, no_color = SciMLBase.get_colorizers(io)
-    print(io,
-          type_color, nameof(typeof(space)),
-          no_color," over domain ",
-          type_color,typeof(get_domain(space)),
-          no_color," with uType ",
-          type_color,typeof(first(get_grid(space))),
-          no_color
-         )
-end
 
 ### interpolation
 """
@@ -148,7 +149,7 @@ function massOp end
 Laplace Operator
 
 for v,u in H¹₀(Ω)
-get_
+
 (v,-∇² u) = (vx,ux) + (vy,uy)\n
          := a(v,u)\n
 

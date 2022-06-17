@@ -100,7 +100,7 @@ export
        Field,
 
        ## Spaces
-       get_grid, get_domain, numpoints,
+       grid, domain, numpoints,
 
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
 

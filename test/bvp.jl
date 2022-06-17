@@ -3,10 +3,12 @@ using PDEInterfaces, Plots
 using PDEInterfaces.SciMLOperators
 using PDEInterfaces.LinearSolve
 
+N = 32
+
 @testset "1D Laplace" begin
-    domain = reference_box(1)
-    space = GaussLobattoLegendre1D(32; domain=domain)
-    (x,) = grid = get_grid(space)
+    dom = reference_box(1)
+    space = GaussLobattoLegendre1D(N; domain=dom)
+    (x,) = pts = grid(space)
 
     @testset "Homogeneous Dirichlet-Dirichelt" begin
         op = laplaceOp(space)
@@ -44,9 +46,9 @@ using PDEInterfaces.LinearSolve
 end
 
 @testset "2D Laplace" begin
-    domain = reference_box(2)
-    space = GaussLobattoLegendre1D(32, 32; domain=domain)
-    (x, y,) = grid = get_grid(space)
+    dom = reference_box(2)
+    space = GaussLobattoLegendre1D(N, N; domain=dom)
+    (x, y,) = pts = grid(space)
 
     @testset "Homogeneous Dirichlet" begin
         op = laplaceOp(space)

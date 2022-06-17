@@ -99,27 +99,27 @@ struct BVPDECache{Top,Tu,Tbc,Tsp,Talg} <: AbstractBVPDECache
 end
 
 struct BVPDESolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
-  u::uType
-  resid::R
-  alg::A
-  retcode::Symbol
-  iters::Int
-  cache::C
+    u::uType
+    resid::R
+    alg::A
+    retcode::Symbol
+    iters::Int
+    cache::C
 
-  function BVPDESolution(u, resid, alg, retcode, iters, cache)
-      @unpack space = cache
+    function BVPDESolution(u, resid, alg, retcode, iters, cache)
+        @unpack space = cache
 
-      new{
-          eltype(space),
-          dims(space),
-          typeof(u),
-          typeof(resid),
-          typeof(alg),
-          typeof(cache),
-         }(
-           u, resid, alg, retcode, iters, cache,
-          )
-  end
+        new{
+            eltype(space),
+            dims(space),
+            typeof(u),
+            typeof(resid),
+            typeof(alg),
+            typeof(cache),
+           }(
+             u, resid, alg, retcode, iters, cache,
+            )
+    end
 end
 
 function build_bvpde_solution(alg, u, resid, cache; retcode=:Default, iters=0)
@@ -127,29 +127,11 @@ function build_bvpde_solution(alg, u, resid, cache; retcode=:Default, iters=0)
 end
 
 function Plots.plot(sol::BVPDESolution{<:Number,1})
-    @unpack u, cache = sol
-    @unpack space = cache
-
-    (x,) = grid = get_grid(space)
-
-    plt = plot(x, u, legend=false)
+    plot(sol.u, sol.cache.space)
 end
 
 function Plots.plot(sol::BVPDESolution{<:Number,2}; a=45, b=60)
-    @unpack u, cache = sol
-    @unpack space = cache
-
-    npts = size(space)
-    (x,y,) = grid = get_grid(space)
-
-    u = _reshape(u, npts)
-    x = _reshape(x, npts)
-    y = _reshape(y, npts)
-
-    plt = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
-    plt = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
-
-    plt
+    plot(sol.u, sol.cache.space)
 end
 
 Base.@kwdef struct LinearBVPDEAlg{Tl} <: AbstractBVPDEAlgorithm
@@ -187,18 +169,18 @@ function makeRHS(f, bc::AbstractBoundaryCondition)
     neumann   = zero(b)
     robin     = zero(b)
 
-    grid = get_grid(space)
-    domain = get_domain(space)
+    pts = grid(space)
+    dom = domain(space)
 
-    for i=1:num_boundaries(domain)
-        tag   = boundary_tag(domain, i)
+    for i=1:num_boundaries(dom)
+        tag   = boundary_tag(dom, i)
         bc    = bc_dict[tag]
         amask = antimasks[i]
 
         if bc isa DirichletBC
-            dirichlet += amask * bc.f(grid...)
+            dirichlet += amask * bc.f(pts...)
         elseif bc isa NeumannBC
-            neumann += amask * bc.f(grid...)
+            neumann += amask * bc.f(pts...)
         elseif bc isa RobinBC
             # TODO
         elseif bc isa PeriodicBC
@@ -224,8 +206,6 @@ function SciMLBase.solve(cache::BVPDECache; kwargs...)
 
     build_bvpde_solution(alg, u, resid, cache; iters=linsol.iters)
 end
-
-# TODO - plot recipe for sol
 
 function SciMLBase.init(prob::AbstractBVPDEProblem,
                         alg::AbstractBVPDEAlgorithm = nothing;
