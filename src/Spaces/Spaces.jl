@@ -32,8 +32,8 @@ abstract type AbstractSpectralSpace{T,D} <: AbstractSpace{T,D} end
 abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 
 include("interface.jl")
-include("VectorCalculus.jl")
-#include("GatherScatter.jl")
+include("vectorcalculus.jl")
+#include("gatherscatter.jl")
 
 # Concrete Spaces
 include("LagrangePolynomials/LagrangePolynomialSpace.jl")
