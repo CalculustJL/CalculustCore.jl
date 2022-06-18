@@ -1,4 +1,6 @@
 #
+import FFTW: plan_rfft, plan_irfft
+
 # look at FourierFlows.jl for ref
 struct FourierSpace{
                     T,

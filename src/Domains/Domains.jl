@@ -4,7 +4,6 @@ Domain Interface
 module Domains
 
 import Base: eltype, ∈, in
-import PDEInterfaces: dims, deform
 
 """ D-Dimensional Domain """
 abstract type AbstractDomain{T,D} end

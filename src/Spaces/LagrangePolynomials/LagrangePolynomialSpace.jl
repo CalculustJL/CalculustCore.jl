@@ -1,3 +1,6 @@
+#
+import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
+include("LagrangeMatrices.jl")
 
 ###
 # Lagrange polynomial function spaces
@@ -74,13 +77,6 @@ function LagrangePolynomialSpace(n::Integer;
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendre1D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendre1D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychev1D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
-
 function LagrangePolynomialSpace(nr::Integer, ns::Integer;
         domain::AbstractDomain{<:Number,2}=reference_box(2),
         quadrature = gausslobatto,
@@ -123,12 +119,9 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain isa DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendre2D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendre2D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychev2D(args...; kwargs...) =
-    LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
+GaussLobattoLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
+GaussLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
+GaussChebychev(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
 ### abstract interface
 
@@ -182,7 +175,9 @@ function boundary_nodes(space::LagrangePolynomialSpace)
     indices
 end
 
-### vector calculus ops
+###
+# vector calculus ops
+###
 
 function massOp(space::LagrangePolynomialSpace)
     @unpack mass_matrix = space
@@ -195,7 +190,7 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,1})
 
     Dx = MatrixOperator(Dr)
 
-    DD = AbstractSciMLOperator[Dx]
+    DD = [Dx,]
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,2})
@@ -205,11 +200,11 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
     Ir = IdentityOperator{nr}()
     Is = IdentityOperator{ns}()
 
-    Dx = ⊗(Dr, Is)
-    Dy = ⊗(Ir, Ds)
+    Dx = ⊗(Is, Dr)
+    Dy = ⊗(Ds, Ir)
 
-    DD = AbstractSciMLOperator[Dx
-                               Dy]
+    DD = [Dx
+          Dy]
 end
 
 function gradOp(space::LagrangePolynomialSpace{<:Number,3})
@@ -220,16 +215,18 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,3})
     Is = IdentityOperator{ns}()
     It = IdentityOperator{nt}()
 
-    Dx = ⊗(Dr, Is, It)
-    Dy = ⊗(Ir, Ds, It)
-    Dz = ⊗(Ir, Is, Dt)
+    Dx = ⊗(It, Is, Dr)
+    Dy = ⊗(It, Ds, It)
+    Dz = ⊗(Dt, Is, It)
 
-    DD = AbstractSciMLOperator[Dx
-                               Dy
-                               Dz]
+    DD = [Dx
+          Dy
+          Dz]
 end
 
-### interpolation operators
+###
+# interpolation operators
+###
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,1},
                   space2::LagrangePolynomialSpace{<:Number,1})
@@ -252,7 +249,7 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,2},
     Jr = lagrange_interp_mat(r2, r1) # from 1 to 2
     Js = lagrange_interp_mat(s2, s1)
 
-    ⊗(Jr, Js)
+    ⊗(Js, Jr)
 end
 
 function interpOp(space1::LagrangePolynomialSpace{<:Number,3},
@@ -270,6 +267,6 @@ function interpOp(space1::LagrangePolynomialSpace{<:Number,3},
     Js = lagrange_interp_mat(s2, s1)
     Jt = lagrange_interp_mat(t2, t1)
 
-    ⊗(Jr, Js, Jt)
+    ⊗(Jt, Js, Jr)
 end
 #

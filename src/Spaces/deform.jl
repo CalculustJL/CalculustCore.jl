@@ -24,9 +24,9 @@ struct DeformedSpace{T,D,
     # add DeformedDomain
 end
 
-function deform(space::AbstractSpace{<:Number,D},
-                mapping = nothing, isseparable = false
-               ) where{D}
+function Domains.deform(space::AbstractSpace{<:Number,D},
+                        mapping = nothing, isseparable = false
+                       ) where{D}
     if mappping === nothing
         J    = IdentityOp{D}()
         Jmat = Diagonal([J for i=1:D])
