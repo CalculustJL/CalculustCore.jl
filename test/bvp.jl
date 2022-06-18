@@ -1,5 +1,5 @@
 #
-using PDEInterfaces, Plots
+using PDEInterfaces
 using PDEInterfaces.SciMLOperators
 using PDEInterfaces.LinearSolve
 

@@ -14,9 +14,9 @@ import SciMLOperators: ⊗, IdentityOperator
 
 using LinearAlgebra
 using LinearSolve
+import Plots
 
-using Plots
-
+import Plots: plot, plot!
 import UnPack: @unpack
 import Setfield: @set!
 import SparseArrays: sparse
@@ -28,8 +28,6 @@ import FFTW: plan_rfft, plan_irfft
 # Abstract Supertypes
 ###
 
-""" D-Dimensional physical domain """
-abstract type AbstractDomain{T,D} end
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
 
@@ -64,6 +62,9 @@ include("NDgrid.jl")
 include("Domain.jl")
 include("DomainMaps.jl")
 
+# specializede abstractvector subtypes
+#include("Field.jl")
+
 # misc
 include("BoundaryConditions.jl")
 #include("GatherScatter.jl")
@@ -89,6 +90,9 @@ include("BoundaryValueProblem.jl")
 export 
        dims,
 
+       ## Plots
+       plot, plot!
+
        ## Domains
        isperiodic, endpoints, boundary_tags, boundary_tag,
        num_boundaries, bounding_box,
@@ -97,10 +101,10 @@ export
        reference_box, annulus_2D,
 
        ## Fields
-       Field,
+#      Field,
 
        ## Spaces
-       grid, domain, numpoints,
+       grid, domain,
 
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
 
