@@ -1,5 +1,7 @@
 #
+
 Base.eltype(::AbstractDomain{T}) where{T} = T
+
 """
 Dimension of domain
 """

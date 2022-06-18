@@ -24,6 +24,7 @@ include("BoundaryConditions.jl")
 
 # problems
 include("BoundaryValueProblem.jl")
+#include("ODEProblem.jl")
 #include("EigenValueProblem.jl")
 
 export 

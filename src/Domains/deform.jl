@@ -26,8 +26,11 @@ struct DeformedDomain{T,D,Tdom<:AbstractDomain{T,D}, Tm} <: AbstractDomain{T,D}
     isrescaling::Bool
 end
 
-function deform(domain, mapping = nothing;
-                isseparable = false, isrescaling = false
+function deform(
+                domain::AbstractDomain,
+                mapping = nothing;
+                isseparable = false,
+                isrescaling = false,
                )
     DeformedDomain(domain, mapping, isseparable, isrescaling)
 end

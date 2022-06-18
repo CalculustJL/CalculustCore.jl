@@ -32,10 +32,10 @@ boundary_tag(box::BoxDomain, i) = boundary_tag(box, cld(i,2), 1 + rem(i-1, 2))
 
 num_boundaries(box::BoxDomain{<:Number,D}) where{D} = 2D
 
-×(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
-×(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)
-×(int1::IntervalDomain, box2::BoxDomain) = BoxDomain(int1, box2.intervals...)
-×(box1::BoxDomain, box2::BoxDomain) = BoxDomain(box1.intervals..., box2.intervals...)
+⊗(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
+⊗(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)
+⊗(int1::IntervalDomain, box2::BoxDomain) = BoxDomain(int1, box2.intervals...)
+⊗(box1::BoxDomain, box2::BoxDomain) = BoxDomain(box1.intervals..., box2.intervals...)
 
 function domains_match(box1::BoxDomain, box2::BoxDomain)
     if dims(box1) == dims(box2)
@@ -45,7 +45,7 @@ function domains_match(box1::BoxDomain, box2::BoxDomain)
     
     ret = true
     for i=1:D1
-        ret × domains_match(box1.intervals[i], box2.intervals[i])
+        ret ⊗ domains_match(box1.intervals[i], box2.intervals[i])
     end
 
     ret

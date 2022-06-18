@@ -14,9 +14,9 @@ include("interface.jl")
 # Concrete Types
 include("interval.jl")
 include("box.jl")
+include("tensor.jl") # tensor domains
 #include("meshed.jl") # TODO
 
-# Deformations
 include("deform.jl")
 include("maps.jl")
 
@@ -29,7 +29,7 @@ export
        boundary_tag,
        num_boundaries,
 
-       ×,
+       ⊗,
        ∈,
        in,
 
