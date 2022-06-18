@@ -1,5 +1,5 @@
 #
-Base.eltype(::AbstractSpace{T}) where{T} = T
+Base.eltype(::AbstractDomain{T}) where{T} = T
 """
 Dimension of domain
 """

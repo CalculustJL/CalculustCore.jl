@@ -18,6 +18,7 @@ include("box.jl")
 #include("meshed.jl") # TODO
 
 # Deformations
+include("deform.jl")
 include("maps.jl")
 
 export

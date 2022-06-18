@@ -47,7 +47,7 @@ ret:
 function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
     DD = gradOp(space)
     M  = massOp(space)
-    MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
+    MM = Diagonal([M for i=1:D])
 
     -(DD' * MM * DD)
 end
@@ -77,10 +77,10 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
 function advectionOp(space::AbstractSpace{<:Number,D},
                      vel::AbstractVector...) where{D}
 
-    VV = AbstractSciMLOperator[DiagonalOperator.(vel)...]
+    VV = [DiagonalOperator.(vel)...]
     DD = gradOp(space)
     M  = massOp(space)
-    MM = Diagonal(AbstractSciMLOperator[M for i=1:D])
+    MM = Diagonal([M for i=1:D])
 
     VV' * MM * DD
 end
@@ -113,7 +113,7 @@ function laplaceOp(space1::AbstractSpace{<:Number,D},
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
     M2  = massOp(space2)
-    MM2 = Diagonal(AbstractSciMLOperator[M2 for i=1:D])
+    MM2 = Diagonal([M2 for i=1:D])
 
     DD1 = gradOp(space1)
     JDD = J12 .* DD1
@@ -135,10 +135,10 @@ function advectionOp(space1::AbstractSpace{<:Number,D},
                     ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
 
-    VV1 = AbstractSciMLOperator[DiagonalOperator.(vel)...]
+    VV1 = [DiagonalOperator.(vel)...]
     VV2 = J12 .* VV1
     M2  = massOp(space2)
-    MM2 = Diagonal(AbstractSciMLOperator[M for i=1:D])
+    MM2 = Diagonal([M for i=1:D])
     DD1 = gradOp(space1)
 
     VV2' * MM2 * (J12 .* DD1)

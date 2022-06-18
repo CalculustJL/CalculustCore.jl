@@ -2,15 +2,8 @@ module PDEInterfaces
 
 using Reexport
 
-##########################################
 #@reexport using SciMLBase
-import SciMLBase
-import SciMLBase:solve, init
-export solve, init
-
-using SciMLOperators
-import SciMLOperators: ⊗, IdentityOperator
-##########################################
+import SciMLBase; import SciMLBase:solve, init; export solve, init
 
 using LinearAlgebra
 using LinearSolve
@@ -18,56 +11,20 @@ import Plots
 
 import Plots: plot, plot!
 import UnPack: @unpack
-import Setfield: @set!
-import SparseArrays: sparse
-import NNlib: gather, scatter
-import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
-import FFTW: plan_rfft, plan_irfft
-
-###
-# AbstractSpace subtypes
-###
-
-""" D-Dimensional spectral space """
-abstract type AbstractSpectralSpace{T,D} <: AbstractSpace{T,D} end
-
-""" D-Dimensional tensor-product space """
-abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 
 # traits
-Base.eltype(::Union{
-                    AbstractSpace{T,D},
-                    AbstractDomain{T,D},
-                   }
-           ) where{T,D} = T
+dims(::AbstractArray{<:Any,D}) where{D} = D
 
 # misc
 include("Utils/utils.jl")
 
-# domain
-include("Domain.jl")
-include("DomainMaps.jl")
+include("Domains/Domains.jl")
+include("Spaces/Spaces.jl")
 
-# specializede abstractvector subtypes
 #include("Field.jl")
 
-# misc
 include("BoundaryConditions.jl")
-#include("GatherScatter.jl")
-
-# space
-include("Space.jl")
-include("DeformSpace.jl")
-
-# discretizations
 #include("Discretizations.jl")
-
-# polynomial spaces
-include("LagrangeMatrices.jl")
-include("LagrangePolynomialSpace.jl")
-
-# fourier spaces
-#include("FourierSpace.jl")
 
 # problems
 include("BoundaryValueProblem.jl")
@@ -79,29 +36,14 @@ export
        ## Plots
        plot, plot!
 
-       ## Domains
-       isperiodic, endpoints, boundary_tags, boundary_tag,
-       num_boundaries, bounding_box,
-
-       IntervalDomain, BoxDomain, deform,
-       reference_box, annulus_2D,
-
        ## Fields
 #      Field,
 
        ## Spaces
        grid, domain,
 
-       gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
-
-       interpOp,
-
-       LagrangePolynomialSpace,
-       GaussLobattoLegendre1D, GaussLegendre1D, GaussChebychev1D,
-       GaussLobattoLegendre2D, GaussLegendre2D, GaussChebychev2D,
-
        ## Boundary conditions
-       DirichletBC, NeumannBC, RobinBC,
+       DirichletBC, NeumannBC, RobinBC, PeriodicBC,
 
        ## Boundary vale problem
        BVPDEProblem, LinearBVPDEAlg, NonlinearBVPDEAlg

@@ -1,9 +1,11 @@
 #
 Base.eltype(::AbstractSpace{T}) where{T} = T
+
 """
 Dimension of underlying domain
 """
-dims(::AbstractSpace{<:Any,D}) where{D} = D
+PDEInterfaces.dims(::AbstractSpace{<:Any,D}) where{D} = D
+
 """
 get number of points
 """

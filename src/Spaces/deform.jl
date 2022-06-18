@@ -166,9 +166,9 @@ end
 
 function laplaceOp(space1::DeformedSpace{<:Number,D},
                    space2::DeformedSpace{<:Number,D},
-                   J = nothing
+                   interpolation_operator = nothing
                   ) where{D}
-    J12 = J !== nothing ? J : interpOp(space1, space2)
+    J12 = interpolation_operator !== nothing ? J : interpOp(space1, space2)
 
     Dr1   = gradOp(space1.space)
     M2    = MassOp(space2)
