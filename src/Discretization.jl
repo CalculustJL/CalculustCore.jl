@@ -4,7 +4,7 @@ struct SpectralGalerkin{Tsp::AbstractSpectralSpace}
 end
 
 @forward SpectralGalerkin.space (
-                                 get_grid, get_domain, numpoints,
+                                 grid, domain, npoints,
                                  boundary_nodes
                                 )
 # implement vector calculus ops here
@@ -14,7 +14,7 @@ struct SpectralCollocation{Tsp::AbstractSpectralSpace}
 end
                       
 @forward SpectralCollocation.space (
-                                    get_grid, get_domain, numpoints,
+                                    grid, domain, npoints,
                                     boundary_nodes
                                    )
 #
