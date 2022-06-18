@@ -25,13 +25,6 @@ import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
 import FFTW: plan_rfft, plan_irfft
 
 ###
-# Abstract Supertypes
-###
-
-""" Function space in D-Dimensional space """
-abstract type AbstractSpace{T,D} end
-
-###
 # AbstractSpace subtypes
 ###
 
@@ -41,13 +34,7 @@ abstract type AbstractSpectralSpace{T,D} <: AbstractSpace{T,D} end
 """ D-Dimensional tensor-product space """
 abstract type AbstractTensorProductSpace{T,D} <: AbstractSpace{T,D} end
 
-AbstractSupertypes{T,D} = Union{
-                                AbstractSpace{T,D},
-                                AbstractDomain{T,D},
-                               }
-
 # traits
-dims(::AbstractSupertypes{T,D}) where{T,D} = D
 Base.eltype(::Union{
                     AbstractSpace{T,D},
                     AbstractDomain{T,D},
@@ -55,8 +42,7 @@ Base.eltype(::Union{
            ) where{T,D} = T
 
 # misc
-include("utils.jl")
-include("NDgrid.jl")
+include("Utils/utils.jl")
 
 # domain
 include("Domain.jl")
