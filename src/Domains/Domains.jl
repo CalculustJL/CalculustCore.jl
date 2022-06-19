@@ -4,6 +4,7 @@ Domain Interface
 module Domains
 
 import Base: eltype, ∈, in
+import SciMLOperators: ⊗
 
 """ D-Dimensional Domain """
 abstract type AbstractDomain{T,D} end
@@ -14,7 +15,7 @@ include("interface.jl")
 # Concrete Types
 include("interval.jl")
 include("box.jl")
-include("tensor.jl") # tensor domains
+#include("tensor.jl") # TODO - like annulus ⊗ interval
 #include("meshed.jl") # TODO
 
 include("deform.jl")

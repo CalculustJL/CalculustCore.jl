@@ -103,7 +103,7 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     DeformedSpace(space, X, dXdR, dRdX, J, Ji)
 end
 
-get_grid(space::DeformedSpace) = space.grid
+grid(space::DeformedSpace) = space.grid
 
 """
 [Dx] * u = [rx sx] * [Dr] * u

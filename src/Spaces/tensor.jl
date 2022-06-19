@@ -4,8 +4,8 @@
 struct TensorProductSpace{
                           T,
                           D1+D2,
-                          I<:AbstractSpace{<:Number, D1},
-                          O<:AbstractSpace{<:Number, D2},
+                          I<:AbstractSpace{<:Any, D1},
+                          O<:AbstractSpace{<:Any, D2},
                          } <: AbstractTensorProductSpace{T,D1+D2}
     inner::I
     outer::O

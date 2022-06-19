@@ -11,20 +11,19 @@ module Spaces
 
 using LinearAlgebra
 using SciMLOperators
-import SciMLOperators: ⊗, IdentityOperator
-import NNlib: gather, scatter
-import UnPack: @unpack
+using SciMLOperators: IdentityOperator
+using NNlib: gather, scatter
+using UnPack: @unpack
 import Plots
 
-using Reexport
-include("../Domains/Domains.jl")
-@reexport using Domains
+using ..Domains
+using ..Domains: AbstractDomain
 
 # overload
 import Base: eltype, length, size
 import Base: summary, display, show
-import Domains: dims, deform
 import Plots: plot, plot!
+import ..Domains: dims, deform, ⊗
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
@@ -36,9 +35,9 @@ include("gatherscatter.jl")
 
 # Concrete Spaces
 include("LagrangePolynomials/LagrangePolynomialSpace.jl")
-include("TrigonometricPolynomials/Fourier.jl")
+#include("TrigonometricPolynomials/Fourier.jl") # TODO
 
-include("tensor.jl")
+#include("tensor.jl") # TODO
 include("deform.jl")
 
 export
@@ -48,13 +47,16 @@ export
        # operators
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
 
+       # interpolation
+       interpOp,
+
        # lagrange polynomial space
        LagrangePolynomialSpace,
        GaussLobattoLegendre, GaussLegendre, GaussChebychev,
 
-       interpOp,
-
-       deform
+       # misc
+       deform,
+       ⊗
 
 end
 #

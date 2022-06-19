@@ -1,8 +1,7 @@
 #
-abstract type AbstractBoundaryCondition{T} end
 
 ###
-# BC Types
+# Boundary Condition Types
 ###
 
 """

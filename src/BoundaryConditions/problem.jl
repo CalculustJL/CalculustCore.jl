@@ -1,7 +1,4 @@
 #
-abstract type AbstractBVPDEProblem <: SciMLBase.DEProblem end
-abstract type AbstractBVPDECache <: SciMLBase.DECache end
-abstract type AbstractBVPDEAlgorithm <: SciMLBase.DEAlgorithm end
 
 struct BVPDEProblem{
                     isinplace,

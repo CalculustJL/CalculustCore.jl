@@ -1,6 +1,5 @@
 #
-
-import LinearSolve: default_tol
+using LinearSolve: default_tol
 
 function set_val!(M, val, idx)
     len = length(idx)

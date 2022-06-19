@@ -51,7 +51,12 @@ function Qmatrix(n::Integer, periodic::Bool)
 end
 
 # replace with call to NNlib gather-scatter
-function GatherScatter(space::AbstractSpectralSpace{<:Number,D}) where{D}
+
+#=
+function GatherScatter(space::AbstractSpace)
+    D = dims(space)
+    N = length(space)
+
     domain = get_domain(space)
     periodic = isperiodic(domain)
     npoints = get_numpoints(space)
@@ -62,11 +67,13 @@ function GatherScatter(space::AbstractSpectralSpace{<:Number,D}) where{D}
 
     Qmats = Qmatrix.(npoints, periodic)
 
-    Q = if D == 1
+    Q = if D == dims(space)
         MatrixOp(Qmats...)
     else
         TensorProductOperator(Qmats...)
 
     QQt = Q * Q'
 end
+=#
+
 #

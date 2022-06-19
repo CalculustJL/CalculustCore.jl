@@ -17,7 +17,7 @@ struct LagrangePolynomialSpace{T,
                                Tderiv,
                                Tloc,
 #                              Tglo
-                              } <: AbstractSpectralSpace{T,D}
+                              } <: AbstractSpace{T,D}
     """ Domain """
     dom::Tdom
     """ size tuple """
