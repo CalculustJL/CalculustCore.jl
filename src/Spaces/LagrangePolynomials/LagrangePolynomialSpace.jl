@@ -25,7 +25,7 @@ struct LagrangePolynomialSpace{T,
     """ quadratures """
     quads::Tquad
     """ grid points """
-    points::Tgrid
+    grid::Tgrid
     """ mass matrix """
     mass_matrix::Tmass
     """ derivative matrices """
@@ -63,18 +63,18 @@ function LagrangePolynomialSpace(n::Integer;
     dom = T(domain)
     npoints = (n,)
     quads = ((z, w),)
-    points = _vec.((z,))
+    grid = _vec.((z,))
     mass_matrix = _vec(w)
     deriv_mats = (D,)
     local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    domain, npoints, quads, points,
+                                    domain, npoints, quads, grid,
                                     mass_matrix, deriv_mats, 
                                     local_numbering,
                                    )
 
-    domain isa DeformedDomain ? deform(space, mapping) : space
+    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 function LagrangePolynomialSpace(nr::Integer, ns::Integer;
@@ -105,18 +105,18 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain = T(domain)
     npoints = (nr, ns,)
     quads = ((zr, wr), (zs, ws),)
-    points = _vec.((r, s,))
+    grid = _vec.((r, s,))
     mass_matrix = _vec(wr * ws')
     deriv_mats = (Dr, Ds,)
     local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    domain, npoints, quads, points,
+                                    domain, npoints, quads, grid,
                                     mass_matrix, deriv_mats,
                                     local_numbering,
                                    )
 
-    domain isa DeformedDomain ? deform(space, mapping) : space
+    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 GaussLobattoLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
@@ -129,14 +129,14 @@ Base.size(space::LagrangePolynomialSpace) = space.npoints
 
 function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,1})
 
-    (x,) = grid(space)
+    (x,) = points(space)
     plt  = plot(x, u, legend=false)
 end
 
 function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2}; a=45, b=60)
 
     npts = size(space)
-    (x,y,) = grid(space)
+    (x,y,) = points(space)
 
     u = _reshape(u, npts)
     x = _reshape(x, npts)
@@ -148,7 +148,7 @@ function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2}; a=45, b=60)
     plt
 end
 
-grid(space::LagrangePolynomialSpace) = space.points
+points(space::LagrangePolynomialSpace) = space.grid
 domain(space::LagrangePolynomialSpace) = space.dom
 quadratures(space::LagrangePolynomialSpace) = space.quads
 local_numbering(space::LagrangePolynomialSpace) = space.loc_num

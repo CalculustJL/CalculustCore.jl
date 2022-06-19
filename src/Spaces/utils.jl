@@ -1,3 +1,3 @@
 #
 include("NDgrid.jl")
-import SciMLOperators: ⊗, IdentityOperator, _reshape, _vec
+using SciMLOperators: ⊗, IdentityOperator, _reshape, _vec

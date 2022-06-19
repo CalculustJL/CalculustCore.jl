@@ -38,6 +38,10 @@ export
        IntervalDomain,
        BoxDomain,
 
+       # conveniences
+       reference_box,
+       annulus_2D,
+
        deform
 
 end

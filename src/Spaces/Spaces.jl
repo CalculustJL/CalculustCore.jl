@@ -42,7 +42,8 @@ include("deform.jl")
 
 export
        # interface
-       grid, domain,
+       dims, points, domain,
+       local_numbering, global_numbering, basis, boundary_nodes,
 
        # operators
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
@@ -53,6 +54,8 @@ export
        # lagrange polynomial space
        LagrangePolynomialSpace,
        GaussLobattoLegendre, GaussLegendre, GaussChebychev,
+
+       reference_box,
 
        # misc
        deform,

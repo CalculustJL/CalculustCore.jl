@@ -1,5 +1,6 @@
 #
 using LinearSolve: default_tol
+using SciMLOperators: _vec
 
 function set_val!(M, val, idx)
     len = length(idx)

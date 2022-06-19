@@ -97,7 +97,7 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     elseif D == 3 # cramer's rule
         inv(dXdR)
     else
-        inv(dXdR) # need even more robust AbstractOp interface
+        inv(dXdR)
     end
 
     DeformedSpace(space, X, dXdR, dRdX, J, Ji)

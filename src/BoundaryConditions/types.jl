@@ -58,7 +58,7 @@ end
 
 function dirichlet_mask(space::AbstractSpace, dom::AbstractDomain, indices, bc_dict)
     tags = boundary_tags(dom)
-    x    = grid(space) |> first
+    x    = points(space) |> first
     M    = similar(x, Bool) * false .+ true |> _vec
 
     for i=1:num_boundaries(dom)

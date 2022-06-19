@@ -3,12 +3,15 @@ Boundary Condition Interface
 """
 module BoundaryConditions
 
-using Reexport
-@reexport import SciMLBase
+#using Reexport
+#@reexport using SciMLBase
+import SciMLBase: init, solve; export init, solve
+
 using SciMLOperators
-using SciMLOperators: AbstractSciMLOperator
+using SciMLOperators: AbstractSciMLOperator, IdentityOperator
 import UnPack: @unpack
 
+using LinearAlgebra
 using LinearSolve
 using Plots
 
@@ -40,6 +43,7 @@ export
        # boundary vale problem
        BVPDEProblem,
 
+       # boundary value algorithms
        LinearBVPDEAlg, NonlinearBVPDEAlg
 
 end

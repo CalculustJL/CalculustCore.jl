@@ -1,5 +1,4 @@
 #
-
 struct BVPDEProblem{
                     isinplace,
                     T,
@@ -166,7 +165,7 @@ function makeRHS(f, bc::AbstractBoundaryCondition)
     neumann   = zero(b)
     robin     = zero(b)
 
-    pts = grid(space)
+    pts = points(space)
     dom = domain(space)
 
     for i=1:num_boundaries(dom)

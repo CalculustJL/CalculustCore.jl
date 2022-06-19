@@ -43,8 +43,8 @@ function reference_box(D; periodic_dirs=())
         tag1 = Symbol("Lower$(i)")
         tag2 = Symbol("Upper$(i)")
         tags = (tag1, tag2)
-        interval = IntervalDomain(-true, true; periodic=periodic, bdry_tags=tags)
-        domain *= interval
+        interval = IntervalDomain(-true, true; periodic=periodic, boundary_tags=tags)
+        domain = domain ⊗ interval
     end
     domain
 end
@@ -53,7 +53,7 @@ function annulus_2D(r0, r1)
     intR = IntervalDomain(r0, r1, false, (:Inner, :Outer))
     intθ = IntervalDomain(-π,  π, true , (:Periodic, :Periodic))
 
-    dom = intR * intθ
+    dom = intR ⊗ intθ
 
     deform(dom, polar)
 end
