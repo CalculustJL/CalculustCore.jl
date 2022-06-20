@@ -10,8 +10,7 @@ include("BoundaryConditions/BoundaryConditions.jl")
 @reexport using .Spaces
 @reexport using .BoundaryConditions
 
-#include("Discretizations.jl")
-#include("ODEProblem.jl")
+#include("semidiscr.jl") # method of lines
 #include("EigenValueProblem.jl")
 
 end # module

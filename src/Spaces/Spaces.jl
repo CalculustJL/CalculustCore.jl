@@ -27,10 +27,13 @@ import ..Domains: dims, deform, ⊗
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
+""" Spatial Discretizations """
+abstract type AbstractDiscretization end
 
 include("utils.jl")
 include("interface.jl")
 include("vectorcalculus.jl")
+include("discretizations.jl")
 include("gatherscatter.jl")
 
 # Concrete Spaces

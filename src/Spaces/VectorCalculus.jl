@@ -11,11 +11,13 @@ Continuity isn't necessarily enforced across
 element boundaries for gradients
 
 args:
-    space::AbstractSpace{T,D}
+    space::AbstractSpace
+    discr::AbstractDiscretization (optional)
 ret:
     gradOp: u -> [dudx1, ..., dudxD]
 """
 function gradOp end
+gradOp(space::AbstractSpace, discr::AbstractDiscretization) = gradOp(space)
 
 """
 Mass Operator
@@ -23,7 +25,8 @@ Mass Operator
 Inner Product: <u, v := u' * M * v
 
 args:
-    space::AbstractSpace{T,D}
+    space::AbstractSpace
+    discr::AbstractDiscretization (optional)
     space_dealias
 ret:
     massOp: AbstractVector -> AbstractVector
@@ -44,17 +47,39 @@ args:
 ret:
     laplaceOp: AbstractVector -> AbstractVector
 """
-function laplaceOp(space::AbstractSpace{<:Number,D}) where{D}
-    DD = gradOp(space)
-    M  = massOp(space)
+function laplaceOp(space::AbstractSpace, discr::AbstractDiscretization)
+    D = dims(space)
+    DD = gradOp(space, space)
+    M  = massOp(space, space)
     MM = Diagonal([M for i=1:D])
+
+    DDt = _transp(DD, disscr)
 
     -(DD' * MM * DD)
 end
 
+
+"""
+Diffusion operator
+"""
+function diffusionOp(ν::Number, space::AbstractSpace, args...)
+    ν * laplaceOp(space, args...)
+end
+
+function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::AbstractDiscretization)
+    D = dims(space)
+    ν = DiagonalOperator(ν)
+    DD = gradOp(space)
+    M  = massOp(space)
+    Mν = Diagonal([ν * M for i=1:D])
+    DDt = _transp(DD, discr)
+
+    -(DD' * Mν * DD)
+end
+
 """
 args:
-    space::AbstractSpace{<:Number,D}
+    space::AbstractSpace{<:Any,D}
     vel...::AbstractVector
     space_dealias
 ret:
@@ -74,13 +99,14 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
        = [ux uy] * [Dx] T
                    [Dx]
 """
-function advectionOp(space::AbstractSpace{<:Number,D},
-                     vel::AbstractVector...) where{D}
+function advectionOp(space::AbstractSpace{<:Any,D}, vel::NTuple{D}, discr::AbstractDiscretization) where{D}
 
     VV = [DiagonalOperator.(vel)...]
-    DD = gradOp(space)
-    M  = massOp(space)
+    DD = gradOp(space, discr)
+    M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
+
+    VVt = _transp(VV, discr)
 
     VV' * MM * DD
 end
@@ -88,15 +114,15 @@ end
 """
 Divergence
 """
-function divergenceOp(space::AbstractSpace{<:Number,D}) where{D}
+function divergenceOp(space::AbstractSpace{<:Any,D}) where{D}
     Dx = gradOp(space)
-    return _reshape(Dx, 1, D)
+    return _reshape(Dx, (1, D))
 end
 
 ### dealiased operators
 
-function massOp(space1::AbstractSpace{<:Number,D},
-                space2::AbstractSpace{<:Number,D};
+function massOp(space1::AbstractSpace{<:Any,D},
+                space2::AbstractSpace{<:Any,D};
                 J = nothing,
                ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
@@ -106,8 +132,8 @@ function massOp(space1::AbstractSpace{<:Number,D},
     J12' * M2 * J12
 end
 
-function laplaceOp(space1::AbstractSpace{<:Number,D},
-                   space2::AbstractSpace{<:Number,D};
+function laplaceOp(space1::AbstractSpace{<:Any,D},
+                   space2::AbstractSpace{<:Any,D};
                    J = nothing,
                   ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
@@ -128,8 +154,8 @@ for dealiasing (over-integration)
 so we don't commit any
 "variational crimes"
 """
-function advectionOp(space1::AbstractSpace{<:Number,D},
-                     space2::AbstractSpace{<:Number,D},
+function advectionOp(space1::AbstractSpace{<:Any,D},
+                     space2::AbstractSpace{<:Any,D},
                      vel::AbstractVector...;
                      J = nothing,
                     ) where{D}
