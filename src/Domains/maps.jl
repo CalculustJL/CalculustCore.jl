@@ -31,27 +31,54 @@ end
 # Conveniences
 ###
 
+function default_tags(i::Integer)
+    tag1 = Symbol("Lower$(i)")
+    tag2 = Symbol("Upper$(i)")
+
+    (tag1, tag2)
+end
+
+function GaussLobattoLegendreDomain(D; periodic_dirs=())
+    domain = BoxDomain()
+    endpts = (-true, true)
+    for i=1:D
+        tags = default_tags(i)
+        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        domain = domain ⊗ interval
+    end
+    domain
+end
+
+function ChebychevDomain(D; periodic_dirs=())
+    domain = BoxDomain()
+    endpts = (-π/2, π/2)
+    for i=1:D
+        tags = default_tags(i)
+        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        domain = domain ⊗ interval
+    end
+    domain
+end
+
+function FourierDomain(D; periodic_dirs=1:D)
+    domain = BoxDomain()
+    endpts = (-π, π)
+    for i=1:D
+        tags = default_tags(i)
+        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        domain = domain ⊗ interval
+    end
+    domain
+end
+
 function polarMap(r, θ)
     x = @. r * cos(θ)
     y = @. r * sin(θ)
     x, y
 end
 
-function reference_box(D; periodic_dirs=())
-    domain = BoxDomain()
-    for i=1:D
-        periodic = i ∈ periodic_dirs
-        tag1 = Symbol("Lower$(i)")
-        tag2 = Symbol("Upper$(i)")
-        tags = (tag1, tag2)
-        interval = IntervalDomain(-true, true; periodic=periodic, boundary_tags=tags)
-        domain = domain ⊗ interval
-    end
-    domain
-end
-
-function annulus_2D(r0, r1)
-    intR = IntervalDomain(r0, r1, false, (:Inner, :Outer))
+function AnnulusDomain(rinner, router)
+    intR = IntervalDomain(rinner, router, false, (:Inner, :Outer))
     intθ = IntervalDomain(-π,  π, true , (:Periodic, :Periodic))
 
     dom = intR ⊗ intθ

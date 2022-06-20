@@ -3,7 +3,7 @@ Domain Interface
 """
 module Domains
 
-import Base: eltype, ∈, in
+import Base: eltype, ∈, in, length
 import SciMLOperators: ⊗
 
 """ D-Dimensional Domain """
@@ -38,12 +38,8 @@ export
        IntervalDomain,
        BoxDomain,
 
-       PeriodicInterval,
-       PeriodicBox,
-
        # conveniences
-       reference_box,
-       annulus_2D,
+       GaussLobattoLegendreDomain, ChebychevDomain, FourierDomain, AnnulusDomain,
 
        deform
 

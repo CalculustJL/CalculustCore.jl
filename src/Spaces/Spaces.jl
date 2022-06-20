@@ -42,6 +42,7 @@ include("LagrangePolynomials/LagrangePolynomialSpace.jl")
 #include("TrigonometricPolynomials/Fourier.jl") # TODO
 
 #include("tensor.jl") # TODO
+include("transform.jl") # TODO
 include("deform.jl")
 
 export

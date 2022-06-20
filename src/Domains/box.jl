@@ -14,11 +14,6 @@ struct BoxDomain{T,D,Ti} <: AbstractDomain{T,D}
     end
 end
 
-function PeriodicBox(end_points::NTuple{D,Tuple}) where{D}
-    intervals = PeriodicInterval.(end_points)
-    BoxDomain(intervals...)
-end
-
 function (::Type{T})(box::BoxDomain) where{T<:Number}
     BoxDomain(T.(box.intervals)...)
 end

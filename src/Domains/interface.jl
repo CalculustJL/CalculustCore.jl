@@ -2,6 +2,12 @@
 
 Base.eltype(::AbstractDomain{T}) where{T} = T
 
+#Base.in
+#Base.:∈
+
+function Base.length end
+Base.size(dom::Domain) = size(bounding_box(dom))
+
 """
 Dimension of domain
 """
