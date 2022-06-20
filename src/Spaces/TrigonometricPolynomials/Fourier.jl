@@ -74,7 +74,6 @@ function FourierSpace(n::Integer;
                                  isinplace=true,
                                  T=ComplexT,
                                  size=(length(k),n),
-                                 # TODO
 
 #                                op_adjoint = 
                                  op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
@@ -83,13 +82,13 @@ function FourierSpace(n::Integer;
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
-    modes = (k,)
+    modes = k #(k,)
     mass_matrix = ones(T, n) * (2π/L)
-    transforms = (transform,)
+    transforms = transform#(transform,)
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
-                         mass_matrix, transform,
+                         mass_matrix, transforms,
                         )
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
@@ -110,6 +109,7 @@ function quadratures(space::FourierSpace{<:Any,1})
 end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
+transforms(space::FourierSpace) = space.transforms
 
 ## TODO - local system <-> global system
 ## global system for computation
@@ -125,17 +125,25 @@ function massOp(space::FourierSpace{<:Any,1}, ::Collocation)
 end
 
 function gradOp(space::FourierSpace{<:Any,1}) # ∇
-    k = modes(space)
+    tr = transforms(space)
+
+    k  = modes(space)
     ik = im * DiagonalOperator(k)
 
-    itr * ik * tr
+    [
+     tr \ ik * tr,
+    ]
 end
 
 function hessianOp(space::FourierSpace{<:Any,1}) # ∇²
-    k = modes(space)
-    ik2 = -DiagonalOperator(k .* k)
+    tr = transforms(space)
 
-    itr * ik2 * tr
+    k   = modes(space)
+    ik2 = -DiagonalOperator(@. k * k)
+
+    [
+     tr \ ik2 * tr,
+    ]
 end
 
 function laplaceOp(space::FourierSpace{<:Any,1}, ::Collocation)
@@ -147,9 +155,13 @@ end
 ###
 
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
-    M = size(space2, 1) # output
-    N = size(space1, 1) # input
+    tr1 = transforms(space1)
+
+    M = length.(modes(space2)[1]) # output
+    N = length.(modes(space1)[1]) # input
 
     J = sparse(I, (M,N)) |> MatrixOperator
+
+    tr1 \ J * tr1
 end
 #

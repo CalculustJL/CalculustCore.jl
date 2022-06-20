@@ -32,7 +32,7 @@ struct LagrangePolynomialSpace{T,
     deriv_mats::Tderiv
     """ local numbering """
     loc_num::Tloc
-    """ global numbering """
+#   """ global numbering """
 #   glo_num::Tglo
 end
 
