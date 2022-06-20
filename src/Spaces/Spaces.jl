@@ -15,6 +15,7 @@ using SciMLOperators: IdentityOperator
 using NNlib: gather, scatter
 using UnPack: @unpack
 import Plots
+import SparseArrays: sparse
 
 using ..Domains
 using ..Domains: AbstractDomain

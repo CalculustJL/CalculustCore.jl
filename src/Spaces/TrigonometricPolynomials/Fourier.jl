@@ -64,6 +64,7 @@ function FourierSpace(n::Integer;
     end
 
     tr, itr = begin
+        op = 
         tr = FunctionOperator(
                              )
 
@@ -125,11 +126,19 @@ function hessianOp(space::FourierSpace{<:Any,1}) # ∇²
     itr * ik2 * tr
 end
 
+function laplaceOp(space::FourierSpace{<:Any,1}, ::Collocation)
+    hessianOp(space) |> sum
+end
+
 ###
 # interpolation operators
 ###
 
-function interpOp(space1::FourierSpace, space2::FourierSpace)
-    # low-pass filter via restriction/matrix
+# low-pass filter via restriction/extension matrix
+function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
+    M = size(space2) # output
+    N = size(space1) # input
+
+    J = sparse(I, (M,N)) |> MatrixOperator
 end
 #
