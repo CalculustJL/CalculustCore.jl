@@ -29,7 +29,7 @@ function (::Type{T})(int::IntervalDomain) where{T<:Number}
     IntervalDomain(T(int.x0), T(int.x1), int.periodic, int.boundary_tags)
 end
 
-Base.length(dom::IntervalDomain) = -(end_points(dom)...)
+Base.size(dom::IntervalDomain) = (-(end_points(dom)...),)
 
 isperiodic(dom::IntervalDomain) = dom.periodic
 endpoints(dom::IntervalDomain) = (dom.x0, dom.x1)

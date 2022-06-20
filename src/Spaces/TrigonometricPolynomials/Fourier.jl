@@ -10,12 +10,12 @@ with stuff in physical space. operators leverage transform
 struct FourierSpace{
                     T,
                     D,
-                    Tdom<:AbstractDomain{<:Any,D},
+                    Tdom<:AbstractDomain{T,D},
                     Tpts,
                     Tgrid,
+                    Tmodes,
                     Tmass,
                     Ttr,
-                    Titr,
                    }
     """ Domain """
     domain::Tdom
@@ -23,12 +23,12 @@ struct FourierSpace{
     npoints::Tpts
     """ grid points """
     grid::Tgrid
+    """ modes """
+    modes::Tmodes
     """ mass matrix """
     mass_matrix::Tmass
     """ forward transform `mul!(û, T , u)` """
     transforms::Ttr
-    """ inverse transform `mul!(u, T , û)` """
-    itransforms::Titr
 end
 
 function FourierSpace(n::Integer;
@@ -43,7 +43,7 @@ function FourierSpace(n::Integer;
     end
 
     domain = FourierDomain(1)
-    L = 2π #length(domain)
+    L = 2π #size(domain)
     #""" reset deformation to map from [-π,π]^D """
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
@@ -74,14 +74,11 @@ function FourierSpace(n::Integer;
                                  isinplace=true,
                                  T=ComplexT,
                                  size=(length(k),n),
-                                )
+                                 # TODO
 
-    itransform = FunctionOperator(
-                                  (du,u,p,t) -> mul!(du, itr, u);
-                                  isinplace=true,
-                                  T=ComplexT,
-                                  size=(n,length(k)),
-                                  )
+#                                op_adjoint = 
+                                 op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
+                                )
 
     domain = T(domain)
     npoints = (n,)
@@ -89,12 +86,11 @@ function FourierSpace(n::Integer;
     modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
     transforms = (transform,)
-    itransforms = (itransform,)
 
-    FourierSpace(
-                 domain, npoints, grid,
-                 mass_matrix, transform, itransform,
-                )
+    space = FourierSpace(
+                         domain, npoints, grid, modes,
+                         mass_matrix, transform,
+                        )
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end

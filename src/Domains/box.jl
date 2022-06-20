@@ -18,6 +18,8 @@ function (::Type{T})(box::BoxDomain) where{T<:Number}
     BoxDomain(T.(box.intervals)...)
 end
 
+Base.size(dom::BoxDomain) = length.(dom.intervals...)
+
 isperiodic(box::BoxDomain, dir::Integer) = box.intervals[dir] |> isperiodic
 isperiodic(box::BoxDomain) = isperiodic.(box.intervals)
 
