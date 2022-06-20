@@ -19,7 +19,7 @@ struct LagrangePolynomialSpace{T,
 #                              Tglo
                               } <: AbstractSpace{T,D}
     """ Domain """
-    dom::Tdom
+    domain::Tdom
     """ size tuple """
     npoints::Tpts
     """ quadratures """
@@ -37,7 +37,7 @@ struct LagrangePolynomialSpace{T,
 end
 
 function LagrangePolynomialSpace(n::Integer;
-        domain::AbstractDomain{<:Number,1}=reference_box(1),
+        domain::AbstractDomain{<:Any,1}=reference_box(1),
         quadrature = gausslobatto,
         T = Float64,
        )
@@ -60,7 +60,7 @@ function LagrangePolynomialSpace(n::Integer;
 
     D = lagrange_deriv_mat(z)
 
-    dom = T(domain)
+    domain = T(domain)
     npoints = (n,)
     quads = ((z, w),)
     grid = _vec.((z,))
@@ -123,7 +123,9 @@ GaussLobattoLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quad
 GaussLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
 GaussChebychev(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
-### abstract interface
+###
+# interface
+###
 
 Base.size(space::LagrangePolynomialSpace) = space.npoints
 
@@ -148,7 +150,7 @@ function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2}; a=45, b=60)
     plt
 end
 
-domain(space::LagrangePolynomialSpace) = space.dom
+domain(space::LagrangePolynomialSpace) = space.domain
 points(space::LagrangePolynomialSpace) = space.grid
 quadratures(space::LagrangePolynomialSpace) = space.quads
 mass_matrix(space::LagrangePolynomialSpace) = DiagonalOperator(space.mass_matrix)

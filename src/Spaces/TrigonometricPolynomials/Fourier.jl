@@ -7,11 +7,11 @@ import FFTW: plan_rfft, plan_irfft
 struct FourierSpace{
                     T,
                     D,
-                    Tdom<:AbstractDomain{<:Number,D},
+                    Tdom<:AbstractDomain{<:Any,D},
                     Tgrid,
                     Tmass,
-                    Tderiv,
-                    Tloc,
+                    Ttr,
+                    Titr,
                    }
     """ Domain """
     domain::Tdom
@@ -22,18 +22,40 @@ struct FourierSpace{
     """ mass matrix """
     mass_matrix::Tmass
     """ forward transform `mul!(û, T , u)` """
-    Tr::Ttr
+    transform::Ttr
     """ inverse transform `mul!(u, T , û)` """
-    iTr::Titr
+    itransform::Titr
 end
 
-function FourierSpace(npts...;
-                      domain=reference_box(length(npts))
+function FourierSpace(n::Integer;
+                      domain::AbstractDomain{<:Any,1}=reference_box(1),
+                      T=Float64,
                      )
+
+    if domain isa IntervalDomain
+        domain = BoxDomain(domain)
+    elseif !(domain isa BoxDomain)
+        @error "Trigonometric polynomials work with logically rectangular domains"
+    end
+
+    domain = PeriodicBox(((-π, π),))
+    #""" reset deformation to map from [-π,π]^D """
+    #ref_domain = reference_box(2)
+    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+
+    domain = T(domain)
+    npoints = (n,)
+    grid = 
+    mass_matrix = 
+    transform = 
+    itransform = 
 
     FourierSpace(
                  domain, npoints, grid,
+                 mass_matrix, transform, itransform,
                 )
+
+    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 struct Collocation <: AbstractDiscretization end

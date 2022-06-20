@@ -38,6 +38,9 @@ export
        IntervalDomain,
        BoxDomain,
 
+       PeriodicInterval,
+       PeriodicBox,
+
        # conveniences
        reference_box,
        annulus_2D,

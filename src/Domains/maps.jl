@@ -1,4 +1,5 @@
 #=
+# TODO Gordon Hall
 function mesh_domain(dom1::BoxDomain{<:Number,D},
                      space::AbstractSpace{<:Number,D}
                     ) where{D}
@@ -7,18 +8,18 @@ function mesh_domain(dom1::BoxDomain{<:Number,D},
     ze  = [-1,1]
     Jer = interpMat(zr,ze)
     Jes = interpMat(zs,ze)
-    
+
     xv = [xrm[1]   xrp[1]
           xrm[end] xrp[end]]
-    
+
     yv = [yrm[1]   yrp[1]
           yrm[end] yrp[end]]
-    
+
     xv = ABu(Jes,Jer,xv)
     yv = ABu(Jes,Jer,yv)
-    
+
     #display(mesh(xv,yv,0*xv,0,90))
-    
+
     x = ABu([],Jer,vcat(xrm',xrp')) .+ ABu(Jes,[],hcat(xsm,xsp)) .- xv
     y = ABu([],Jer,vcat(yrm',yrp')) .+ ABu(Jes,[],hcat(ysm,ysp)) .- yv
 
