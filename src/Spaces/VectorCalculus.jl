@@ -33,6 +33,17 @@ ret:
 """
 function massOp end
 
+function massOp(space1::AbstractSpace{<:Any,D},
+                space2::AbstractSpace{<:Any,D};
+                J = nothing,
+               ) where{D}
+    J12 = J !== nothing ? J : interpOp(space1, space2)
+
+    M2 = massOp(space2)
+
+    J12' * M2 * J12
+end
+
 """
 Laplace Operator
 
@@ -49,21 +60,38 @@ ret:
 """
 function laplaceOp(space::AbstractSpace, discr::AbstractDiscretization)
     D = dims(space)
-    DD = gradOp(space, space)
+
     M  = massOp(space, space)
     MM = Diagonal([M for i=1:D])
 
+    DD = gradOp(space, discr)
     DDt = _transp(DD, disscr)
 
-    -(DD' * MM * DD)
+    - DDt * MM * DD
 end
 
+function laplaceOp(space1::AbstractSpace{<:Any,D},
+                   space2::AbstractSpace{<:Any,D},
+                   discr::AbstractDiscretization;
+                   J = nothing,
+                  ) where{D}
+    J12 = J !== nothing ? J : interpOp(space1, space2)
+
+    M2  = massOp(space2, discr)
+    MM2 = Diagonal([M2 for i=1:D])
+
+    DD1  = gradOp(space1, discr)
+    JDD  = J12 .* DD1
+    JDDt = _transp(JDD, discr)
+
+    - JDDt * MM2 * JDD
+end
 
 """
 Diffusion operator
 """
-function diffusionOp(ν::Number, space::AbstractSpace, args...)
-    ν * laplaceOp(space, args...)
+function diffusionOp(ν::Number, args...)
+    ν * laplaceOp(args...)
 end
 
 function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::AbstractDiscretization)
@@ -71,10 +99,31 @@ function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::AbstractDi
     ν = DiagonalOperator(ν)
     DD = gradOp(space)
     M  = massOp(space)
-    Mν = Diagonal([ν * M for i=1:D])
+    Mν = ν * M
+    MMν = Diagonal([Mν for i=1:D])
     DDt = _transp(DD, discr)
 
-    -(DD' * Mν * DD)
+    - DDt * MMν * DD
+end
+
+function diffusionOp(ν::AbstractVector,
+                     space1::AbstractSpace{<:Any,D},
+                     space2::AbstractSpace{<:Any,D},
+                     discr::AbstractDiscretization;
+                     J = nothing,
+                    ) where{D}
+    J12 = J !== nothing ? J : interpOp(space1, space2)
+
+    Jν = J * DiagonalOperator(ν)
+
+    M2  = massOp(space2, discr)
+    Mν2 = Jv * M2
+    MMν2 = Diagonal([Mν2 for i=1:D])
+
+    DD  = gradOp(space, discr)
+    JDD = J .* DD
+
+    - JDDt * MMν2 * JDD
 end
 
 """
@@ -99,7 +148,10 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
        = [ux uy] * [Dx] T
                    [Dx]
 """
-function advectionOp(space::AbstractSpace{<:Any,D}, vel::NTuple{D}, discr::AbstractDiscretization) where{D}
+function advectionOp(vel::NTuple{D},
+                     space::AbstractSpace{<:Any,D},
+                     discr::AbstractDiscretization
+                    ) where{D}
 
     VV = [DiagonalOperator.(vel)...]
     DD = gradOp(space, discr)
@@ -108,44 +160,7 @@ function advectionOp(space::AbstractSpace{<:Any,D}, vel::NTuple{D}, discr::Abstr
 
     VVt = _transp(VV, discr)
 
-    VV' * MM * DD
-end
-
-"""
-Divergence Operator
-"""
-function divergenceOp(space::AbstractSpace)
-    D = dims(space)
-    Dx = gradOp(space)
-    return _reshape(Dx, (1, D))
-end
-
-### dealiased operators
-
-function massOp(space1::AbstractSpace{<:Any,D},
-                space2::AbstractSpace{<:Any,D};
-                J = nothing,
-               ) where{D}
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-
-    M2 = massOp(space2)
-
-    J12' * M2 * J12
-end
-
-function laplaceOp(space1::AbstractSpace{<:Any,D},
-                   space2::AbstractSpace{<:Any,D};
-                   J = nothing,
-                  ) where{D}
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-
-    M2  = massOp(space2)
-    MM2 = Diagonal([M2 for i=1:D])
-
-    DD1 = gradOp(space1)
-    JDD = J12 .* DD1
-
-    -(JDD' * MM2 * JDD)
+    VVt * MM * DD
 end
 
 """
@@ -169,5 +184,14 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
     DD1 = gradOp(space1)
 
     VV2' * MM2 * (J12 .* DD1)
+end
+
+"""
+Divergence Operator
+"""
+function divergenceOp(space::AbstractSpace)
+    D = dims(space)
+    Dx = gradOp(space)
+    return _reshape(Dx, (1, D))
 end
 #
