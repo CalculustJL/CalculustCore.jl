@@ -112,9 +112,10 @@ function advectionOp(space::AbstractSpace{<:Any,D}, vel::NTuple{D}, discr::Abstr
 end
 
 """
-Divergence
+Divergence Operator
 """
-function divergenceOp(space::AbstractSpace{<:Any,D}) where{D}
+function divergenceOp(space::AbstractSpace)
+    D = dims(space)
     Dx = gradOp(space)
     return _reshape(Dx, (1, D))
 end

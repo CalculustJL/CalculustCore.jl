@@ -48,6 +48,9 @@ export
        dims, points, domain,
        local_numbering, global_numbering, basis, boundary_nodes,
 
+       # discretizations
+       Collocation, Galerkin,
+
        # operators
        gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
 
