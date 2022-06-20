@@ -1,11 +1,8 @@
 #
-import FFTW: plan_fft, plan_ifft
-import FFTW: plan_rfft, plan_irfft
+import FFTW: plan_fft, plan_ifft, fftfreq
+import FFTW: plan_rfft, plan_irfft, rfftfreq
 
 # switch to CUDA.plan_fft with GPU arrays
-
-# might be possible to keep grid as range for multidim cases as well
-# if not, switch to multidim arrays
 
 """
 with stuff in physical space. operators leverage transform
@@ -35,7 +32,7 @@ struct FourierSpace{
 end
 
 function FourierSpace(n::Integer;
-                      domain::AbstractDomain{<:Any,1}=fourier_box(1),
+                      domain::AbstractDomain{<:Any,1}=FourierDomain(1),
                       T=Float64,
                      )
 
@@ -46,40 +43,53 @@ function FourierSpace(n::Integer;
     end
 
     domain = FourierDomain(1)
-    L = length(domain)
+    L = 2π #length(domain)
     #""" reset deformation to map from [-π,π]^D """
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
+    ComplexT = if T isa Type{Float16}
+        ComplexF16
+    elseif T isa Type{Float32}
+        ComplexF32
+    else
+        ComplexF64
+    end
+
     dx = L / n
-    x = range(start=-L/2, stop=L/2-dx, length=n)
+    x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
 
     if T <: Real
-        k   = (0:n÷2-1) * (2π/L)
-        tr  = plan_rfft()
-       itr = plan_irfft()
+        k   = rfftfreq(n, 2π*n/L) |> Array
+        tr  = plan_rfft(x)
+        itr = plan_irfft(im*k, n)
     else
-        k   = (-n÷2:n÷2-1) * (2π/L)
-        tr  = plan_fft()
-        itr = plan_ifft()
+        k   = fftfreq(n, 2π*n/L) |> Array
+        tr  = plan_fft(x)
+        itr = plan_ifft(k, n)
     end
 
-    tr, itr = begin
-        op = 
-        tr = FunctionOperator(
-                             )
+    transform = FunctionOperator(
+                                 (du,u,p,t) -> mul!(du, tr, u);
+                                 isinplace=true,
+                                 T=ComplexT,
+                                 size=(length(k),n),
+                                )
 
-        itr = FunctionOperator(
-                              )
-    end
+    itransform = FunctionOperator(
+                                  (du,u,p,t) -> mul!(du, itr, u);
+                                  isinplace=true,
+                                  T=ComplexT,
+                                  size=(n,length(k)),
+                                  )
 
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
     modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
-    transforms = (tr,)
-    itransforms = (itr,)
+    transforms = (transform,)
+    itransforms = (itransform,)
 
     FourierSpace(
                  domain, npoints, grid,
@@ -93,7 +103,7 @@ end
 # interface
 ###
 
-Base.size(space::LagrangePolynomialSpace) = space.npoints
+Base.size(space::FourierSpace) = space.npoints
 domain(space::FourierSpace) = space.domain
 points(space::FourierSpace) = space.grid
 function quadratures(space::FourierSpace{<:Any,1})

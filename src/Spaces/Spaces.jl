@@ -55,7 +55,7 @@ export
        Collocation, Galerkin,
 
        # operators
-       gradOp, massOp, laplaceOp, advectionOp, divergenceOp,
+       massOp, gradOp, hessianOp, laplaceOp, advectionOp, divergenceOp,
 
        # interpolation
        interpOp,
@@ -64,7 +64,8 @@ export
        LagrangePolynomialSpace,
        GaussLobattoLegendre, GaussLegendre, GaussChebychev,
 
-       reference_box,
+       # trigonometric polynomials
+       FourierSpace,
 
        # misc
        deform,

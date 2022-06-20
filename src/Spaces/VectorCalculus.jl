@@ -4,22 +4,6 @@
 ###
 
 """
-Gradient Operator
-Compute gradient of u∈H¹(Ω).
-
-Continuity isn't necessarily enforced across
-element boundaries for gradients
-
-args:
-    space::AbstractSpace
-    discr::AbstractDiscretization (optional)
-ret:
-    gradOp: u -> [dudx1, ..., dudxD]
-"""
-function gradOp end
-gradOp(space::AbstractSpace, discr::AbstractDiscretization) = gradOp(space)
-
-"""
 Mass Operator
 
 Inner Product: <u, v := u' * M * v
@@ -45,6 +29,28 @@ function massOp(space1::AbstractSpace{<:Any,D},
 
     J12 * M2 * J12
 end
+
+"""
+Gradient Operator
+Compute gradient of u∈H¹(Ω).
+
+Continuity isn't necessarily enforced across
+element boundaries for gradients
+
+args:
+    space::AbstractSpace
+    discr::AbstractDiscretization (optional)
+ret:
+    gradOp: u -> [dudx1, ..., dudxD]
+"""
+function gradOp end
+gradOp(space::AbstractSpace, discr::AbstractDiscretization) = gradOp(space)
+
+"""
+Hessian Operator (2nd partial derivative)
+"""
+function hessianOp end
+hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
 
 """
 Laplace Operator

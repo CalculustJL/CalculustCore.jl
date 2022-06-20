@@ -42,8 +42,10 @@ function GaussLobattoLegendreDomain(D; periodic_dirs=())
     domain = BoxDomain()
     endpts = (-true, true)
     for i=1:D
-        tags = default_tags(i)
-        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        interval = IntervalDomain(endpts...;
+                                  periodic = i ∈ periodic_dirs,
+                                  boundary_tags = default_tags(i),
+                                 )
         domain = domain ⊗ interval
     end
     domain
@@ -53,8 +55,10 @@ function ChebychevDomain(D; periodic_dirs=())
     domain = BoxDomain()
     endpts = (-π/2, π/2)
     for i=1:D
-        tags = default_tags(i)
-        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        interval = IntervalDomain(endpts...;
+                                  periodic = i ∈ periodic_dirs,
+                                  boundary_tags = default_tags(i),
+                                 )
         domain = domain ⊗ interval
     end
     domain
@@ -64,8 +68,10 @@ function FourierDomain(D; periodic_dirs=1:D)
     domain = BoxDomain()
     endpts = (-π, π)
     for i=1:D
-        tags = default_tags(i)
-        interval = IntervalDomain(endpts...; periodic=periodic, boundary_tags=tags)
+        interval = IntervalDomain(endpts...;
+                                  periodic = i ∈ periodic_dirs,
+                                  boundary_tags = default_tags(i),
+                                 )
         domain = domain ⊗ interval
     end
     domain
