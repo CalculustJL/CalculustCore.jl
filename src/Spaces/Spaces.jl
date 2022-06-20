@@ -27,6 +27,7 @@ import ..Domains: dims, deform, ⊗
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
+
 """ Spatial Discretizations """
 abstract type AbstractDiscretization end
 

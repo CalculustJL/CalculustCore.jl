@@ -2,6 +2,17 @@
 import FFTW: plan_rfft, plan_irfft
 
 # TODO allow for evolution in either transformed space, or physical space
+struct TransformedSpace
+    space
+end
+
+function transform(space::FourierSpace)
+    TransformedSpace(space)
+end
+
+function transform(space::TransformedSpace)
+    space.space
+end
 
 # look at FourierFlows.jl for ref
 struct FourierSpace{
@@ -43,12 +54,21 @@ function FourierSpace(n::Integer;
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
+    if T <: Real
+        tr  = plan_rfft()
+        itr = plan_irfft()
+    else
+        tr  = plan_fft()
+        itr = plan_ifft()
+    end
+
     domain = T(domain)
     npoints = (n,)
-    grid = 
+    grid = (x,)
+    modes = (k,)
     mass_matrix = 
-    transform = 
-    itransform = 
+    transform = (tr,)
+    itransform = (itr,)
 
     FourierSpace(
                  domain, npoints, grid,
@@ -58,22 +78,19 @@ function FourierSpace(n::Integer;
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
-struct Collocation <: AbstractDiscretization end
-struct Galerkin    <: AbstractDiscretization end
+###
+# vector calculus
+###
 
 function gradOp(space::FourierSpace)
     D = dims(space)
 end
 
-function laplaceOp(space::FourierSpace, ::Galerkin)
-end
-
-function laplaceOp(space::FourierSpace, ::Collocation)
-end
-
-### interpolation operators
+###
+# interpolation operators
+###
 
 function interpOp(space1::FourierSpace, space2::FourierSpace)
+    # low-pass filter via restriction/matrix
 end
-
 #
