@@ -5,13 +5,13 @@ Base.eltype(::AbstractDomain{T}) where{T} = T
 #Base.in
 #Base.:∈
 
-function Base.length end
-Base.size(dom::Domain) = size(bounding_box(dom))
+Base.size(dom::AbstractDomain) = size(bounding_box(dom))
+Base.length(dom::AbstractDomain) = prod(size(dom))
 
 """
 Dimension of domain
 """
-dims(::AbstractDomain{<:Number,D}) where{D} = D
+dims(::AbstractDomain{<:Any,D}) where{D} = D
 
 """
 args:

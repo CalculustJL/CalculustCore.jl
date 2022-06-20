@@ -12,10 +12,10 @@ module Spaces
 using LinearAlgebra
 using SciMLOperators
 using SciMLOperators: IdentityOperator
-using NNlib: gather, scatter
+import SparseArrays: sparse
+using NNlib: gather, gather!, scatter, scatter!
 using UnPack: @unpack
 import Plots
-import SparseArrays: sparse
 
 using ..Domains
 using ..Domains: AbstractDomain
@@ -40,7 +40,7 @@ include("gatherscatter.jl")
 
 # Concrete Spaces
 include("LagrangePolynomials/LagrangePolynomialSpace.jl")
-#include("TrigonometricPolynomials/Fourier.jl") # TODO
+include("TrigonometricPolynomials/Fourier.jl")
 
 #include("tensor.jl") # TODO
 include("transform.jl") # TODO

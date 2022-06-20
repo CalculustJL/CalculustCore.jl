@@ -14,6 +14,7 @@ struct FourierSpace{
                     T,
                     D,
                     Tdom<:AbstractDomain{<:Any,D},
+                    Tpts,
                     Tgrid,
                     Tmass,
                     Ttr,
@@ -76,7 +77,7 @@ function FourierSpace(n::Integer;
     npoints = (n,)
     grid = (x,)
     modes = (k,)
-    mass_matrix = 
+    mass_matrix = ones(T, n) * (2π/L)
     transforms = (tr,)
     itransforms = (itr,)
 
@@ -95,15 +96,20 @@ end
 Base.size(space::LagrangePolynomialSpace) = space.npoints
 domain(space::FourierSpace) = space.domain
 points(space::FourierSpace) = space.grid
-function quadratures(space::FourierSpace)
-    N = length(space)
-    L = length(domain(space))
+function quadratures(space::FourierSpace{<:Any,1})
     x = points(space) |> first
-    w = ones(N) * (2π/L)
+    w = mass_matrix(space)
 
     ((x, w),)
 end
+mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
+
+## TODO - local system <-> global system
+## global system for computation
+## local system for plotting
+# local_numbering(space::FourierSpace)
+# global_numbering(space::FourierSpace)
 
 ###
 # vector calculus
@@ -134,10 +140,9 @@ end
 # interpolation operators
 ###
 
-# low-pass filter via restriction/extension matrix
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
-    M = size(space2) # output
-    N = size(space1) # input
+    M = size(space2, 1) # output
+    N = size(space1, 1) # input
 
     J = sparse(I, (M,N)) |> MatrixOperator
 end

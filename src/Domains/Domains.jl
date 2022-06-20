@@ -15,7 +15,7 @@ include("interface.jl")
 # Concrete Types
 include("interval.jl")
 include("box.jl")
-#include("tensor.jl") # TODO - like annulus ⊗ interval
+#include("tensor.jl") # TODO - like annulus ⊗ interval. for extruding
 #include("meshed.jl") # TODO
 
 include("deform.jl")
