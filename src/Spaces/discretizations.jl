@@ -17,5 +17,5 @@ function massOp(space::AbstractSpace, discr::Collocation)
     IdentityOperator{N}()
 end
 
-_transp(a, ::Collocation) = _reshape(a, (1,length(a)))
+_transp(a, ::Collocation) = _reshape(a, (1, length(a),),)
 #

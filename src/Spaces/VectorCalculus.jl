@@ -34,14 +34,16 @@ ret:
 function massOp end
 
 function massOp(space1::AbstractSpace{<:Any,D},
-                space2::AbstractSpace{<:Any,D};
+                space2::AbstractSpace{<:Any,D},
+                discr::AbstractDiscretization;
                 J = nothing,
                ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
+    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     M2 = massOp(space2)
 
-    J12' * M2 * J12
+    J12 * M2 * J12
 end
 
 """
@@ -76,6 +78,7 @@ function laplaceOp(space1::AbstractSpace{<:Any,D},
                    J = nothing,
                   ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
+    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     M2  = massOp(space2, discr)
     MM2 = Diagonal([M2 for i=1:D])
@@ -113,6 +116,7 @@ function diffusionOp(ν::AbstractVector,
                      J = nothing,
                     ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
+    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     Jν = J * DiagonalOperator(ν)
 
@@ -176,6 +180,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
                      J = nothing,
                     ) where{D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
+    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     VV1 = [DiagonalOperator.(vel)...]
     VV2 = J12 .* VV1

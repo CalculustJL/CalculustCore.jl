@@ -45,6 +45,9 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
 
     gradR = gradOp(space)
 
+    # TODO - fuse SciMLOperator's
+    # D1 * D2 == D12
+
     """
     dXdR = [dx1/dr1 ... dx1/drD]
            [...     ...     ...]
@@ -52,7 +55,7 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     """
     dXdR = begin
         dXdR = gradR.(X) |> hcat
-        dXdR = DiagonalOp.(dXdR)
+        dXdR = DiagonalOperator.(dXdR)
         dXdR = dXdR'
     end
 

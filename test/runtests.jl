@@ -7,9 +7,9 @@ using Test, SafeTestsets
     @safetestset "Lagrange Polynomials" begin include("lagrangepoly.jl") end
 end
 
-@safetestset "Boundary Value Problem" begin
-    @safetestset "BVP" begin include("bvp.jl") end
-end
+#@safetestset "Boundary Value Problem" begin
+#    @safetestset "BVP" begin include("bvp.jl") end
+#end
 
 #@time @safetestset "Examples" begin include("examples.jl") end
 end

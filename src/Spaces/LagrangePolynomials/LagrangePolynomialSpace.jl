@@ -148,9 +148,10 @@ function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2}; a=45, b=60)
     plt
 end
 
-points(space::LagrangePolynomialSpace) = space.grid
 domain(space::LagrangePolynomialSpace) = space.dom
+points(space::LagrangePolynomialSpace) = space.grid
 quadratures(space::LagrangePolynomialSpace) = space.quads
+mass_matrix(space::LagrangePolynomialSpace) = DiagonalOperator(space.mass_matrix)
 local_numbering(space::LagrangePolynomialSpace) = space.loc_num
 
 function global_numbering(space::AbstractSpace)
@@ -179,7 +180,7 @@ end
 # vector calculus ops
 ###
 
-function massOp(space::LagrangePolynomialSpace)
+function massOp(space::LagrangePolynomialSpace, ::Galerkin)
     @unpack mass_matrix = space
 
     DiagonalOperator(mass_matrix)

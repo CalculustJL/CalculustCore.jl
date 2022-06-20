@@ -11,6 +11,28 @@ struct TensorProductSpace{
     outer::O
 end
 
+function domain(space::TensorProductSpace)
+    domain(outer) ⊗ domain(inner)
+end
+
+function points(space::TensorProductSpace)
+end
+
+function quadratures(space::TensorProductSpace)
+end
+
+function mass_matrix(space::TensorProductSpace)
+    DiagonalOperator(space.mass_matrix)
+end
+
+function local_numbering(space::TensorProductSpace)
+end
+
+function boundary_nodes()
+end
+
+# vector calculus
+
 function gradOp(space::TensorProductSpace)
     @unpack inner, outer = space
     Di = gradOp(inner)

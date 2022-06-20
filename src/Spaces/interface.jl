@@ -54,7 +54,24 @@ args:
 ret:
     (x1, ..., xD,) # incl end points
 """
-function grid end
+function points end
+
+"""
+args:
+    space::AbstractSpace{T,D}
+ret:
+    Gauss quadratues in form
+    ((z1,w1), ..., (zD,wD),)
+"""
+function quadratures end
+
+"""
+args:
+    space::AbstractSpace{T,D}
+ret:
+    mass matrix as a SciMLOperator
+"""
+function mass_matrix end
 
 """
 args:

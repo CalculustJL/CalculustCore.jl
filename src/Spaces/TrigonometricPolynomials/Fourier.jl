@@ -1,6 +1,8 @@
 #
 import FFTW: plan_rfft, plan_irfft
 
+# TODO allow for evolution in either transformed space, or physical space
+
 # look at FourierFlows.jl for ref
 struct FourierSpace{
                     T,

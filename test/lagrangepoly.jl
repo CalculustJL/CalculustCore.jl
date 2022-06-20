@@ -4,6 +4,7 @@ using LinearAlgebra, LinearSolve, SciMLOperators
 
 N = 128
 dom = reference_box(1)
+discr = Galerkin()
 
 for space in (
               GaussLobattoLegendre(N; domain=dom),
@@ -12,8 +13,8 @@ for space in (
              )
     (x,) = pts = points(space)
 
-    D = gradOp(space) |> first
-    M = massOp(space)
+    D = gradOp(space, discr) |> first
+    M = massOp(space, discr)
     A = laplaceOp(space)
 
     xp = range(-1,1;length=1000) |> Array
