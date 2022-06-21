@@ -2,8 +2,6 @@
 import FFTW: plan_fft, plan_ifft, fftfreq
 import FFTW: plan_rfft, plan_irfft, rfftfreq
 
-# switch to CUDA.plan_fft with GPU arrays
-
 """
 with stuff in physical space. operators leverage transform
 """
@@ -69,33 +67,25 @@ function FourierSpace(n::Integer;
         itr = plan_ifft(k, n)
     end
 
-    ComplexT = if T isa Type{Float16}
-        ComplexF16
-    elseif T isa Type{Float32}
-        ComplexF32
-    else
-        ComplexF64
-    end
+    tr1 = FunctionOperator(
+                           (du,u,p,t) -> mul!(du, tr, u);
+                           isinplace=true,
+                           T=ComplexT,
+                           size=(length(k),n),
     
-    tr_iip = FunctionOperator(
-                              (du,u,p,t) -> mul!(du, tr, u);
-                              isinplace=true,
-                              T=ComplexT,
-                              size=(length(k),n),
+                           input_prototype=x,
+                           output_prototype=im*k,
     
-                              input_prototype=x,
-                              output_prototype=im*k,
-    
-                              #op_adjoint=
-                              op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
-                             )
+                           #op_adjoint=
+                           op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
+                          )
 
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
     modes = k #(k,)
     mass_matrix = ones(T, n) * (2π/L)
-    transforms = transform#(transform,)
+    transforms = tr1#(tr1,)
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
@@ -120,7 +110,7 @@ function quadratures(space::FourierSpace{<:Any,1})
 end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
-transforms(space::FourierSpace) = space.transforms
+transforms(space::FourierSpace) = space.transforms # <-- overloaded word
 
 ## TODO - local system <-> global system
 ## global system for computation
