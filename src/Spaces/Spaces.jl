@@ -3,12 +3,6 @@ Function Space Interface
 """
 module Spaces
 
-# TODO
-#   - figure out interplay between Space and Discretization
-#       1. space is how you represent functions (with basis)
-#       2. discretization is how you compute vector calculus operations
-#       3. have (space + discretization) --> calculus
-
 using LinearAlgebra
 using SciMLOperators
 using SciMLOperators: IdentityOperator
