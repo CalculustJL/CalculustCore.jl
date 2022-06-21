@@ -59,33 +59,33 @@ function FourierSpace(n::Integer;
 
     if T <: Real
         k   = rfftfreq(n, 2π*n/L) |> Array
-        tr  = plan_rfft(x)
+        ftr = plan_rfft(x)
         itr = plan_irfft(im*k, n)
     else
         k   = fftfreq(n, 2π*n/L) |> Array
-        tr  = plan_fft(x)
+        ftr = plan_fft(x)
         itr = plan_ifft(k, n)
     end
 
-    tr1 = FunctionOperator(
-                           (du,u,p,t) -> mul!(du, tr, u);
-                           isinplace=true,
-                           T=ComplexT,
-                           size=(length(k),n),
+    tr = FunctionOperator(
+                          (du,u,p,t) -> mul!(du, ftr, u);
+                          isinplace=true,
+                          T=ComplexT,
+                          size=(length(k),n),
     
-                           input_prototype=x,
-                           output_prototype=im*k,
+                          input_prototype=x,
+                          output_prototype=im*k,
     
-                           #op_adjoint=
-                           op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
-                          )
+                          #op_adjoint=
+                          op_inverse = (du,u,p,t) -> ldiv!(du, ftr, u)
+                         )
 
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
     modes = k #(k,)
     mass_matrix = ones(T, n) * (2π/L)
-    transforms = tr1#(tr1,)
+    transforms = tr#(tr,)
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
