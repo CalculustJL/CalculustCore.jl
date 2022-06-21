@@ -4,7 +4,8 @@ using Test, SafeTestsets
 @testset "PDEInterfaces.jl" begin
 
 @safetestset "Spaces" begin
-    @safetestset "Lagrange Polynomials" begin include("lagrangepoly.jl") end
+#   @safetestset "Lagrange Polynomials" begin include("lagrangepoly.jl") end
+    @safetestset "Fourier" begin include("fourier.jl") end
 end
 
 #@safetestset "Boundary Value Problem" begin

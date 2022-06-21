@@ -69,15 +69,26 @@ function FourierSpace(n::Integer;
         itr = plan_ifft(k, n)
     end
 
-    transform = FunctionOperator(
-                                 (du,u,p,t) -> mul!(du, tr, u);
-                                 isinplace=true,
-                                 T=ComplexT,
-                                 size=(length(k),n),
-
-#                                op_adjoint = 
-                                 op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
-                                )
+    ComplexT = if T isa Type{Float16}
+        ComplexF16
+    elseif T isa Type{Float32}
+        ComplexF32
+    else
+        ComplexF64
+    end
+    
+    tr_iip = FunctionOperator(
+                              (du,u,p,t) -> mul!(du, tr, u);
+                              isinplace=true,
+                              T=ComplexT,
+                              size=(length(k),n),
+    
+                              input_prototype=x,
+                              output_prototype=im*k,
+    
+                              #op_adjoint=
+                              op_inverse = (du,u,p,t) -> ldiv!(du, tr, u)
+                             )
 
     domain = T(domain)
     npoints = (n,)
@@ -124,6 +135,7 @@ transforms(space::FourierSpace) = space.transforms
 function massOp(space::FourierSpace{<:Any,1}, ::Collocation)
 end
 
+# TODO - gradOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
 function gradOp(space::FourierSpace{<:Any,1}) # ∇
     tr = transforms(space)
 

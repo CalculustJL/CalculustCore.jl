@@ -3,7 +3,7 @@ using PDEInterfaces.Spaces
 using LinearAlgebra, LinearSolve, SciMLOperators
 
 N = 128
-dom = reference_box(1)
+dom = GaussLobattoLegendreDomain(1)
 discr = Galerkin()
 
 for space in (
