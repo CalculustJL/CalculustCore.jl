@@ -166,17 +166,25 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
 """
 function advectionOp(vel::NTuple{D},
                      space::AbstractSpace{<:Any,D},
-                     discr::AbstractDiscretization
+                     discr::AbstractDiscretization;
+                     vel_update_func=DEFAULT_UPDATE_FUNC,
                     ) where{D}
 
     VV = [DiagonalOperator.(vel)...]
+
+    # only 1D for now
+    V1 = MatrixOperator(Diagonal(vel[1]); update_func=vel_update_func)
+    VV = [V1,]
+
     DD = gradOp(space, discr)
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
 
     VVt = _transp(VV, discr)
 
-    VVt * MM * DD
+    # 1D only for now
+    -VV[1] * MM[1] * DD[1]
+#   -VVt * MM * DD
 end
 
 """
@@ -200,7 +208,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
     MM2 = Diagonal([M for i=1:D])
     DD1 = gradOp(space1)
 
-    VV2' * MM2 * (J12 .* DD1)
+    -VV2' * MM2 * (J12 .* DD1)
 end
 
 """

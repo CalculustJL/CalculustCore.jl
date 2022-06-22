@@ -108,7 +108,7 @@ function quadratures(space::FourierSpace{<:Any,1})
 
     ((x, w),)
 end
-mass_matrix(space::FourierSpace, ::Galerkin) = space.mass_matrix
+mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 transforms(space::FourierSpace) = space.transforms
 
@@ -122,7 +122,7 @@ transforms(space::FourierSpace) = space.transforms
 # vector calculus
 ###
 
-function massOp(space::FourierSpace{<:Any,1}, ::Collocation)
+function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
     w = mass_matrix(space)
     DiagonalOperator(w)
 end
@@ -191,6 +191,7 @@ function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace}) # ∇²
     ik2
 end
 
+#=
 function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSpace}, discr::AbstractDiscretization) where{D}
     VV = [DiagonalOperator.(vel)...]
 
@@ -206,8 +207,9 @@ function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSp
     Adv = _transp(VV_phys) * MM * Dphys
 
 
-    tr * Adv
+    -tr * Adv
 end
+=#
 
 # interpolation
 function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},

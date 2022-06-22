@@ -7,6 +7,7 @@ using Reexport
 
 using LinearAlgebra
 @reexport using SciMLOperators
+using SciMLOperators: DEFAULT_UPDATE_FUNC
 import SciMLOperators: IdentityOperator, NullOperator, ⊗
 
 import SparseArrays: sparse

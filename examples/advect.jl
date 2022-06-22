@@ -9,39 +9,42 @@ using OrdinaryDiffEq, LinearSolve
 using Plots
 
 N = 1024
-ν = 1e-2
+ν = 0e-2
 p = ()
 
 """ space discr """
-domain = FourierDomain(1)
-space  = FourierSpace(N; domain=domain)
-discr  = Collocation()
+space = FourierSpace(N)
+discr = Collocation()
 
 (x,) = points(space)
+u0 = @. sin(1x)
 
-D = diffusionOp(ν, space, discr)
+A = diffusionOp(ν, space, discr)
 
-# define update_coefficients! rule
-vel = (one(size(x)),)
-C = advectionOp(vel, space, discr) # advectionOp(...; update_vel=)
-F = C
+# verify update behaviour
+function burgers!(L, u, p, t)
+    L.diag .= u
+    L
+end
 
-D = cache_operator(D, x)
+v = @. x*0 + 1
+f = @. x*0
+
+C = advectionOp((v,), space, discr)
+F = AffineOperator(C, f)
+
+#C = advectionOp((u0,), space, discr; vel_update_func=burgers!)
+#F = C
+
+A = cache_operator(A, x)
 F = cache_operator(F, x)
-
-""" IC """
-u0 = @. sin(10x)
 
 """ time discr """
 tspan = (0.0, 10.0)
-prob = SplitODEProblem(D, Z, u0, tspan, p)
-
-#odealg = Tsit5()
-#@time sol  = solve(prob, odealg)
-#@show sol.retcode
-
 odealg = Rodas5(autodiff=false)
-@time sol  = solve(prob, odealg)
+prob = SplitODEProblem(A, F, u0, tspan, p)
+
+@time sol = solve(prob, odealg)
 @show sol.retcode
 
 nothing
