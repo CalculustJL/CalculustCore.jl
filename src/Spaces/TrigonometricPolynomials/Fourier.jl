@@ -14,7 +14,7 @@ struct FourierSpace{
                     Tmodes,
                     Tmass,
                     Ttr,
-                   }
+                   } <: AbstractSpace{T,D}
     """ Domain """
     domain::Tdom
     """ size tuple """
@@ -108,9 +108,9 @@ function quadratures(space::FourierSpace{<:Any,1})
 
     ((x, w),)
 end
-mass_matrix(space::FourierSpace) = space.mass_matrix
+mass_matrix(space::FourierSpace, ::Galerkin) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
-transforms(space::FourierSpace) = space.transforms # <-- overloaded word
+transforms(space::FourierSpace) = space.transforms
 
 ## TODO - local system <-> global system
 ## global system for computation
@@ -123,9 +123,15 @@ transforms(space::FourierSpace) = space.transforms # <-- overloaded word
 ###
 
 function massOp(space::FourierSpace{<:Any,1}, ::Collocation)
+    w = mass_matrix(space)
+    DiagonalOperator(w)
 end
 
-# TODO - gradOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
+###
+# TODO - review gradOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
+# TODO   before writing vector calculus ops, transform operation on space
+###
+
 function gradOp(space::FourierSpace{<:Any,1}) # ∇
     tr = transforms(space)
 

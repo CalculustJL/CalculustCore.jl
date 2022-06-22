@@ -106,13 +106,34 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     DeformedSpace(space, X, dXdR, dRdX, J, Ji)
 end
 
-grid(space::DeformedSpace) = space.grid
+###
+# interface
+###
+
+Base.size(space::DeformedSpace) = size(space.space)
+
+domain(space::DeformedSpace) = domain(space.space)
+modes(space::DeformedSpace) = modes(space.space)
+quadratures(space::DeformedSpace) = quadratures(space.space)
+
+points(space::DeformedSpace) = space.grid
+
+###
+# vector calculus
+###
+
+function massOp(space::DeformedSpace, ::Galerkin)
+    M = massOp(space.space)
+    J = space.J
+
+    M * J
+end
 
 """
 [Dx] * u = [rx sx] * [Dr] * u
 [Dy]     = [ry sy]   [Ds]
 """
-function gradOp(space::DeformedSpace)
+function gradOp(space::DeformedSpace) # ∇
     gradR = gradOp(space.space)
     dRdX  = space.dRdX
     gradX = dRdX * gradR
@@ -120,11 +141,10 @@ function gradOp(space::DeformedSpace)
     gradX
 end
 
-function massOp(space::DeformedSpace)
-    M = massOp(space.space)
-    J = space.J
+function hessianOp(space::DeformedSpace) # ∇²
+    DD = gradX(space)
 
-    M * J
+    DD .* DD
 end
 
 """
@@ -145,7 +165,7 @@ where A_l is
 = [Dr]' * [G11 G12]' * [Dr]
   [Ds]    [G12 G22]    [Ds]
 """
-function laplaceOp(space::DeformedSpace{<:Number, D}) where{D}
+function laplaceOp(space::DeformedSpace, ::Galerkin)
 
     Dr   = gradOp(space.space)
     M    = massOp(space)
@@ -169,7 +189,8 @@ end
 
 function laplaceOp(space1::DeformedSpace{<:Number,D},
                    space2::DeformedSpace{<:Number,D},
-                   interpolation_operator = nothing
+                   discr::AbstractDiscretization;
+                   J = nothing
                   ) where{D}
     J12 = interpolation_operator !== nothing ? J : interpOp(space1, space2)
 

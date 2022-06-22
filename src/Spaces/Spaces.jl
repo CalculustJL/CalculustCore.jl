@@ -3,12 +3,15 @@ Function Space Interface
 """
 module Spaces
 
+using Reexport
+
 using LinearAlgebra
-using SciMLOperators
-using SciMLOperators: IdentityOperator
+@reexport using SciMLOperators
+using SciMLOperators: IdentityOperator, NullOperator
 import SparseArrays: sparse
 using NNlib: gather, gather!, scatter, scatter!
 using UnPack: @unpack
+using Lazy: @forward
 import Plots
 
 using ..Domains
@@ -41,29 +44,33 @@ include("transform.jl") # TODO
 include("deform.jl")
 
 export
-       # interface
-       dims, points, domain,
-       local_numbering, global_numbering, basis, boundary_nodes,
+       ## Interface
 
-       # discretizations
+       # from ..Domains
+       dims, domain, deform, ⊗,
+       # interface
+       points, modes, basis, transform,
+       local_numbering, global_numbering, boundary_nodes,
+       # from SciMLOperators
+       cache_operator,
+
+       ## Discretizations
        Collocation, Galerkin,
 
-       # operators
-       massOp, gradOp, hessianOp, laplaceOp, advectionOp, divergenceOp,
+       ### Operators
 
+       # vector calculus
+       massOp, gradOp, hessianOp, laplaceOp, diffusionOp, advectionOp, divergenceOp,
        # interpolation
        interpOp,
 
-       # lagrange polynomial space
+       ### Spaces
+
+       # Lagrange polynomial spaces
        LagrangePolynomialSpace,
        GaussLobattoLegendre, GaussLegendre, GaussChebychev,
-
-       # trigonometric polynomials
-       FourierSpace,
-
-       # misc
-       deform,
-       ⊗
+       # Trigonometric polynomial spaces
+       FourierSpace #, SineSpace, CosineSpace,
 
 end
 #

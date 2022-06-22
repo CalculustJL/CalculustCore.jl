@@ -163,7 +163,7 @@ function advectionOp(vel::NTuple{D},
                      discr::AbstractDiscretization
                     ) where{D}
 
-    VV = [DiagonalOperator.(vel)...]
+    VV = [DiagonalOperator.(vel)...] # <-- write update_coefficients! rule
     DD = gradOp(space, discr)
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])

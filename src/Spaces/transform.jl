@@ -1,5 +1,7 @@
 
-# TODO allow for evolution in either transformed space, or physical space
+"""
+ physical space -> modal space
+"""
 struct TransformedSpace{T,D,Tsp<:AbstractSpace{T,D}} <: AbstractSpace{T,D}
     space::Tsp
 end
@@ -12,9 +14,30 @@ function transform(space::TransformedSpace)
     space.space
 end
 
-function domain(space::TransformedSpace)
+###
+# interface
+###
+Base.size(space::TransformedSpace) = size(space.space)
+
+domain(space::TransformedSpace) = domain(space.space)
+points(space::TransformedSpace) = points(space.space)
+modes(space::TransformedSpace) = modes(space.space)
+quadratures(space::TransformedSpace) = quadratures(space.space)
+
+function deform(space::TransformedSpace)
+    phys = transform(space)
+    def  = deform(space)
+
+    transform(def)
 end
 
-function gradOp(space::TransformedSpace)
+#function Domains.⊗(space::TransformedSpace, space::AbstractSpace)
+
+###
+# vector calculus - modal space <-> modal space
+###
+
+function gradOp(space::TransformedSpace) # ∇
 end
+
 #
