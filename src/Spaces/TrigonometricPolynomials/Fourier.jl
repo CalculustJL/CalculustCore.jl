@@ -172,4 +172,54 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
 
     tr1 \ J * tr1
 end
+
+###
+# operators in transformed space
+###
+
+function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace}) # ∇
+    k  = modes(space)
+    ik = DiagonalOperator(im * k)
+
+    ik
+end
+
+function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace}) # ∇²
+    k   = modes(space)
+    ik2 = DiagonalOperator(@. -k * k)
+
+    ik2
+end
+
+function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSpace}, discr::AbstractDiscretization) where{D}
+    VV = [DiagonalOperator.(vel)...]
+
+    tr = transforms(space)
+
+    VV_phys = tr \ VV
+
+    MM = massOp(space, discr)
+    DD = gradOp(space, discr)
+
+    Dphys = tr \ DD
+
+    Adv = _transp(VV_phys) * MM * Dphys
+
+
+    tr * Adv
+end
+
+# interpolation
+function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
+                  space2::TransformedSpace{<:Any,D,<:FourierSpace},
+                 ) where{D}
+
+    M = size(space2)[1] # output
+    N = size(space1)[1] # input
+
+    J = sparse(I, (M,N)) |> MatrixOperator
+
+    J
+end
+
 #

@@ -1,12 +1,14 @@
 #
-# do it for 2D first and nest later
-
+"""
+Tensor product of spaces. like extrusion
+ do it for 2D first and nest later
+"""
 struct TensorProductSpace{
                           T,
                           D1+D2,
                           I<:AbstractSpace{<:Any, D1},
                           O<:AbstractSpace{<:Any, D2},
-                         } <: AbstractTensorProductSpace{T,D1+D2}
+                         } <: AbstractSpace{T,D1+D2}
     inner::I
     outer::O
 end

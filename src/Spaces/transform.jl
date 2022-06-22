@@ -17,7 +17,7 @@ end
 ###
 # interface
 ###
-Base.size(space::TransformedSpace) = size(space.space)
+Base.size(space::TransformedSpace) = size(modes(space))
 
 domain(space::TransformedSpace) = domain(space.space)
 points(space::TransformedSpace) = points(space.space)
@@ -32,12 +32,31 @@ function deform(space::TransformedSpace)
 end
 
 #function Domains.⊗(space::TransformedSpace, space::AbstractSpace)
+#end
 
 ###
 # vector calculus - modal space <-> modal space
 ###
 
+function massOp(space::TransformedSpace, discr::AbstractDiscretization) # ∫
+end
+
 function gradOp(space::TransformedSpace) # ∇
+end
+
+function hessianOp(space::TransformedSpace) # ∇²
+end
+
+function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization) # Δ
+end
+
+function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization) # νΔ
+end
+
+function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization) # ∇⋅(ν∇)
+end
+
+function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D}) where{D}
 end
 
 #

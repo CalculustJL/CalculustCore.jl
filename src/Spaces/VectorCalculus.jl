@@ -4,7 +4,7 @@
 ###
 
 """
-Mass Operator
+Mass Operator - ∫
 
 Inner Product: <u, v := u' * M * v
 
@@ -31,7 +31,8 @@ function massOp(space1::AbstractSpace{<:Any,D},
 end
 
 """
-Gradient Operator
+Gradient Operator - ∇
+
 Compute gradient of u∈H¹(Ω).
 
 Continuity isn't necessarily enforced across
@@ -47,13 +48,13 @@ function gradOp end
 gradOp(space::AbstractSpace, discr::AbstractDiscretization) = gradOp(space)
 
 """
-Hessian Operator (2nd partial derivative)
+Hessian Operator - ∇²
 """
 function hessianOp end
 hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
 
 """
-Laplace Operator
+Laplace Operator - Δ
 
 for v,u in H¹₀(Ω)
 
@@ -97,7 +98,7 @@ function laplaceOp(space1::AbstractSpace{<:Any,D},
 end
 
 """
-Diffusion operator
+Diffusion operator - νΔ
 """
 function diffusionOp(ν::Number, args...)
     ν * laplaceOp(args...)
@@ -115,6 +116,9 @@ function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::AbstractDi
     - DDt * MMν * DD
 end
 
+"""
+Diffusion operator - ∇⋅(ν∇⋅)
+"""
 function diffusionOp(ν::AbstractVector,
                      space1::AbstractSpace{<:Any,D},
                      space2::AbstractSpace{<:Any,D},
@@ -137,6 +141,8 @@ function diffusionOp(ν::AbstractVector,
 end
 
 """
+Advection Operator - v⃗⋅∇
+
 args:
     space::AbstractSpace{<:Any,D}
     vel...::AbstractVector
@@ -163,7 +169,7 @@ function advectionOp(vel::NTuple{D},
                      discr::AbstractDiscretization
                     ) where{D}
 
-    VV = [DiagonalOperator.(vel)...] # <-- write update_coefficients! rule
+    VV = [DiagonalOperator.(vel)...]
     DD = gradOp(space, discr)
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
@@ -198,7 +204,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
 end
 
 """
-Divergence Operator
+Divergence Operator - ∇⋅
 """
 function divergenceOp(space::AbstractSpace)
     D = dims(space)

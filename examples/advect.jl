@@ -23,7 +23,7 @@ D = diffusionOp(ν, space, discr)
 
 # define update_coefficients! rule
 vel = (one(size(x)),)
-C = advectionOp(vel, space, discr)
+C = advectionOp(vel, space, discr) # advectionOp(...; update_vel=)
 F = C
 
 D = cache_operator(D, x)
