@@ -9,7 +9,7 @@ using OrdinaryDiffEq, LinearSolve
 using Plots
 
 N = 1024
-ν = 0e-2
+ν = 1e-2
 p = ()
 
 """ space discr """
@@ -17,7 +17,7 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-u0 = @. sin(1x)
+u0 = @. sin(2x + 1.0)
 
 A = diffusionOp(ν, space, discr)
 
@@ -27,25 +27,31 @@ function burgers!(L, u, p, t)
     L
 end
 
+
+#v = @. x*0 + 1
+#f = @. x*0
+#C = advectionOp((v,), space, discr)
+
 v = @. x*0 + 1
 f = @. x*0
+C = advectionOp((v,), space, discr; vel_update_func=burgers!)
 
-C = advectionOp((v,), space, discr)
 F = AffineOperator(C, f)
-
-#C = advectionOp((u0,), space, discr; vel_update_func=burgers!)
-#F = C
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)
 
 """ time discr """
 tspan = (0.0, 10.0)
+tsave = range(tspan...; length=10)
 odealg = Rodas5(autodiff=false)
 prob = SplitODEProblem(A, F, u0, tspan, p)
 
-@time sol = solve(prob, odealg)
+@time sol = solve(prob, odealg, saveat=tsave)
 @show sol.retcode
 
-nothing
-#
+plt = plot()
+for i=1:length(sol.u)
+    plot!(plt, x, sol.u[i], legend=false)
+end
+plt
