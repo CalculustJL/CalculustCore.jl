@@ -9,7 +9,7 @@ using OrdinaryDiffEq, LinearSolve
 using Plots
 
 N = 1024
-ν = 0f0
+ν = 5e-3
 p = ()
 
 """ space discr """
@@ -20,17 +20,22 @@ discr = Collocation()
 tr = space.transforms
 k = modes(space)
 
-u0 = @. sin(2x)
-#u0 = rand(ComplexF64, size(k))
-#u0[20:end] .= 0
-#u0 = tr \ u0
+#u0 = @. sin(2x) + sin(3x)
 
+u0 = rand(ComplexF64, size(k))
+u0[20:end] .= 0
+u0 = tr \ u0
 
 A = diffusionOp(ν, space, discr)
 
+function burgers!(L, u, p, t)
+    L.diag .= u
+    L
+end
+
 v = @. x*0 + 1
-f = @. x*0
-C = advectionOp((v,), space, discr)
+f = @. x*0 #+ ν
+C = advectionOp((v,), space, discr; vel_update_func=burgers!)
 
 F = AffineOperator(C, f)
 
