@@ -1,5 +1,4 @@
 #
-
 """
 Weighted residual method
 """
@@ -17,6 +16,12 @@ function laplaceOp(space::AbstractSpace, discr::Galerkin)
     - DD' * MM * DD
 end
 
+"""
+for v,u in H¹₀(Ω)
+
+(v,-∇² u) = (vx,ux) + (vy,uy)\n
+         := a(v,u)\n
+"""
 function laplaceOp(space1::AbstractSpace{<:Any,D},
                    space2::AbstractSpace{<:Any,D},
                    ::Galerkin;
@@ -61,4 +66,12 @@ function laplaceOp(space::AbstractSpace, discr::Collocation)
     sum(DD2)
 end
 
+"""
+Divergence Operator - ∇⋅
+"""
+function divergenceOp(space::AbstractSpace, ::Collocation)
+    DD = gradOp(space)
+
+    sum(DD)
+end
 #

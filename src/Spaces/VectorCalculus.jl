@@ -56,11 +56,6 @@ hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space
 """
 Laplace Operator - Δ
 
-for v,u in H¹₀(Ω)
-
-(v,-∇² u) = (vx,ux) + (vy,uy)\n
-         := a(v,u)\n
-
 args:
     space::AbstractSpace{T,D}
     space_dealias
@@ -109,7 +104,10 @@ args:
     space_dealias
 ret:
     advectionOp: AbstractVector -> AbstractVector
+"""
+function advectionOp end
 
+"""
 for v,u,T in H¹₀(Ω)
 
 (v,(u⃗⋅∇)T) = (v,ux*∂xT + uy*∂yT)\n
@@ -169,14 +167,5 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
     DD1 = gradOp(space1)
 
     -VV2' * MM2 * (J12 .* DD1)
-end
-
-"""
-Divergence Operator - ∇⋅
-"""
-function divergenceOp(space::AbstractSpace)
-    D = dims(space)
-    Dx = gradOp(space)
-    return _reshape(Dx, (1, D))
 end
 #
