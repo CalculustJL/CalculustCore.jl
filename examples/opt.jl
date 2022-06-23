@@ -4,8 +4,8 @@ pkgpath = dirname(dirname(@__FILE__))
 tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
-using PDEInterfaces               # spatial
-using OrdinaryDiffEq, LinearSolve # timestepping
+using PDEInterfaces
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Zygote, Random, Lux #, DiffEqSensitivity         # ML
 
 N = 128

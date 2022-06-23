@@ -5,11 +5,11 @@ tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve
+using OrdinaryDiffEq, LinearSolve, Sundials
 using Plots
 
 N = 1024
-ν = 1e-2
+ν = 2e-3
 p = ()
 
 """ space discr """
@@ -25,7 +25,7 @@ u0 = @. sin(x - π)
 
 #u0 = rand(ComplexF64, size(k))
 #u0[20:end] .= 0
-#u0 = tr \ u0
+#u0 = ftr \ u0
 
 A = diffusionOp(ν, space, discr)
 
@@ -35,7 +35,7 @@ function burgers!(v, u, p, t)
 end
 
 v = @. x*0 + 1
-f = @. x*0 #+ ν
+f = @. x*0
 C = advectionOp((v,), space, discr; vel_update_funcs=(burgers!,))
 
 F = AffineOperator(-C, f)
@@ -44,12 +44,14 @@ A = cache_operator(A, x)
 F = cache_operator(F, x)
 
 """ time discr """
-tspan = (0.0, 2.0)
+tspan = (0.0, π)
 tsave = range(tspan...; length=10)
-#odealg = Rodas5(autodiff=false)
-odealg = Tsit5()
-prob = SplitODEProblem(A, F, u0, tspan, p)
 
+#odealg = Rodas5(autodiff=false)
+#odealg = Tsit5()
+odealg = CVODE_BDF(method=:Functional)
+
+prob = SplitODEProblem(A, F, u0, tspan, p)
 @time sol = solve(prob, odealg, saveat=tsave)
 
 plt = plot()
