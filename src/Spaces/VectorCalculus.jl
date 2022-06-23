@@ -68,7 +68,7 @@ function laplaceOp end
 Diffusion operator - νΔ
 """
 function diffusionOp(ν::Number, args...)
-    ν * laplaceOp(args...)
+    ν * laplaceOp(args...) # TODO - ν update behaviour
 end
 
 """
