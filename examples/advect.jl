@@ -23,10 +23,10 @@ k = modes(space)
 """ operators """
 A = diffusionOp(ν, space, discr)
 
-v = 1.0; vel     = @. x*0 + v
-f = 0.0; forcing = @. x*0 + f
+v = 1.0; vel = @. x*0 + v
+f = 0.0; ff  = @. x*0 + f
 C = advectionOp((vel,), space, discr)
-F = AffineOperator(-C, forcing)
+F = AffineOperator(-C, ff)
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)

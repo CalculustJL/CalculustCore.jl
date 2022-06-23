@@ -180,4 +180,14 @@ end
 Divergence Operator - ∇⋅
 """
 function divergenceOp end
+
+"""
+Add forcing
+"""
+function forcing end
+
+function forcing(f::AbstractVector, discr::AbstractDiscretization)
+    M = massOp(space, discr)
+    M * f
+end
 #

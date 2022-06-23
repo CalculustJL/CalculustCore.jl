@@ -64,6 +64,7 @@ export
 
        # vector calculus
        massOp, gradOp, hessianOp, laplaceOp, diffusionOp, advectionOp, divergenceOp,
+       forcing,
        # interpolation
        interpOp,
 

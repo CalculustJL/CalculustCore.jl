@@ -20,18 +20,11 @@ discr = Collocation()
 tr = space.transforms
 k = modes(space)
 
-u0 = @. sin(2x)
-#u0 = rand(ComplexF64, size(k))
-#u0[20:end] .= 0
-#u0 = tr \ u0
+α = 5
+u0 = @. sin(α*x)
 
 A = diffusionOp(ν, space, discr)
-
-v = @. x*0 + 1
-f = @. x*0
-C = advectionOp((v,), space, discr)
-
-F = AffineOperator(-C, f)
+F = SciMLOperators.NullOperator(space)
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)
@@ -44,8 +37,22 @@ prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave)
 
+""" analysis """
+pred = Array(sol)
+
+utrue(t) = @. u0 * (exp(-ν*α^2*t))
+ut = utrue(sol.t[1])
+for i=2:length(sol.t)
+    utt = utrue(sol.t[i])
+    global ut = hcat(ut, utt)
+end
+
+norm(pred .- ut, Inf) |> display
+
 plt = plot()
 for i=1:length(sol.u)
     plot!(plt, x, sol.u[i], legend=false)
 end
-p
+display(plt)
+
+nothing
