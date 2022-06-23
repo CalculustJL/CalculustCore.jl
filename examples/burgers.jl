@@ -17,7 +17,7 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-tr = space.transforms
+ftr  = transforms(space)
 k = modes(space)
 
 u0 = @. sin(2x) + sin(3x) + sin(5x)

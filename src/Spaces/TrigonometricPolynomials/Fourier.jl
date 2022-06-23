@@ -3,7 +3,7 @@ import FFTW: plan_fft, plan_ifft, fftfreq
 import FFTW: plan_rfft, plan_irfft, rfftfreq
 
 """
-with stuff in physical space. operators leverage transform
+with stuff in physical space. operators use FFT
 """
 struct FourierSpace{
                     T,
@@ -26,7 +26,7 @@ struct FourierSpace{
     """ mass matrix """
     mass_matrix::Tmass
     """ forward transform `mul!(û, T , u)` """
-    transforms::Ttr
+    ftransforms::Ttr
 end
 
 function FourierSpace(n::Integer;
@@ -60,36 +60,34 @@ function FourierSpace(n::Integer;
     if T <: Real
         k   = rfftfreq(n, 2π*n/L) |> Array
         ftr = plan_rfft(x)
-        itr = plan_irfft(im*k, n)
     else
         k   = fftfreq(n, 2π*n/L) |> Array
         ftr = plan_fft(x)
-        itr = plan_ifft(k, n)
     end
 
-    tr = FunctionOperator(
-                          (du,u,p,t) -> mul!(du, ftr, u);
-                          isinplace=true,
-                          T=ComplexT,
-                          size=(length(k),n),
+    ftransform = FunctionOperator(
+                                  (du,u,p,t) -> mul!(du, ftr, u);
+                                  isinplace=true,
+                                  T=ComplexT,
+                                  size=(length(k),n),
     
-                          input_prototype=x,
-                          output_prototype=im*k,
+                                  input_prototype=x,
+                                  output_prototype=im*k,
     
-                          #op_adjoint=
-                          op_inverse = (du,u,p,t) -> ldiv!(du, ftr, u)
-                         )
+                                  #op_adjoint=
+                                  op_inverse = (du,u,p,t) -> ldiv!(du, ftr, u)
+                                 )
 
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
     modes = k #(k,)
     mass_matrix = ones(T, n) * (2π/L)
-    transforms = tr#(tr,)
+    ftransforms = ftransform#(ftransform,)
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
-                         mass_matrix, transforms,
+                         mass_matrix, ftransforms,
                         )
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
@@ -110,7 +108,7 @@ function quadratures(space::FourierSpace{<:Any,1})
 end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
-transforms(space::FourierSpace) = space.transforms
+transforms(space::FourierSpace) = space.ftransforms
 
 ## TODO - local system <-> global system
 ## global system for computation
@@ -223,5 +221,4 @@ function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
 
     J
 end
-
 #

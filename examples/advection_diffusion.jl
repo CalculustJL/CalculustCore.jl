@@ -17,14 +17,14 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-tr = space.transforms
+ftr  = transforms(space)
 k = modes(space)
 
 u0 = @. sin(2x)
 
 #u0 = rand(ComplexF64, size(k))
 #u0[20:end] .= 0
-#u0 = tr \ u0
+#u0 = ftr \ u0
 
 A = diffusionOp(ν, space, discr)
 

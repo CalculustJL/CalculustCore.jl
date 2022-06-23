@@ -17,7 +17,7 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-ftr = space.transforms
+ftr = transforms(space)
 k = modes(space)
 
 """ operators """

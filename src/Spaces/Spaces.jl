@@ -52,7 +52,7 @@ export
 
        dims, domain, deform,
        # interface
-       points, modes, basis, transform,
+       points, modes, basis, transforms, transform,
        local_numbering, global_numbering, boundary_nodes,
        # from SciMLOperators
        IdentityOperator, NullOperator, ⊗, cache_operator,

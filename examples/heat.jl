@@ -17,7 +17,7 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-tr = space.transforms
+ftr  = transforms(space)
 k = modes(space)
 
 α = 5
