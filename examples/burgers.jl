@@ -9,7 +9,7 @@ using OrdinaryDiffEq, LinearSolve
 using Plots
 
 N = 1024
-ν = 5e-3
+ν = 1e-2
 p = ()
 
 """ space discr """
@@ -28,9 +28,9 @@ u0 = @. sin(2x) + sin(3x) + sin(5x)
 
 A = diffusionOp(ν, space, discr)
 
-function burgers!(L, u, p, t)
-    L.diag .= u
-    L
+function burgers!(v, u, p, t)
+    copy!(v, u)
+    v
 end
 
 v = @. x*0 + 1

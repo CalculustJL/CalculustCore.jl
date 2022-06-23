@@ -66,9 +66,6 @@ function laplaceOp(space::AbstractSpace, discr::Collocation)
     sum(DD2)
 end
 
-"""
-Divergence Operator - ∇⋅
-"""
 function divergenceOp(space::AbstractSpace, ::Collocation)
     DD = gradOp(space)
 

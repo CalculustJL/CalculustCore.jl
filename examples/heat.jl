@@ -5,30 +5,47 @@ tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
 using PDEInterfaces
-using OrdinaryDiffEq, Zygote, Lux
+using OrdinaryDiffEq, LinearSolve
 using Plots
 
-N = 128
-ν = 1.0
+N = 1024
+ν = 1e-2
 p = ()
 
-""" time discr """
-tspan = (0.0, 1.0)
-odealg = Tsit5()
-
 """ space discr """
-domain = FourierDomain(1)
-space  = FourierSpace(N; domain=domain)
-discr  = Collocation()
+space = FourierSpace(N)
+discr = Collocation()
 
 (x,) = points(space)
+tr = space.transforms
+k = modes(space)
 
-D = diffusionOp(ν, space, discr)
-D = cache_operator(D, x)
+u0 = @. sin(2x)
+#u0 = rand(ComplexF64, size(k))
+#u0[20:end] .= 0
+#u0 = tr \ u0
 
-""" IC """
-u0 = @. sin(x)
+A = diffusionOp(ν, space, discr)
 
-""" solve """
-prob = ODEProblem(D, u0, tspan, p)
-sol  = solve(prob, odealg)
+v = @. x*0 + 1
+f = @. x*0
+C = advectionOp((v,), space, discr)
+
+F = AffineOperator(-C, f)
+
+A = cache_operator(A, x)
+F = cache_operator(F, x)
+
+""" time discr """
+tspan = (0.0, 10.0)
+tsave = range(tspan...; length=10)
+odealg = Rodas5(autodiff=false)
+prob = SplitODEProblem(A, F, u0, tspan, p)
+
+@time sol = solve(prob, odealg, saveat=tsave)
+
+plt = plot()
+for i=1:length(sol.u)
+    plot!(plt, x, sol.u[i], legend=false)
+end
+p

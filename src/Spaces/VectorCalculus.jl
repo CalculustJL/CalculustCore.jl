@@ -99,9 +99,9 @@ end
 Advection Operator - v⃗⋅∇
 
 args:
-    space::AbstractSpace{<:Any,D}
     vel...::AbstractVector
-    space_dealias
+    space::AbstractSpace{<:Any,D}
+    space_dealias (optional)
 ret:
     advectionOp: AbstractVector -> AbstractVector
 """
@@ -130,8 +130,12 @@ function advectionOp(vel::NTuple{D},
 
     VV = [DiagonalOperator.(vel)...]
 
-    # only 1D for now
-    V1 = MatrixOperator(Diagonal(vel[1]); update_func=vel_update_func)
+    function update_func!(A, u, p, t)
+        vel_update_func(A.diag, u, p, t)
+        A
+    end
+
+    V1 = MatrixOperator(Diagonal(vel[1]); update_func=update_func!)
     VV = [V1,]
 
     DD = gradOp(space, discr)
@@ -166,6 +170,11 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
     MM2 = Diagonal([M for i=1:D])
     DD1 = gradOp(space1)
 
-    -VV2' * MM2 * (J12 .* DD1)
+    VV2' * MM2 * (J12 .* DD1)
 end
+
+"""
+Divergence Operator - ∇⋅
+"""
+function divergenceOp end
 #

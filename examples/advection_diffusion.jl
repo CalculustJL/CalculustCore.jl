@@ -21,6 +21,7 @@ tr = space.transforms
 k = modes(space)
 
 u0 = @. sin(2x)
+
 #u0 = rand(ComplexF64, size(k))
 #u0[20:end] .= 0
 #u0 = tr \ u0
