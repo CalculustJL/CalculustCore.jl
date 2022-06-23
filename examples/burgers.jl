@@ -26,7 +26,6 @@ function uIC(x, ftr)
 end
     
 function solve_burgers(N, ν, p; uIC=uIC)
-
     """ space discr """
     space = FourierSpace(N)
     discr = Collocation()
@@ -40,23 +39,22 @@ function solve_burgers(N, ν, p; uIC=uIC)
     
     """ operators """
     A = diffusionOp(ν, space, discr)
-    
+
     function burgers!(v, u, p, t)
         copy!(v, u)
         v
     end
-    
+
     v = @. x*0 + 1
     f = @. x*0
     C = advectionOp((v,), space, discr; vel_update_funcs=(burgers!,))
-    
     F = AffineOperator(-C, f)
 
     A = cache_operator(A, x)
     F = cache_operator(F, x)
     
     """ time discr """
-    tspan = (0.0, π)
+    tspan = (0.0, 10.0)
     tsave = range(tspan...; length=10)
     
     #odealg = Rodas5(autodiff=false)
@@ -65,17 +63,17 @@ function solve_burgers(N, ν, p; uIC=uIC)
     
     prob = SplitODEProblem(A, F, u0, tspan, p)
     @time sol = solve(prob, odealg, saveat=tsave)
-    
+
+    """ analysis """
+    plt = plot()
+    for i=1:length(sol.u)
+        plot!(plt, x, sol.u[i], legend=false)
+    end
+    display(plt)
+
     sol
 end
 
 sol = solve_burgers(N, ν, p)
-
-""" analysis """
-plt = plot()
-for i=1:length(sol.u)
-    plot!(plt, x, sol.u[i], legend=false)
-end
-display(plt)
 
 nothing

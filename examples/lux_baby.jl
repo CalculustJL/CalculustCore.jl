@@ -28,7 +28,7 @@ tspan = (0.0, 1.0)
 tsave = range(tspan...; length=10)
 prob = ODEProblem(dudt, u0, tspan, saveat=tsave)
 
-function predict(p)
+function predict(p; prob=prob)
     solve(prob, Tsit5(), p=p) |> Array
 end
 

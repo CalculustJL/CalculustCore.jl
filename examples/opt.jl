@@ -6,13 +6,13 @@ tstpath = joinpath(pkgpath, "test")
 
 using PDEInterfaces
 using OrdinaryDiffEq, LinearSolve, Sundials, LinearAlgebra
-using Zygote, Random, Lux, DiffEqSensitivity
+using Zygote, Random, Lux, DiffEqSensitivity, ComponentArrays
 
 N = 128
-ν = 1e-2
-p = ()
+ν = 1e-1
+
 odealg = Tsit5()
-odealg = CVODE_BDF(method=:Functional)
+#odealg = CVODE_BDF(method=:Functional)
 #odealg = Rodas5(autodiff=false)
 
 """ space discr """
@@ -34,56 +34,19 @@ D = cache_operator(D, x)
 F = cache_operator(F, x)
 
 """ NN """
-rng = Random.default_rng()
-
 model = Lux.Chain(
                   Lux.Dense(1, 10),
                   Lux.Dense(10, 1),
                  )
 
+rng = Random.default_rng()
 ps, st = Lux.setup(rng, model)
 ps = ComponentArray(ps)
 
-function explicit!(du, u, p, t; space=space, model=model, st=st)
-    x  = points(space)[1]
-    xt = transpose(x)
-
-    dut = model(xt, p, st)[1]
-    du .= transpose(dut)
-end
-
-""" IC """
 u0 = @. sin(10x)
+tspan = (0.0, 1.0)
+tsteps = range(tspan..., length=10)
 
-""" solve """
-tspan = (0.0, 10.0)
-tsteps = range(tspan..., length=100)
-
-prob = SplitODEProblem{true}(D, explicit!, u0, tspan, ps, saveat=tsteps)
-
-sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
-
-function loss(p; prob=prob, odealg=odealg)
-    prob = remake(prob, p=p)
-    pred = solve(prob, odealg) |> Array
-    loss = sum(abs.(pred .- 1.0))
-    loss, pred
-end
-
-function cb(p, l, pred; doplot=true, space=space)
-    println(l)
-#   if doplot
-#       x = points(space)[1]
-#       plot(x, )
-#   end
-    return false
-end
-
-# dummy
-println("fwd"); cb(ps,loss(ps)...;doplot=true)
-println("bwd"); Zygote.gradient(p -> loss(p)[1], p)
-
-#=
 """ fully explicit problem """
 function implicit(u, p, t;op=D)
     op * u
@@ -94,11 +57,52 @@ function explicit(u, p, t; space=space, model=model, st=st)
     xt = transpose(x)
 
     dut = model(xt, p, st)[1]
-    return transpose(dut)
+    return vec(dut)
 end
 
-prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, ps, saveat=tsteps)
-=#
+#prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
+prob = ODEProblem{false}(explicit, u0, tspan, saveat=tsteps)
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+function predict(ps; prob=prob, odealg=odealg, sense=sense)
+    solve(prob, odealg, p=ps, sensealg=sense) |> Array
+end
 
+function loss(p)
+    pred = predict(p)
+    loss = sum(abs.(pred .- 1.0))
+
+    loss, pred
+end
+
+function cb(p, l, pred; doplot=true, space=space)
+    println(l)
+    return false
+end
+
+# dummy
+println("fwd"); cb(ps,loss(ps)...;doplot=true)
+println("bwd"); Zygote.gradient(p -> loss(p)[1], ps)
+
+#=
+""" optimization """
+adtype = Optimization.AutoZygote()
+optf = Optimization.OptimizationFunction((x, p) -> loss_neuralode(x), adtype)
+optprob = Optimization.OptimizationProblem(optf, pinit)
+
+optres = Optimization.solve(optprob,
+                            ADAM(0.05),
+                            callback = callback,
+                            maxiters = 300
+                           )
+
+optprob = remake(optprob,u0 = result_neuralode.u)
+
+optres = Optimization.solve(optprob,
+                            Optim.BFGS(initial_stepnorm=0.01),
+                            callback=callback,
+                            allow_f_increases = false
+                           )
+
+callback(optres.u, loss(optres.u)...; doplot=true)
+=#
 #
-nothing
