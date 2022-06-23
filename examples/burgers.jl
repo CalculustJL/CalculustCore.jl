@@ -35,7 +35,7 @@ end
 
 v = @. x*0 + 1
 f = @. x*0 #+ ν
-C = advectionOp((v,), space, discr; vel_update_func=burgers!)
+C = advectionOp((v,), space, discr; vel_update_funcs=(burgers!,))
 
 F = AffineOperator(C, f)
 

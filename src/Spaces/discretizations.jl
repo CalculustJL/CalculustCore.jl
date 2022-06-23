@@ -71,4 +71,5 @@ function divergenceOp(space::AbstractSpace, ::Collocation)
 
     sum(DD)
 end
+
 #

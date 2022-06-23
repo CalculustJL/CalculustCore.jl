@@ -58,10 +58,11 @@ for i=2:length(sol.t)
 end
 
 pred = Array(sol)
-@show norm(pred - utrue)
+@show norm(pred - utrue, Inf)
 
 plt = plot()
 for i=1:length(sol.u)
     plot!(plt, x, sol.u[i], legend=false)
 end
 plt
+#

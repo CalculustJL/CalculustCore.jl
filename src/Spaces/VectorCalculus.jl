@@ -125,24 +125,28 @@ R'R * QQ' * B * (ux*∂xT + uy*∂yT)
 function advectionOp(vel::NTuple{D},
                      space::AbstractSpace{<:Any,D},
                      discr::AbstractDiscretization;
-                     vel_update_func=DEFAULT_UPDATE_FUNC,
+                     vel_update_funcs=nothing,
                     ) where{D}
 
-    VV = [DiagonalOperator.(vel)...]
+    VV = []
+    for i=1:D
+        vel_update_func = if vel_update_funcs isa Nothing
+            DEFAULT_UPDATE_FUNC
+        else
+            vel_update_funcs[i]
+        end
 
-    function update_func!(A, u, p, t)
-        vel_update_func(A.diag, u, p, t)
-        A
+        function update_func!(A, u, p, t)
+            vel_update_func(A.diag, u, p, t)
+            A
+        end
+        V = MatrixOperator(Diagonal(vel[i]); update_func=update_func!)
+        push!(VV, V)
     end
-
-    V1 = MatrixOperator(Diagonal(vel[1]); update_func=update_func!)
-    VV = [V1,]
 
     DD = gradOp(space, discr)
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
-
-    VVt = _transp(VV, discr)
 
     # 1D only for now
     VV[1] * MM[1] * DD[1]
