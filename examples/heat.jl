@@ -5,7 +5,7 @@ tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots
 
 N = 1024

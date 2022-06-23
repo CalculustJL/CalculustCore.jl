@@ -67,8 +67,11 @@ function laplaceOp end
 """
 Diffusion operator - νΔ
 """
-function diffusionOp(ν::Number, args...)
-    ν * laplaceOp(args...) # TODO - ν update behaviour
+function diffusionOp(ν::Number, args...; ν_update_func=DEFAULT_UPDATE_FUNC)
+    ν = ScalarOperator(ν; update_func=ν_update_func)
+    A = laplaceOp(args...)
+
+    ν * A
 end
 
 """
@@ -129,7 +132,7 @@ function advectionOp(vel::NTuple{D},
                      vel_update_funcs=nothing,
                     ) where{D}
 
-    VV = []
+    VV = AbstractSciMLOperator[]
     for i=1:D
         vel_update_func = if vel_update_funcs isa Nothing
             DEFAULT_UPDATE_FUNC
@@ -137,11 +140,7 @@ function advectionOp(vel::NTuple{D},
             vel_update_funcs[i]
         end
 
-        function update_func!(A, u, p, t)
-            vel_update_func(A.diag, u, p, t)
-            A
-        end
-        V = MatrixOperator(Diagonal(vel[i]); update_func=update_func!)
+        V = DiagonalOperator(vel[i];update_func=vel_update_func)
         push!(VV, V)
     end
 
