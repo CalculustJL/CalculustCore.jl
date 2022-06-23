@@ -5,13 +5,14 @@ tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Zygote, Random, Lux #, DiffEqSensitivity         # ML
+using OrdinaryDiffEq, LinearSolve, Sundials, LinearAlgebra
+using Zygote, Random, Lux, DiffEqSensitivity
 
 N = 128
 ν = 1e-2
 p = ()
 odealg = Tsit5()
+odealg = CVODE_BDF(method=:Functional)
 #odealg = Rodas5(autodiff=false)
 
 """ space discr """
@@ -41,6 +42,7 @@ model = Lux.Chain(
                  )
 
 ps, st = Lux.setup(rng, model)
+ps = ComponentArray(ps)
 
 function explicit!(du, u, p, t; space=space, model=model, st=st)
     x  = points(space)[1]
@@ -59,6 +61,8 @@ tsteps = range(tspan..., length=100)
 
 prob = SplitODEProblem{true}(D, explicit!, u0, tspan, ps, saveat=tsteps)
 
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+
 function loss(p; prob=prob, odealg=odealg)
     prob = remake(prob, p=p)
     pred = solve(prob, odealg) |> Array
@@ -66,14 +70,18 @@ function loss(p; prob=prob, odealg=odealg)
     loss, pred
 end
 
-function cb(p, l, pred)
+function cb(p, l, pred; doplot=true, space=space)
     println(l)
-  return false
+#   if doplot
+#       x = points(space)[1]
+#       plot(x, )
+#   end
+    return false
 end
 
 # dummy
-cb(p,loss(p)...;doplot=true)        # fwd
-Zygote.gradient(p -> loss(p)[1], p) # bwd
+println("fwd"); cb(ps,loss(ps)...;doplot=true)
+println("bwd"); Zygote.gradient(p -> loss(p)[1], p)
 
 #=
 """ fully explicit problem """
