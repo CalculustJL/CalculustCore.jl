@@ -33,36 +33,27 @@ F = cache_operator(F, x)
 
 """ IC """
 function uIC(x)
-    @. sin(2x)
+#   @. sin(2x)
+    u0 = rand(ComplexF64, size(k))
+    u0[20:end] .= 0
+    ftr \ u0
 end
-
 u0 = uIC(x)
-function uT(t, v)
-    xx = @. x - v*t
-    uIC(xx)
-end
 
 """ time discr """
 tspan = (0.0, 10.0)
-tsave = range(tspan...; length=10)
+tsave = (0, 2π)
 odealg = Rodas5(autodiff=false)
 prob = SplitODEProblem(A, F, u0, tspan, p)
-
 @time sol = solve(prob, odealg, saveat=tsave)
 
 """ analysis """
-utrue = uT(sol.t[1], v)
-for i=2:length(sol.t)
-    ut = uT(sol.t[i], v)
-    global utrue = hcat(utrue, ut)
-end
 
-pred = Array(sol)
-@show norm(pred - utrue, Inf)
+@show norm(sol.u[2] .- sol.u[1], Inf)
 
 plt = plot()
 for i=1:length(sol.u)
-    plot!(plt, x, sol.u[i], legend=false)
+    plot!(plt, x, sol.u[i], legend=true)
 end
 plt
 #
