@@ -67,53 +67,13 @@ args:
 ret:
     laplaceOp: AbstractVector -> AbstractVector
 """
-function laplaceOp(space::AbstractSpace, discr::AbstractDiscretization)
-    D = dims(space)
-
-    M  = massOp(space, space)
-    MM = Diagonal([M for i=1:D])
-
-    DD = gradOp(space, discr)
-    DDt = _transp(DD, disscr)
-
-    - DDt * MM * DD
-end
-
-function laplaceOp(space1::AbstractSpace{<:Any,D},
-                   space2::AbstractSpace{<:Any,D},
-                   discr::AbstractDiscretization;
-                   J = nothing,
-                  ) where{D}
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
-
-    M2  = massOp(space2, discr)
-    MM2 = Diagonal([M2 for i=1:D])
-
-    DD1  = gradOp(space1, discr)
-    JDD  = J12 .* DD1
-    JDDt = _transp(JDD, discr)
-
-    - JDDt * MM2 * JDD
-end
+function laplaceOp end
 
 """
 Diffusion operator - νΔ
 """
 function diffusionOp(ν::Number, args...)
     ν * laplaceOp(args...)
-end
-
-function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::AbstractDiscretization)
-    D = dims(space)
-    ν = DiagonalOperator(ν)
-    DD = gradOp(space)
-    M  = massOp(space)
-    Mν = ν * M
-    MMν = Diagonal([Mν for i=1:D])
-    DDt = _transp(DD, discr)
-
-    - DDt * MMν * DD
 end
 
 """
@@ -183,8 +143,8 @@ function advectionOp(vel::NTuple{D},
     VVt = _transp(VV, discr)
 
     # 1D only for now
-    -VV[1] * MM[1] * DD[1]
-#   -VVt * MM * DD
+    VV[1] * MM[1] * DD[1]
+#   VVt * MM * DD
 end
 
 """
