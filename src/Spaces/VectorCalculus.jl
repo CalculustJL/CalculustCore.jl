@@ -91,6 +91,7 @@ function diffusionOp(ν::AbstractVector,
 
     DD  = gradOp(space, discr)
     JDD = J .* DD
+    JDDt = _transp(JDD, discr)
 
     - JDDt * MMν2 * JDD
 end
@@ -148,9 +149,7 @@ function advectionOp(vel::NTuple{D},
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
 
-    # 1D only for now
-    VV[1] * MM[1] * DD[1]
-#   VVt * MM * DD
+    VV' * MM * DD
 end
 
 """
