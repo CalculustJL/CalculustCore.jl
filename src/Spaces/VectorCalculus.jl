@@ -53,6 +53,12 @@ Hessian Operator - ∇²
 function hessianOp end
 hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
 
+function hessianOp(space::AbstractSpace)
+    DD = gradOp(space, discr)
+
+    DD .* DD
+end
+
 """
 Laplace Operator - Δ
 
@@ -63,6 +69,17 @@ ret:
     laplaceOp: AbstractVector -> AbstractVector
 """
 function laplaceOp end
+
+"""
+Biharmonic Operator - Δ²
+
+args:
+    space::AbstractSpace{T,D}
+    space_dealias (optional)
+ret:
+    biharmonicOp: AbstractVector -> AbstractVector
+"""
+function biharmonicOp end
 
 """
 Diffusion operator - νΔ
@@ -148,7 +165,7 @@ function advectionOp(vel::NTuple{D},
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
 
-    VV' * MM * DD
+    VV' * MM * DD # TODO - transpose instead of adjoint VVt=_transp(VV, discr)
 end
 
 """
@@ -181,12 +198,18 @@ Divergence Operator - ∇⋅
 function divergenceOp end
 
 """
-Add forcing
+Added forcing as an operator
 """
-function forcing end
+function forcingOp end
 
-function forcing(f::AbstractVector, discr::AbstractDiscretization)
+function forcingOp(f::AbstractVector,
+                   discr::AbstractDiscretization;
+                   f_update_func=DEFAULT_UPDATE_FUNC
+                  )
+    Z = NullOperator(space)
     M = massOp(space, discr)
     M * f
+
+#   AffineOperator(Z, M, f; update_func=f_update_func)
 end
 #

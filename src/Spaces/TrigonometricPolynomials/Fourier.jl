@@ -156,6 +156,17 @@ function laplaceOp(space::FourierSpace{<:Any,1}, ::Collocation)
     hessianOp(space) |> sum
 end
 
+function biharmonicOp(space::FourierSpace{<:Any,1})
+    tr = transforms(space)
+
+    k   = modes(space)
+    ik4 = DiagonalOperator(@. k * k)
+
+    [
+     tr \ ik4 * tr,
+    ]
+end
+
 ###
 # interpolation operators
 ###

@@ -13,16 +13,16 @@ N = 4096
 p = ()
 
 function uIC(x, ftr, k)
-    u0 = @. sin(2x) + sin(3x) + sin(5x)
-    u0 = @. sin(x-π)
+#   u0 = @. sin(2x) + sin(3x) + sin(5x)
+#   u0 = @. sin(x-π)
 
-#   Random.seed!(0)
-#   u0 = begin
-#       u  = 2*rand(size(x)...)
-#       uh = ftr * u
-#       uh[20:end] .= 0
-#       ftr \ uh
-#   end
+    Random.seed!(0)
+    u0 = begin
+        u  = 2*rand(size(x)...)
+        uh = ftr * u
+        uh[20:end] .= 0
+        ftr \ uh
+    end
 
     u0
 end

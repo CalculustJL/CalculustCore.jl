@@ -66,10 +66,15 @@ function laplaceOp(space::AbstractSpace, discr::Collocation)
     sum(DD2)
 end
 
+function biharmonicOp(space::AbstractSpace, discr::Collocation)
+    A = laplaceOp(space, discr)
+
+    A * A
+end
+
 function divergenceOp(space::AbstractSpace, ::Collocation)
     DD = gradOp(space)
 
     sum(DD)
 end
-
 #

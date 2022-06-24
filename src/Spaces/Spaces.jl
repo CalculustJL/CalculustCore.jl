@@ -4,16 +4,15 @@ Function Space Interface
 module Spaces
 
 using Reexport
-
 using LinearAlgebra
+using Plots: Plots
+
 @reexport using SciMLOperators
 using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC
-import SciMLOperators: IdentityOperator, NullOperator, ⊗
 
-import SparseArrays: sparse
-using NNlib: gather, gather!, scatter, scatter!
 using UnPack: @unpack
-import Plots
+using NNlib: gather, gather!, scatter, scatter!
+import SparseArrays: sparse
 
 using ..Domains
 using ..Domains: AbstractDomain
@@ -23,6 +22,7 @@ import Base: eltype, length, size
 import Base: summary, display, show
 import Plots: plot, plot!
 import ..Domains: dims, deform
+import SciMLOperators: IdentityOperator, NullOperator, ⊗
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
@@ -45,26 +45,43 @@ include("LagrangePolynomials/LagrangePolynomialSpace.jl")
 include("TrigonometricPolynomials/Fourier.jl")
 
 export
-       ## Interface
+       ### Interface
+       points,
+       modes,
+       basis,
+       transforms,
+       transform,
+       local_numbering,
+       global_numbering,
+       boundary_nodes,
 
        # from ..Domains
-       dims, domain, deform,
+       dims,
+       domain,
+       deform,
 
-       dims, domain, deform,
-       # interface
-       points, modes, basis, transforms, transform,
-       local_numbering, global_numbering, boundary_nodes,
        # from SciMLOperators
-       IdentityOperator, NullOperator, ⊗, cache_operator,
+       IdentityOperator,
+       NullOperator,
+       ⊗,
 
-       ## Discretizations
-       Collocation, Galerkin,
+       ### Discretizations
+       Collocation,
+       Galerkin,
 
        ### Operators
 
        # vector calculus
-       massOp, gradOp, hessianOp, laplaceOp, diffusionOp, advectionOp, divergenceOp,
-       forcing,
+       massOp,
+       gradOp,
+       hessianOp,
+       laplaceOp,
+       biharmonicOp,
+       diffusionOp,
+       advectionOp,
+       divergenceOp,
+       forcingOp,
+
        # interpolation
        interpOp,
 
@@ -72,9 +89,14 @@ export
 
        # Lagrange polynomial spaces
        LagrangePolynomialSpace,
-       GaussLobattoLegendre, GaussLegendre, GaussChebychev,
+       GaussLobattoLegendre,
+       GaussLegendre,
+       GaussChebychev,
+
        # Trigonometric polynomial spaces
-       FourierSpace #, SineSpace, CosineSpace,
+#      SineSpace,
+#      CosineSpace,
+       FourierSpace
 
 end
 #
