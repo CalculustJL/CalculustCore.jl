@@ -11,8 +11,8 @@ end
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Sundials, Random
 using Plots
 
-N = 1024
-ν = 1e-3
+N = 8192
+ν = 1e-5
 p = ()
 
 Random.seed!(0)
