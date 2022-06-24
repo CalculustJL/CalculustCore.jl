@@ -47,13 +47,11 @@ function solve_burgers(N, ν, p;
     """ operators """
     A = diffusionOp(ν, space, discr)
 
-    # nonlinear convection
     burgers!(v, u, p, t) = copy!(v, u)
+    forcing!(f, u, p, t) = (f .= 0; f)
 
-    v = @. x*0 + 1
-    f = @. x*0
-    C = advectionOp((v,), space, discr; vel_update_funcs=(burgers!,))
-    F = AffineOperator(-C, f)
+    C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
+    F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
 
     A = cache_operator(A, x)
     F = cache_operator(F, x)
