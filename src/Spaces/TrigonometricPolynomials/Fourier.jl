@@ -130,7 +130,7 @@ end
 # TODO   before writing vector calculus ops, transform operation on space
 ###
 
-function gradOp(space::FourierSpace{<:Any,1}) # ∇
+function gradOp(space::FourierSpace{<:Any,1})
     tr = transforms(space)
 
     k  = modes(space)
@@ -141,7 +141,7 @@ function gradOp(space::FourierSpace{<:Any,1}) # ∇
     ]
 end
 
-function hessianOp(space::FourierSpace{<:Any,1}) # ∇²
+function hessianOp(space::FourierSpace{<:Any,1})
     tr = transforms(space)
 
     k   = modes(space)
@@ -175,14 +175,14 @@ end
 # operators in transformed space
 ###
 
-function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace}) # ∇
+function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     k  = modes(space)
     ik = DiagonalOperator(im * k)
 
     ik
 end
 
-function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace}) # ∇²
+function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     k   = modes(space)
     ik2 = DiagonalOperator(@. -k * k)
 

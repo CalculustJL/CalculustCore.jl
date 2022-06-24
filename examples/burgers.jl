@@ -5,7 +5,7 @@ tstpath = joinpath(pkgpath, "test")
 !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
 
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve, Sundials
+using OrdinaryDiffEq, LinearSolve, Sundials, Random
 using Plots
 
 N = 4096
@@ -14,19 +14,19 @@ p = ()
 
 function uIC(x, ftr, k)
     u0 = @. sin(2x) + sin(3x) + sin(5x)
-#   u0 = @. sin(x - π)
+    u0 = @. sin(x-π)
 
-    Random.seed!(0)
-    u0 = begin
-        u  = rand(size(x)...)
-        uh = ftr * u
-        uh[20:end] .= 0
-        ftr \ uh
-    end
+#   Random.seed!(0)
+#   u0 = begin
+#       u  = 2*rand(size(x)...)
+#       uh = ftr * u
+#       uh[20:end] .= 0
+#       ftr \ uh
+#   end
 
     u0
 end
-    
+
 function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
