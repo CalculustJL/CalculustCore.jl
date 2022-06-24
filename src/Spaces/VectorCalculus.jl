@@ -204,7 +204,7 @@ function forcingOp end
 
 function forcingOp(f::AbstractVector,
                    discr::AbstractDiscretization;
-                   f_update_func=DEFAULT_UPDATE_FUNC
+                   f_update_func=DEFAULT_UPDATE_FUNC,
                   )
     M = massOp(space, discr)
     M * f
