@@ -61,10 +61,17 @@ function explicit(u, p, t; space=space, model=model, st=st)
 end
 
 #prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
+#sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+
 prob = ODEProblem{false}(explicit, u0, tspan, saveat=tsteps)
 sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
-    solve(prob, odealg, p=ps, sensealg=sense) |> Array
+    solve(prob,
+          odealg,
+          p=ps,
+          sensealg=sense
+         ) |> Array
 end
 
 function loss(p)

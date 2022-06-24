@@ -25,7 +25,12 @@ function uIC(x, ftr)
     u0
 end
     
-function solve_burgers(N, ν, p; uIC=uIC)
+function solve_burgers(N, ν, p;
+                       uIC=uIC,
+                       tspan=(0.0, 10.0),
+                       nsave=100,
+                      )
+
     """ space discr """
     space = FourierSpace(N)
     discr = Collocation()
@@ -36,14 +41,12 @@ function solve_burgers(N, ν, p; uIC=uIC)
 
     """ IC """
     u0 = uIC(x, ftr)
-    
+
     """ operators """
     A = diffusionOp(ν, space, discr)
 
-    function burgers!(v, u, p, t)
-        copy!(v, u)
-        v
-    end
+    # nonlinear convection
+    burgers!(v, u, p, t) = copy!(v, u)
 
     v = @. x*0 + 1
     f = @. x*0
@@ -54,26 +57,36 @@ function solve_burgers(N, ν, p; uIC=uIC)
     F = cache_operator(F, x)
     
     """ time discr """
-    tspan = (0.0, 10.0)
-    tsave = range(tspan...; length=10)
-    
-    #odealg = Rodas5(autodiff=false)
-    #odealg = Tsit5()
+    tsave = range(tspan...; length=nsave)
+
     odealg = CVODE_BDF(method=:Functional)
     
     prob = SplitODEProblem(A, F, u0, tspan, p)
     @time sol = solve(prob, odealg, saveat=tsave)
 
-    """ analysis """
-    plt = plot()
-    for i=1:length(sol.u)
-        plot!(plt, x, sol.u[i], legend=false)
-    end
-    display(plt)
-
-    sol
+    sol, space
 end
 
-sol = solve_burgers(N, ν, p)
+function plot_sol(sol::ODESolution, space::FourierSpace)
+    x = points(space)[1]
+    plt = plot()
+    for i=1:length(sol)
+        plot!(plt, x, sol.u[i], legend=false)
+    end
+    plt
+end
 
+function anim8(sol::ODESolution, space::FourierSpace)
+    x = points(space)[1]
+    anim = @animate for i=1:length(sol)
+        plt = plot(x, sol.u[i], legend=false, ylims=(-3,3))
+    end
+end
+
+sol, space = solve_burgers(N, ν, p)
+plt = plot_sol(sol, space) |> display
+anim = anim8(sol, space)
+gif(anim, "a.gif", fps= 10)
+
+#
 nothing
