@@ -9,7 +9,7 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Plots
+using Plots, Test
 
 N = 128
 ν = 1e-2
@@ -23,22 +23,30 @@ discr = Collocation()
 ftr  = transforms(space)
 k = modes(space)
 
-α = 5
-u0 = @. sin(α*x)
+α = 2
+uic(x) = @. sin(α*x)
+function utrue(t,x)
+    cos(t) * uic(x)
+end
 
 A = diffusionOp(ν, space, discr)
 
-f = @. x*0
-F = forcingOp(f, space, discr)
-#F = NullOperator(space)
+f = @. x*0 + .1
+function forcing!(f, u, p, t)
+    ui = -sin(t)*uic(x)
+    ud = -ν*α*α*uic(x)*cos(t)
+    f .= ui - ud
+    f
+end
+F = forcingOp(f, space, discr; f_update_func=forcing!)
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)
 
 """ time discr """
-tspan = (0.0, 10.0)
+tspan = (0.0, 2π)
 tsave = range(tspan...; length=10)
-odealg = Rodas5(autodiff=false)
+odealg = Tsit5()
 prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave)
@@ -46,10 +54,9 @@ prob = SplitODEProblem(A, F, u0, tspan, p)
 """ analysis """
 pred = Array(sol)
 
-utrue(t) = @. u0 * (exp(-ν*α^2*t))
-ut = utrue(sol.t[1])
+ut = utrue(sol.t[1],x)
 for i=2:length(sol.t)
-    utt = utrue(sol.t[i])
+    utt = utrue(sol.t[i],x)
     global ut = hcat(ut, utt)
 end
 
@@ -60,5 +67,5 @@ end
 display(plt)
 
 err = norm(pred .- ut, Inf)
-@test err < 1e-6
+@test err < 1e-4
 #

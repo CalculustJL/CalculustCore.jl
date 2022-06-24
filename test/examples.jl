@@ -1,9 +1,13 @@
 #
 dir = "../examples"
 files = (
-         "p2d.jl",
+         "lagrangepoly/1D_Poisson.jl",
+
+         "fourier/advect.jl",
+         "fourier/heat.jl",
+         "fourier/heat_forcing.jl",
         )
 for file in files
-    @time @testset "$file" begin include("$dir/$file") end # @safetestset ?
+    @time @safetestset "$file" begin include("$dir/$file") end
 end
 #
