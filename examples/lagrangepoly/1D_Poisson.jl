@@ -1,7 +1,14 @@
 #
-using PDEInterfaces, Plots
-using PDEInterfaces.SciMLOperators
-using PDEInterfaces.LinearSolve
+using PDEInterfaces
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
+
+using SciMLOperators, LinearSolve
 
 N = 32
 

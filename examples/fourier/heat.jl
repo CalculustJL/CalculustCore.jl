@@ -1,14 +1,18 @@
 #
-# add dependencies to env stack
-pkgpath = dirname(dirname(@__FILE__))
-tstpath = joinpath(pkgpath, "test")
-!(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
-
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Plots
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
 
-N = 1024
+
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra
+using Plots, Test
+
+N = 128
 ν = 1e-2
 p = ()
 
@@ -47,12 +51,12 @@ for i=2:length(sol.t)
     global ut = hcat(ut, utt)
 end
 
-norm(pred .- ut, Inf) |> display
-
 plt = plot()
 for i=1:length(sol.u)
     plot!(plt, x, sol.u[i], legend=false)
 end
 display(plt)
 
-nothing
+err = norm(pred .- ut, Inf)
+@test err < 1e-6
+#

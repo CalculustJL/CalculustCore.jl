@@ -1,10 +1,13 @@
 #
-# add dependencies to env stack
-pkgpath = dirname(dirname(@__FILE__))
-tstpath = joinpath(pkgpath, "test")
-!(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
-
 using PDEInterfaces
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
+
 using OrdinaryDiffEq, LinearSolve, Sundials, Random
 using Plots
 
@@ -36,7 +39,7 @@ function solve_burgers(N, ν, p;
     """ space discr """
     space = FourierSpace(N)
     discr = Collocation()
-    
+
     (x,) = points(space)
     ftr  = transforms(space)
     k = modes(space)
@@ -55,7 +58,7 @@ function solve_burgers(N, ν, p;
 
     A = cache_operator(A, x)
     F = cache_operator(F, x)
-    
+
     """ time discr """
     odealg = CVODE_BDF(method=:Functional)
     tsave = range(tspan...; length=nsave)
@@ -89,7 +92,7 @@ function anim8(sol::ODESolution, space::FourierSpace)
 end
 
 sol, space = solve_burgers(N, ν, p)
-plt = plot_sol(sol, space)
+#plt = plot_sol(sol, space)
 anim = anim8(sol, space)
 gif(anim, "a.gif", fps= 20)
 

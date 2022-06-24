@@ -1,11 +1,14 @@
 #
-# add dependencies to env stack
-pkgpath = dirname(dirname(@__FILE__))
-tstpath = joinpath(pkgpath, "test")
-!(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
-
 using PDEInterfaces
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
+
+using OrdinaryDiffEq, LinearSolve
 using Plots
 
 N = 1024
@@ -20,14 +23,17 @@ discr = Collocation()
 ftr  = transforms(space)
 k = modes(space)
 
-α = 5
-u0 = @. sin(α*x)
+u0 = @. sin(2x)
+
+#u0 = rand(ComplexF64, size(k))
+#u0[20:end] .= 0
+#u0 = ftr \ u0
 
 A = diffusionOp(ν, space, discr)
 
-f = @. x*0
-F = forcingOp(f, space, discr)
-#F = NullOperator(space)
+v = @. x*0 + 1
+C = advectionOp((v,), space, discr)
+F = -C
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)
@@ -40,22 +46,8 @@ prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave)
 
-""" analysis """
-pred = Array(sol)
-
-utrue(t) = @. u0 * (exp(-ν*α^2*t))
-ut = utrue(sol.t[1])
-for i=2:length(sol.t)
-    utt = utrue(sol.t[i])
-    global ut = hcat(ut, utt)
-end
-
-norm(pred .- ut, Inf) |> display
-
 plt = plot()
 for i=1:length(sol.u)
     plot!(plt, x, sol.u[i], legend=false)
 end
-display(plt)
-
-nothing
+plt

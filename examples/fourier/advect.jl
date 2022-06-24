@@ -1,14 +1,17 @@
 #
-# add dependencies to env stack
-pkgpath = dirname(dirname(@__FILE__))
-tstpath = joinpath(pkgpath, "test")
-!(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+using PDEInterfaces
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
 
-using PDEInterfaces, LinearAlgebra
-using OrdinaryDiffEq, LinearSolve
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots
 
-N = 1024
+N = 128
 ν = 0e0
 p = ()
 
@@ -24,9 +27,8 @@ k = modes(space)
 A = diffusionOp(ν, space, discr)
 
 v = 1.0; vel = @. x*0 + v
-f = 0.0; ff  = @. x*0 + f
 C = advectionOp((vel,), space, discr)
-F = AffineOperator(-C, ff)
+F = -C
 
 A = cache_operator(A, x)
 F = cache_operator(F, x)
@@ -58,7 +60,6 @@ for i=2:length(sol.u)
     ut = utrue(x,v,sol.t[i])
     global utr = hcat(utr, ut)
 end
-norm(pred .- utr,Inf) |> display
 
 plt = plot()
 for i=1:length(sol.u)
@@ -67,4 +68,7 @@ for i=1:length(sol.u)
 end
 display(plt)
 
+err = norm(pred .- utr,Inf)
+display(err)
+@test err < 1e-4
 #
