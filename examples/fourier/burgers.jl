@@ -51,7 +51,10 @@ function solve_burgers(N, ν, p;
     A = diffusionOp(ν, space, discr)
 
     burgers!(v, u, p, t) = copy!(v, u)
-    forcing!(f, u, p, t) = (f .= 0; f)
+    function forcing!(f, u, p, t)
+        f .= 0
+        f
+    end
 
     C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
     F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
@@ -94,7 +97,7 @@ end
 sol, space = solve_burgers(N, ν, p)
 #plt = plot_sol(sol, space)
 anim = anim8(sol, space)
-gif(anim, "a.gif", fps= 20)
+gif(anim, "examples/fourier/a.gif", fps= 20)
 
 #
 nothing
