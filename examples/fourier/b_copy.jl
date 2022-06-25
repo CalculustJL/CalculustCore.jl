@@ -41,8 +41,8 @@ function solve_burgers(N, ν, p;
     discr = Collocation()
 
     (x,) = points(space)
+    (k,) = modes(space)
     ftr  = transforms(space)
-    k = modes(space)
 
     """ IC """
     u0 = uIC(x, ftr, k)

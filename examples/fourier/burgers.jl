@@ -30,18 +30,6 @@ function uIC(x, ftr, k)
     u0
 end
 
-#function noise(x, ftr, k; α=0.75)
-#    u = rand(length(x))
-#    u  = 0
-#    kk = copy(k)
-#    kk[1] = false
-#    xh = ftr * x
-#    xh[1] = false
-#    xh[end] = false
-#
-#    tr \ (xh * k.^(-α/2))
-#end
-
 function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
@@ -53,8 +41,8 @@ function solve_burgers(N, ν, p;
     discr = Collocation()
 
     (x,) = points(space)
+    (k,) = modes(space)
     ftr  = transforms(space)
-    k = modes(space)
 
     """ IC """
     u0 = uIC(x, ftr, k)

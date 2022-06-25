@@ -20,8 +20,8 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
+(k,) = modes(space)
 ftr  = transforms(space)
-k = modes(space)
 
 α = 2
 uic(x) = @. sin(α*x)

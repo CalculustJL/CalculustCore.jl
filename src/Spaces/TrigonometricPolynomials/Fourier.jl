@@ -81,9 +81,9 @@ function FourierSpace(n::Integer;
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
-    modes = k #(k,)
+    modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
-    ftransforms = ftransform#(ftransform,)
+    ftransforms = ftransform
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
@@ -133,7 +133,7 @@ end
 function gradOp(space::FourierSpace{<:Any,1})
     tr = transforms(space)
 
-    k  = modes(space)
+    (k,) = modes(space)
     ik = im * DiagonalOperator(k)
 
     [
@@ -144,7 +144,7 @@ end
 function hessianOp(space::FourierSpace{<:Any,1})
     tr = transforms(space)
 
-    k   = modes(space)
+    (k,) = modes(space)
     ik2 = -DiagonalOperator(@. k * k)
 
     [
@@ -159,7 +159,7 @@ end
 function biharmonicOp(space::FourierSpace{<:Any,1})
     tr = transforms(space)
 
-    k   = modes(space)
+    (k,) = modes(space)
     ik4 = DiagonalOperator(@. k * k)
 
     [
@@ -174,8 +174,11 @@ end
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
     tr1 = transforms(space1)
 
-    M = length.(modes(space2)[1]) # output
-    N = length.(modes(space1)[1]) # input
+    k1 = modes(space1)
+    k2 = modes(space2)
+
+    M = length.(k2) # output
+    N = length.(k1) # input
 
     J = sparse(I, (M,N)) |> MatrixOperator
 
@@ -187,14 +190,14 @@ end
 ###
 
 function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    k  = modes(space)
+    (k,) = modes(space)
     ik = DiagonalOperator(im * k)
 
     ik
 end
 
 function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    k   = modes(space)
+    (k,) = modes(space)
     ik2 = DiagonalOperator(@. -k * k)
 
     ik2

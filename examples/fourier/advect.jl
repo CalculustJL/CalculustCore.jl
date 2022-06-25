@@ -20,8 +20,8 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
+(k,) = modes(space)
 ftr = transforms(space)
-k = modes(space)
 
 """ operators """
 A = diffusionOp(ν, space, discr)
