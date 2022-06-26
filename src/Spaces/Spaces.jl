@@ -75,7 +75,7 @@ export
 
        # vector calculus
        massOp,
-       gradOp,
+       gradientOp,
        hessianOp,
        laplaceOp,
        biharmonicOp,

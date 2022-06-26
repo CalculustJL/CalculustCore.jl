@@ -44,7 +44,7 @@ end
 function massOp(space::TransformedSpace, discr::AbstractDiscretization)
 end
 
-function gradOp(space::TransformedSpace)
+function gradientOp(space::TransformedSpace)
 end
 
 function hessianOp(space::TransformedSpace)

@@ -180,11 +180,11 @@ function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
 end
 
 ###
-# TODO - review gradOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
+# TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
 # TODO   before writing vector calculus ops, transform operation on space
 ###
 
-function gradOp(space::FourierSpace{<:Any,1})
+function gradientOp(space::FourierSpace{<:Any,1})
     tr = transformOp(space)
 
     (k,) = modes(space)
@@ -245,7 +245,7 @@ transformOp(space::FourierSpace) = space.ftransform
 # operators in transformed space
 ###
 
-function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
+function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = modes(space)
     ik = DiagonalOperator(im * k)
 
@@ -268,7 +268,7 @@ function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSp
     VV_phys = tr \ VV
 
     MM = massOp(space, discr)
-    DD = gradOp(space, discr)
+    DD = gradientOp(space, discr)
 
     Dphys = tr \ DD
 

@@ -43,7 +43,7 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     R = grid(space)
     X = mapping(R...)
 
-    gradR = gradOp(space)
+    gradR = gradientOp(space)
 
     # TODO - fuse SciMLOperator's
     # D1 * D2 == D12
@@ -133,8 +133,8 @@ end
 [Dx] * u = [rx sx] * [Dr] * u
 [Dy]     = [ry sy]   [Ds]
 """
-function gradOp(space::DeformedSpace) # ∇
-    gradR = gradOp(space.space)
+function gradientOp(space::DeformedSpace) # ∇
+    gradR = gradientOp(space.space)
     dRdX  = space.dRdX
     gradX = dRdX * gradR
 
@@ -167,7 +167,7 @@ where A_l is
 """
 function laplaceOp(space::DeformedSpace, ::Galerkin)
 
-    Dr   = gradOp(space.space)
+    Dr   = gradientOp(space.space)
     M    = massOp(space)
     dRdX = space.dRdX
 
@@ -194,8 +194,8 @@ function laplaceOp(space1::DeformedSpace{<:Number,D},
                   ) where{D}
     J12 = interpolation_operator !== nothing ? J : interpOp(space1, space2)
 
-    Dr1   = gradOp(space1.space)
-    M2    = MassOp(space2)
+    Dr1   = gradientOp(space1.space)
+    M2    = massOp(space2)
     dRdX2 = space2.dRdX
 
     JD = J12 * Dr1

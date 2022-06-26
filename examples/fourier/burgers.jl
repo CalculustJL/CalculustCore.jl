@@ -12,7 +12,7 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Sundials, Random
 using Plots
 
 N = 1024
-ν = 1e-2
+ν = 1e-3
 p = ()
 
 Random.seed!(0)
@@ -42,7 +42,7 @@ function solve_burgers(N, ν, p;
 
     (x,) = points(space)
     (k,) = modes(space)
-    ftr  = transforms(space)
+    ftr  = transformOp(space)
 
     """ IC """
     u0 = uIC(x, ftr, k)
@@ -89,7 +89,7 @@ function anim8(sol::ODESolution, space::FourierSpace)
         u = sol.u[1]
         mi = minimum(u)
         ma = maximum(u)
-        buf = (ma-mi)/3
+        buf = (ma-mi)/5
         (mi-buf, ma+buf)
     end
     anim = @animate for i=1:length(sol)
