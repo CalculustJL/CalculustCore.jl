@@ -12,5 +12,5 @@ end
 #    @safetestset "BVP" begin include("bvp.jl") end
 #end
 
-#@time @safetestset "Examples" begin include("examples.jl") end
+@time @safetestset "Examples" begin include("examples.jl") end
 end

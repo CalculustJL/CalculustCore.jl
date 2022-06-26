@@ -202,7 +202,7 @@ Added forcing as an operator
 """
 function forcingOp end
 
-function forcingOp(f::AbstractVector,
+function forcingOp(f::AbstractVecOrMat,
                    space::AbstractSpace,
                    discr::AbstractDiscretization;
                    f_update_func=DEFAULT_UPDATE_FUNC,
