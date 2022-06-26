@@ -21,7 +21,7 @@ discr = Collocation()
 
 (x,) = points(space)
 (k,) = modes(space)
-ftr  = transforms(space)
+ftr  = transformOp(space)
 
 u0 = @. sin(2x)
 

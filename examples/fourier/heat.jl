@@ -22,7 +22,7 @@ discr = Collocation()
 
 (x,) = points(space)
 (k,) = modes(space)
-ftr  = transforms(space)
+ftr  = transformOp(space)
 
 α = 5
 u0 = @. sin(α*x)

@@ -188,7 +188,7 @@ function massOp(space::LagrangePolynomialSpace, ::Galerkin)
     DiagonalOperator(mass_matrix)
 end
 
-function gradOp(space::LagrangePolynomialSpace{<:Number,1})
+function gradientOp(space::LagrangePolynomialSpace{<:Number,1})
     (Dr,) = space.deriv_mats
 
     Dx = MatrixOperator(Dr)
@@ -196,7 +196,7 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,1})
     DD = [Dx,]
 end
 
-function gradOp(space::LagrangePolynomialSpace{<:Number,2})
+function gradientOp(space::LagrangePolynomialSpace{<:Number,2})
     (nr, ns) = space.npoints
     (Dr, Ds) = space.deriv_mats
 
@@ -210,7 +210,7 @@ function gradOp(space::LagrangePolynomialSpace{<:Number,2})
           Dy]
 end
 
-function gradOp(space::LagrangePolynomialSpace{<:Number,3})
+function gradientOp(space::LagrangePolynomialSpace{<:Number,3})
     (Dr, Ds, Dt) = space.deriv_mats
     (nr, ns, nt) = space.npoints
 

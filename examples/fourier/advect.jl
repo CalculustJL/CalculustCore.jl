@@ -21,7 +21,7 @@ discr = Collocation()
 
 (x,) = points(space)
 (k,) = modes(space)
-ftr = transforms(space)
+ftr = transformOp(space)
 
 """ operators """
 A = diffusionOp(ν, space, discr)

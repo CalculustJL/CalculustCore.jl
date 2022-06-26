@@ -42,7 +42,7 @@ function solve_burgers(N, ν, p;
 
     (x,) = points(space)
     (k,) = modes(space)
-    ftr  = transforms(space)
+    ftr  = transformOp(space)
 
     """ IC """
     u0 = uIC(x, ftr, k)

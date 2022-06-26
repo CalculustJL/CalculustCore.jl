@@ -26,7 +26,7 @@ struct FourierSpace{
     """ mass matrix """
     mass_matrix::Tmass
     """ forward transform `mul!(û, T , u)` """
-    ftransforms::Ttr
+    ftransform::Ttr
 end
 
 function FourierSpace(n::Integer;
@@ -56,39 +56,21 @@ function FourierSpace(n::Integer;
 
     dx = L / n
     x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
-
-    if T <: Real
-        k   = rfftfreq(n, 2π*n/L) |> Array
-        ftr = plan_rfft(x)
-    else
-        k   = fftfreq(n, 2π*n/L) |> Array
-        ftr = plan_fft(x)
-    end
-
-    ftransform = FunctionOperator(
-                                  (du,u,p,t) -> mul!(du, ftr, u);
-                                  isinplace=true,
-                                  T=ComplexT,
-                                  size=(length(k),n),
-    
-                                  input_prototype=x,
-                                  output_prototype=im*k,
-    
-                                  #op_adjoint=
-                                  op_inverse = (du,u,p,t) -> ldiv!(du, ftr, u)
-                                 )
+    k  = rfftfreq(n, 2π*n/L) |> Array
 
     domain = T(domain)
     npoints = (n,)
     grid = (x,)
     modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
-    ftransforms = ftransform
+    ftransform = nothing
 
     space = FourierSpace(
                          domain, npoints, grid, modes,
-                         mass_matrix, ftransforms,
+                         mass_matrix, ftransform,
                         )
+
+    space = make_transform(space, x)
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
@@ -108,7 +90,79 @@ function quadratures(space::FourierSpace{<:Any,1})
 end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
-transforms(space::FourierSpace) = space.ftransforms
+
+function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D}
+
+    ssp = size(space)
+    N   = length(space)
+
+    @assert size(u, 1) == N "size mismatch. input array must have length
+    equal to length(space) in its first dimension"
+    K   = size(u, 2)
+
+    # transform input
+    sin = (ssp..., K)
+    U   = _reshape(u, sin)
+
+    # transform object
+    ftr = plan_rfft(U, 1:D)
+
+    # transform output
+    V    = ftr * U
+    sout = size(V)
+
+    # output prototype
+    M    = length(V) ÷ K
+    sret = u isa AbstractMatrix ? (M, K) : (M,)
+    v    = _reshape(V, sret)
+
+    function fwd(v, u, p, t)
+        U = _reshape(u, sin)
+        V = _reshape(v, sout)
+        mul!(V, ftr, U)
+
+        v
+    end
+
+    function bwd(v, u, p, t)
+        U = _reshape(u, sout)
+        V = _reshape(v, sin)
+        ldiv!(V, ftr, U)
+
+        v
+    end
+
+    # form brfftplan, apply scaling. Look at rrule in AbstractFFTs
+    function adj(v, u, p, t)
+        U = _reshape(u, sout)
+        V = _reshape(v, sin)
+
+        v
+    end
+
+    ComplexT = if T isa Type{Float16}
+        ComplexF16
+    elseif T isa Type{Float32}
+        ComplexF32
+    else
+        ComplexF64
+    end
+
+    ftransform = FunctionOperator(
+                                  fwd;
+                                  isinplace=true,
+                                  T=ComplexT,
+                                  size=(M,N),
+    
+                                  input_prototype=u,
+                                  output_prototype=v,
+    
+                                  #op_adjoint= adj
+                                  op_inverse = bwd
+                                 )
+
+    ftransform
+end
 
 ## TODO - local system <-> global system
 ## global system for computation
@@ -126,12 +180,12 @@ function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
 end
 
 ###
-# TODO - review gradOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
+# TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
 # TODO   before writing vector calculus ops, transform operation on space
 ###
 
-function gradOp(space::FourierSpace{<:Any,1})
-    tr = transforms(space)
+function gradientOp(space::FourierSpace{<:Any,1})
+    tr = transformOp(space)
 
     (k,) = modes(space)
     ik = im * DiagonalOperator(k)
@@ -142,7 +196,7 @@ function gradOp(space::FourierSpace{<:Any,1})
 end
 
 function hessianOp(space::FourierSpace{<:Any,1})
-    tr = transforms(space)
+    tr = transformOp(space)
 
     (k,) = modes(space)
     ik2 = -DiagonalOperator(@. k * k)
@@ -157,7 +211,7 @@ function laplaceOp(space::FourierSpace{<:Any,1}, ::Collocation)
 end
 
 function biharmonicOp(space::FourierSpace{<:Any,1})
-    tr = transforms(space)
+    tr = transformOp(space)
 
     (k,) = modes(space)
     ik4 = DiagonalOperator(@. k * k)
@@ -172,7 +226,7 @@ end
 ###
 
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
-    tr1 = transforms(space1)
+    tr1 = transformOp(space1)
 
     k1 = modes(space1)
     k2 = modes(space2)
@@ -185,11 +239,13 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
     tr1 \ J * tr1
 end
 
+transformOp(space::FourierSpace) = space.ftransform
+
 ###
 # operators in transformed space
 ###
 
-function gradOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
+function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = modes(space)
     ik = DiagonalOperator(im * k)
 
@@ -207,12 +263,12 @@ end
 function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSpace}, discr::AbstractDiscretization) where{D}
     VV = [DiagonalOperator.(vel)...]
 
-    tr = transforms(space)
+    tr = transformOp(space)
 
     VV_phys = tr \ VV
 
     MM = massOp(space, discr)
-    DD = gradOp(space, discr)
+    DD = gradientOp(space, discr)
 
     Dphys = tr \ DD
 

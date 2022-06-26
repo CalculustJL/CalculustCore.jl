@@ -35,10 +35,10 @@ end
 
 # vector calculus
 
-function gradOp(space::TensorProductSpace)
+function gradientOp(space::TensorProductSpace)
     @unpack inner, outer = space
-    Di = gradOp(inner)
-    Do = gradOp(outer)
+    Di = gradientOp(inner)
+    Do = gradientOp(outer)
 
     # make tensor product
 

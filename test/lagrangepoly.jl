@@ -13,7 +13,7 @@ for space in (
              )
     (x,) = pts = points(space)
 
-    D = gradOp(space, discr) |> first
+    D = gradientOp(space, discr) |> first
     M = massOp(space, discr)
     A = laplaceOp(space)
 

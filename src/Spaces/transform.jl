@@ -1,6 +1,10 @@
-
+#
 """
- physical space -> modal space
+Lazy wrapper for transforming
+
+    physical space -> modal space
+
+Returned operators act on vectors in modal space. All other behaviour is the same.
 """
 struct TransformedSpace{T,D,Tsp<:AbstractSpace{T,D}} <: AbstractSpace{T,D}
     space::Tsp
@@ -20,9 +24,8 @@ end
 Base.size(space::TransformedSpace) = size(modes(space))
 
 domain(space::TransformedSpace) = domain(space.space)
-points(space::TransformedSpace) = points(space.space)
-modes(space::TransformedSpace) = modes(space.space)
-quadratures(space::TransformedSpace) = quadratures(space.space)
+points(space::TransformedSpace) = modes(space.space)
+modes(space::TransformedSpace) = points(space.space)
 
 function deform(space::TransformedSpace)
     phys = transform(space)
@@ -38,25 +41,29 @@ end
 # vector calculus - modal space <-> modal space
 ###
 
-function massOp(space::TransformedSpace, discr::AbstractDiscretization) # ∫
+function massOp(space::TransformedSpace, discr::AbstractDiscretization)
 end
 
-function gradOp(space::TransformedSpace) # ∇
+function gradientOp(space::TransformedSpace)
 end
 
-function hessianOp(space::TransformedSpace) # ∇²
+function hessianOp(space::TransformedSpace)
 end
 
-function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization) # Δ
+function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization)
 end
 
-function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization) # νΔ
+function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization)
 end
 
-function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization) # ∇⋅(ν∇)
+function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization)
 end
 
 function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D}) where{D}
 end
 
+function transformOp(space::TransformedSpace)
+    ftr = transformOp(space.space)
+    inv(ftr)
+end
 #

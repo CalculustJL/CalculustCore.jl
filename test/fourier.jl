@@ -9,7 +9,7 @@ discr = Collocation()
 space = FourierSpace(N)
 
 (x,) = pts = points(space)
-D = gradOp(space, discr) |> first
+D = gradientOp(space, discr) |> first
 
 u0 = @. 0*x + 1
 u1 = @. 1.0*x

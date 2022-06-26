@@ -11,7 +11,7 @@ function laplaceOp(space::AbstractSpace, discr::Galerkin)
     M  = massOp(space, space)
     MM = Diagonal([M for i=1:D])
 
-    DD = gradOp(space, discr)
+    DD = gradientOp(space, discr)
 
     - DD' * MM * DD
 end
@@ -33,7 +33,7 @@ function laplaceOp(space1::AbstractSpace{<:Any,D},
     M2  = massOp(space2, discr)
     MM2 = Diagonal([M2 for i=1:D])
 
-    DD1  = gradOp(space1, discr)
+    DD1  = gradientOp(space1, discr)
     JDD  = J12 .* DD1
 
     - JDD' * MM2 * JDD
@@ -42,7 +42,7 @@ end
 function diffusionOp(ν::AbstractVector, space::AbstractSpace, ::Galerkin)
     D = dims(space)
     ν = DiagonalOperator(ν)
-    DD = gradOp(space)
+    DD = gradientOp(space)
     M  = massOp(space)
     Mν = ν * M
     MMν = Diagonal([Mν for i=1:D])
@@ -73,7 +73,7 @@ function biharmonicOp(space::AbstractSpace, discr::Collocation)
 end
 
 function divergenceOp(space::AbstractSpace, ::Collocation)
-    DD = gradOp(space)
+    DD = gradientOp(space)
 
     sum(DD)
 end

@@ -21,7 +21,7 @@ discr = Collocation()
 
 (x,) = points(space)
 (k,) = modes(space)
-ftr  = transforms(space)
+ftr  = transformOp(space)
 
 α = 2
 uic(x) = @. sin(α*x)
@@ -44,6 +44,7 @@ A = cache_operator(A, x)
 F = cache_operator(F, x)
 
 """ time discr """
+u0 = uic(x)
 tspan = (0.0, 2π)
 tsave = range(tspan...; length=10)
 odealg = Tsit5()

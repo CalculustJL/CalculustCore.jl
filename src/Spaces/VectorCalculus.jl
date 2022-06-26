@@ -42,10 +42,10 @@ args:
     space::AbstractSpace
     discr::AbstractDiscretization (optional)
 ret:
-    gradOp: u -> [dudx1, ..., dudxD]
+    gradientOp: u -> [dudx1, ..., dudxD]
 """
-function gradOp end
-gradOp(space::AbstractSpace, discr::AbstractDiscretization) = gradOp(space)
+function gradientOp end
+gradientOp(space::AbstractSpace, discr::AbstractDiscretization) = gradientOp(space)
 
 """
 Hessian Operator - ∇²
@@ -54,7 +54,7 @@ function hessianOp end
 hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
 
 function hessianOp(space::AbstractSpace)
-    DD = gradOp(space, discr)
+    DD = gradientOp(space, discr)
 
     DD .* DD
 end
@@ -109,7 +109,7 @@ function diffusionOp(ν::AbstractVector,
     Mν2 = Jv * M2
     MMν2 = Diagonal([Mν2 for i=1:D])
 
-    DD  = gradOp(space, discr)
+    DD  = gradientOp(space, discr)
     JDD = J .* DD
     JDDt = _transp(JDD, discr)
 
@@ -161,7 +161,7 @@ function advectionOp(vel::NTuple{D},
         push!(VV, V)
     end
 
-    DD = gradOp(space, discr)
+    DD = gradientOp(space, discr)
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
 
@@ -187,7 +187,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
     VV2 = J12 .* VV1
     M2  = massOp(space2)
     MM2 = Diagonal([M for i=1:D])
-    DD1 = gradOp(space1)
+    DD1 = gradientOp(space1)
 
     VV2' * MM2 * (J12 .* DD1)
 end
