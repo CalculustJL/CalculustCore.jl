@@ -91,6 +91,8 @@ end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 
+transformOp(space::FourierSpace) = space.ftransform
+
 function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D}
 
     ssp = size(space)
@@ -185,39 +187,35 @@ end
 ###
 
 function gradientOp(space::FourierSpace{<:Any,1})
-    tr = transformOp(space)
+    ftr = transformOp(space) # forward transform
+    sph = transform(space)   # transformed space
+    DDh = gradientOp(sph)    # ∇ in transformed space
 
-    (k,) = modes(space)
-    ik = im * DiagonalOperator(k)
-
+#   ftr .\ DDh .* ftr
     [
-     tr \ ik * tr,
+     ftr \ DDh[1] * ftr
     ]
 end
 
 function hessianOp(space::FourierSpace{<:Any,1})
-    tr = transformOp(space)
+    ftr  = transformOp(space)
+    sph  = transform(space)
+    DD2h = hessianOp(sph)
 
-    (k,) = modes(space)
-    ik2 = -DiagonalOperator(@. k * k)
-
+#   ftr .\ DD2h .* ftr
     [
-     tr \ ik2 * tr,
+     ftr \ DD2h[1] * ftr
     ]
 end
 
-function laplaceOp(space::FourierSpace{<:Any,1}, ::Collocation)
-    hessianOp(space) |> sum
-end
-
 function biharmonicOp(space::FourierSpace{<:Any,1})
-    tr = transformOp(space)
+    ftr  = transformOp(space)
+    sph  = transform(space)
+    DD4h = biharmonicOp(sph)
 
-    (k,) = modes(space)
-    ik4 = DiagonalOperator(@. k * k)
-
+#   ftr .\ DD4h .* ftr
     [
-     tr \ ik4 * tr,
+     ftr \ DD4h[1] * ftr
     ]
 end
 
@@ -226,37 +224,45 @@ end
 ###
 
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
-    tr1 = transformOp(space1)
+    ftr1 = transformOp(space1)
+    ftr2 = transformOp(space2)
+    sp1h = transform(space1)
+    sp2h = transform(space2)
 
-    k1 = modes(space1)
-    k2 = modes(space2)
+    J = interpOp(sp1h, sp2h)
 
-    M = length.(k2) # output
-    N = length.(k1) # input
-
-    J = sparse(I, (M,N)) |> MatrixOperator
-
-    tr1 \ J * tr1
+    ftr2 \ J * ftr2
 end
-
-transformOp(space::FourierSpace) = space.ftransform
 
 ###
 # operators in transformed space
 ###
 
 function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = modes(space)
+    (k,) = points(space)
     ik = DiagonalOperator(im * k)
 
-    ik
+    [
+     ik,
+    ]
 end
 
 function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = modes(space)
+    (k,) = points(space)
     ik2 = DiagonalOperator(@. -k * k)
 
-    ik2
+    [
+     ik2,
+    ]
+end
+
+function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
+    (k,) = points(space)
+    ik4 = DiagonalOperator(@. k^4)
+
+    [
+     ik4,
+    ]
 end
 
 #=

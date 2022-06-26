@@ -147,6 +147,8 @@ Lazily transforms between physical and modal space.
 """
 function transform end
 
+#transform(space::AbstractSpace) = space
+
 """
 forward transform operator
 

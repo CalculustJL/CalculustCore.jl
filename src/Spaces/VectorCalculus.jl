@@ -33,11 +33,6 @@ end
 """
 Gradient Operator - ∇
 
-Compute gradient of u∈H¹(Ω).
-
-Continuity isn't necessarily enforced across
-element boundaries for gradients
-
 args:
     space::AbstractSpace
     discr::AbstractDiscretization (optional)
@@ -49,6 +44,12 @@ gradientOp(space::AbstractSpace, discr::AbstractDiscretization) = gradientOp(spa
 
 """
 Hessian Operator - ∇²
+
+args:
+    space::AbstractSpace
+    discr::AbstractDiscretization (optional)
+ret:
+    hessianOp: u -> [dud2x1, ..., dud2xD]
 """
 function hessianOp end
 hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
