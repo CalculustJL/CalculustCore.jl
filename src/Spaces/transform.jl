@@ -41,26 +41,26 @@ end
 # vector calculus - modal space <-> modal space
 ###
 
-function massOp(space::TransformedSpace, discr::AbstractDiscretization)
-end
-
-function gradientOp(space::TransformedSpace)
-end
-
-function hessianOp(space::TransformedSpace)
-end
-
-function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization)
-end
-
-function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization)
-end
-
-function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization)
-end
-
-function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D}) where{D}
-end
+#function massOp(space::TransformedSpace, discr::AbstractDiscretization)
+#end
+#
+#function gradientOp(space::TransformedSpace)
+#end
+#
+#function hessianOp(space::TransformedSpace)
+#end
+#
+#function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization)
+#end
+#
+#function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization)
+#end
+#
+#function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization)
+#end
+#
+#function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D}) where{D}
+#end
 
 function transformOp(space::TransformedSpace)
     ftr = transformOp(space.space)
