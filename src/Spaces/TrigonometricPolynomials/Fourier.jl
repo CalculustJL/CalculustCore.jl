@@ -191,7 +191,10 @@ function gradientOp(space::FourierSpace{<:Any,1})
     sph = transform(space)   # transformed space
     DDh = gradientOp(sph)    # ∇ in transformed space
 
-    ftr .\ DDh .* ftr
+#   ftr .\ DDh .* ftr
+    [
+     ftr \ DDh[1] * ftr
+    ]
 end
 
 function hessianOp(space::FourierSpace{<:Any,1})
@@ -199,7 +202,10 @@ function hessianOp(space::FourierSpace{<:Any,1})
     sph  = transform(space)
     DD2h = hessianOp(sph)
 
-    ftr .\ DD2h .* ftr
+#   ftr .\ DD2h .* ftr
+    [
+     ftr \ DD2h[1] * ftr
+    ]
 end
 
 function biharmonicOp(space::FourierSpace{<:Any,1})
@@ -207,7 +213,10 @@ function biharmonicOp(space::FourierSpace{<:Any,1})
     sph  = transform(space)
     DD4h = biharmonicOp(sph)
 
-    ftr .\ DD4h .* ftr
+#   ftr .\ DD4h .* ftr
+    [
+     ftr \ DD4h[1] * ftr
+    ]
 end
 
 ###
