@@ -222,7 +222,7 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
 
     J = interpOp(sp1h, sp2h)
 
-    ftr2 .\ J .* ftr2
+    ftr2 \ J * ftr2
 end
 
 ###
@@ -230,7 +230,7 @@ end
 ###
 
 function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = modes(space)
+    (k,) = points(space)
     ik = DiagonalOperator(im * k)
 
     [
@@ -239,7 +239,7 @@ function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
 end
 
 function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = modes(space)
+    (k,) = points(space)
     ik2 = DiagonalOperator(@. -k * k)
 
     [
@@ -248,7 +248,7 @@ function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
 end
 
 function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
-    (k,) = modes(space)
+    (k,) = points(space)
     ik4 = DiagonalOperator(@. k^4)
 
     [
