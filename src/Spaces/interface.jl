@@ -139,3 +139,56 @@ ret:
     space1 to space2
 """
 function interpOp end
+
+### transform
+
+"""
+Lazily transforms between physical and modal space.
+"""
+function transform end
+
+"""
+forward transform operator
+
+args:
+    - space::AbstractSpace
+ret:
+    - transform operator on space
+
+to change transform operator to act on a different
+AbstractVecOrMat type, call
+
+`space = make_transform(space, input_vec)`
+"""
+function transformOp end
+
+"""
+Form transform operator per new input vector for space
+
+args:
+    - u::AbstractVecOrMat
+    - space::AbstractSpace
+ret:
+    - ftransform Forward transform wrapped
+    `SciMLOperators.FunctionOperator`
+"""
+function form_transform end
+
+"""
+Set transform operator for space acting on vectors like u
+
+args:
+    - space::AbstractSpace
+    - u::AbstractVecOrMat input prototype of size (N,) or (N,K)
+      where N is the length(space). K will be the batch size.
+
+ret:
+    - space::AbstractSpace with transform operator that can act on `u`
+"""
+function make_transform(space::AbstractSpace, u::AbstractVecOrMat)
+    ftr = form_transform(u, space)
+    @set! space.ftransform = ftr
+
+    space
+end
+#

@@ -11,6 +11,7 @@ using Plots: Plots
 using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC
 
 using UnPack: @unpack
+using Setfield: @set!
 using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
 
@@ -49,11 +50,12 @@ export
        points,
        modes,
        basis,
-       transforms,
-       transform,
        local_numbering,
        global_numbering,
        boundary_nodes,
+
+       transform,
+       make_transform,
 
        # from ..Domains
        dims,
@@ -84,6 +86,9 @@ export
 
        # interpolation
        interpOp,
+
+       # transform
+       transformOp,
 
        ### Spaces
 

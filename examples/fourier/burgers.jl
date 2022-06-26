@@ -12,7 +12,7 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Sundials, Random
 using Plots
 
 N = 1024
-ν = 1e-3
+ν = 1e-2
 p = ()
 
 Random.seed!(0)
