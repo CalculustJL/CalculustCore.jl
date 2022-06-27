@@ -9,7 +9,7 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Plots
+using Test, Plots
 
 N = 128
 ν = 0e0

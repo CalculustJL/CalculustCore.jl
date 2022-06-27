@@ -134,10 +134,11 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
         v
     end
 
-    # form brfftplan, apply scaling. Look at rrule in AbstractFFTs
+    # look at rrule in AbstractFFTs
     function adj(v, u, p, t)
         U = _reshape(u, sout)
         V = _reshape(v, sin)
+        ldiv!(V, ftr, U)
 
         v
     end
@@ -159,8 +160,8 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
                                   input_prototype=u,
                                   output_prototype=v,
     
-                                  #op_adjoint= adj
-                                  op_inverse = bwd
+                                  op_adjoint= adj,
+                                  op_inverse = bwd,
                                  )
 
     ftransform
@@ -219,6 +220,47 @@ function biharmonicOp(space::FourierSpace{<:Any,1})
     ]
 end
 
+function truncationOp(space::FourierSpace{<:Any,1})
+    ftr = transformOp(space)
+    X   = truncationOp(transform(space))
+
+    ftr \ X * ftr
+end
+
+function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
+    (N,) = length.(points(space))
+
+    a = [true for i=1:N]
+    frac = 2N ÷ 3
+    a[frac:N] .= false
+
+    DiagonalOperator(a)
+end
+
+function advectionOp(vels::NTuple{1},
+                     space::FourierSpace{<:Any,1},
+                     discr::AbstractDiscretization;
+                     vel_update_funcs=nothing,
+                     truncation_frac=true,
+                    )
+
+    VV = _pair_update_funcs(vels, vel_update_funcs)
+
+    DD = gradientOp(space, discr)
+    M  = massOp(space, discr)
+    MM = Diagonal([M for i=1:dims(space)])
+
+    X = truncationOp(space)
+
+    VV = VV[1]
+    MM = MM[1]
+    DD = DD[1]
+    (VV)' * MM * DD
+#   (X*VV)' * MM * DD # <- how to provess VV and THEN apply to u
+
+#   VV' * MM * DD
+end
+
 ###
 # interpolation operators
 ###
@@ -265,25 +307,30 @@ function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
     ]
 end
 
-#=
-function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D,<:FourierSpace}, discr::AbstractDiscretization) where{D}
-    VV = [DiagonalOperator.(vel)...]
+function advectionOp(vels::NTuple{D},
+                     space::TransformedSpace{<:Any,D,<:FourierSpace},
+                     discr::AbstractDiscretization;
+                     vel_update_funcs=nothing,
+                    ) where{D}
 
-    tr = transformOp(space)
+    VV = _pair_update_funcs(vels, vel_update_funcs)
 
-    VV_phys = tr \ VV
+    itr = transformOp(space)
+    M   = massOp(space.space, discr)
+    MM  = Diagonal([M for i=1:D])
+    DD  = gradientOp(space, discr)
 
-    MM = massOp(space, discr)
-    DD = gradientOp(space, discr)
+    VV = VV[1]
+    MM = MM[1]
+    DD = DD[1]
 
-    Dphys = tr \ DD
+    VV_phys = itr * VV
+    DD_phys = itr * DD
 
-    Adv = _transp(VV_phys) * MM * Dphys
+    adv = VV_phys' * MM * DD_phys # 
 
-
-    -tr * Adv
+    itr \ adv
 end
-=#
 
 # interpolation
 function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
