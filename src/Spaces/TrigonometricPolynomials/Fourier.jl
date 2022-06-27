@@ -134,15 +134,6 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
         v
     end
 
-    # look at rrule in AbstractFFTs
-    function adj(v, u, p, t)
-        U = _reshape(u, sout)
-        V = _reshape(v, sin)
-        ldiv!(V, ftr, U)
-
-        v
-    end
-
     ComplexT = if T isa Type{Float16}
         ComplexF16
     elseif T isa Type{Float32}
@@ -156,12 +147,13 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
                                   isinplace=true,
                                   T=ComplexT,
                                   size=(M,N),
-    
+
                                   input_prototype=u,
                                   output_prototype=v,
-    
-                                  op_adjoint= adj,
-                                  op_inverse = bwd,
+
+                                  op_inverse=bwd,
+                                  op_adjoint=bwd,
+                                  op_adjoint_inverse=fwd,
                                  )
 
     ftransform
@@ -220,19 +212,30 @@ function biharmonicOp(space::FourierSpace{<:Any,1})
     ]
 end
 
-function truncationOp(space::FourierSpace{<:Any,1})
+function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
+    X = truncationOp(transform(space), frac)
+
+    if X isa IdentityOperator
+        return IdentityOperator(space)
+    end
+
     ftr = transformOp(space)
-    X   = truncationOp(transform(space))
 
     ftr \ X * ftr
 end
 
-function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
+function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=nothing)
+
+    frac = frac isa Nothing ? 2//3 : frac
+    if isone(frac)
+        return IdentityOperator(space)
+    end
+
     (N,) = length.(points(space))
 
     a = [true for i=1:N]
-    frac = 2N ÷ 3
-    a[frac:N] .= false
+    m = N * frac |> round |> Int
+    a[m:N] .= false
 
     DiagonalOperator(a)
 end
@@ -241,7 +244,7 @@ function advectionOp(vels::NTuple{1},
                      space::FourierSpace{<:Any,1},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
-                     truncation=true,
+                     truncation_frac=nothing,
                     )
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
@@ -250,7 +253,7 @@ function advectionOp(vels::NTuple{1},
     M  = massOp(space, discr)
     MM = Diagonal([M for i=1:dims(space)])
 
-    X = truncationOp(space)
+    X = truncationOp(space, truncation_frac)
 
     VV = VV[1]
     MM = MM[1]
