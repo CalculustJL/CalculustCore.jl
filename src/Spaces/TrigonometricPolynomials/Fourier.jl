@@ -169,47 +169,44 @@ end
 # vector calculus
 ###
 
-function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
-    w = mass_matrix(space)
-    DiagonalOperator(w)
-end
-
 ###
 # TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
 # TODO   before writing vector calculus ops, transform operation on space
 ###
 
-function gradientOp(space::FourierSpace{<:Any,1})
-    ftr = transformOp(space) # forward transform
-    sph = transform(space)   # transformed space
-    DDh = gradientOp(sph)    # ∇ in transformed space
-
-#   ftr .\ DDh .* ftr
-    [
-     ftr \ DDh[1] * ftr
-    ]
+function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
+    w = mass_matrix(space)
+    DiagonalOperator(w)
 end
 
-function hessianOp(space::FourierSpace{<:Any,1})
-    ftr  = transformOp(space)
+function gradientOp(space::FourierSpace{<:Any,D}) where{D}
+    sph = transform(space)  # transformed space
+    DDh = gradientOp(sph)   # ∇ in transformed space
+
+    F  = transformOp(space) # forward transform
+    FF = Diagonal([F for i=1:D])
+
+    FF .\ DDh .* FF |> vec
+end
+
+function hessianOp(space::FourierSpace{<:Any,D}) where{D}
     sph  = transform(space)
     DD2h = hessianOp(sph)
 
-#   ftr .\ DD2h .* ftr
-    [
-     ftr \ DD2h[1] * ftr
-    ]
+    F  = transformOp(space)
+    FF = Diagonal([F for i=1:D])
+
+    FF .\ DD2h .* FF |> vec
 end
 
-function biharmonicOp(space::FourierSpace{<:Any,1})
-    ftr  = transformOp(space)
+function biharmonicOp(space::FourierSpace{<:Any,D}) where{D}
     sph  = transform(space)
     DD4h = biharmonicOp(sph)
 
-#   ftr .\ DD4h .* ftr
-    [
-     ftr \ DD4h[1] * ftr
-    ]
+    F  = transformOp(space)
+    FF = Diagonal([F for i=1:D])
+
+    FF .\ DD4h .* FF |> vec
 end
 
 function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
@@ -219,9 +216,9 @@ function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
         return IdentityOperator(space)
     end
 
-    ftr = transformOp(space)
+    F = transformOp(space)
 
-    ftr \ X * ftr
+    F \ X * F
 end
 
 function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=nothing)
@@ -231,37 +228,32 @@ function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=noth
         return IdentityOperator(space)
     end
 
-    (N,) = length.(points(space))
+    (n,) = length.(points(space))
 
-    a = [true for i=1:N]
-    m = N * frac |> round |> Int
-    a[m:N] .= false
+    a = [true for i=1:n]
+    m = n * frac |> round |> Int
+    a[m:n] .= false
 
     DiagonalOperator(a)
 end
 
-function advectionOp(vels::NTuple{1},
-                     space::FourierSpace{<:Any,1},
+function advectionOp(vels::NTuple{D},
+                     space::FourierSpace{<:Any,D},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
                      truncation_frac=nothing,
-                    )
+                    ) where{D}
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
 
-    DD = gradientOp(space, discr)
     M  = massOp(space, discr)
-    MM = Diagonal([M for i=1:dims(space)])
+    X  = truncationOp(space, truncation_frac)
+    DD = gradientOp(space, discr)
 
-    X = truncationOp(space, truncation_frac)
+    MM = Diagonal([M for i=1:D])
+    XX = Diagonal([X for i=1:D])
 
-    VV = VV[1]
-    MM = MM[1]
-    DD = DD[1]
-    (VV)' * MM * DD
-#   (X*VV)' * MM * DD # <- how to provess VV and THEN apply to u
-
-#   VV' * MM * DD
+    (XX*VV)' * MM * (XX*DD)
 end
 
 ###
@@ -269,14 +261,14 @@ end
 ###
 
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
-    ftr1 = transformOp(space1)
-    ftr2 = transformOp(space2)
+    F1   = transformOp(space1)
+    F2   = transformOp(space2)
     sp1h = transform(space1)
     sp2h = transform(space2)
 
     J = interpOp(sp1h, sp2h)
 
-    ftr2 \ J * ftr2
+    F2 \ J * F2
 end
 
 ###

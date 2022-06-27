@@ -1,4 +1,4 @@
-
+#
 ###
 # Vector Calculus Operators
 ###
@@ -136,8 +136,6 @@ for v,u,T in H¹₀(Ω)
            = v' *B*(ux*∂xT + uy*∂yT)\n
 
 implemented as
-
-R'R * QQ' * B * (ux*∂xT + uy*∂yT)
 
 (u⃗⋅∇)T = ux*∂xT + uy*∂yT
 
