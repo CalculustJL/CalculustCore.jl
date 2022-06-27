@@ -9,7 +9,7 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Plots
+using Plots, Test
 
 N = 128
 ν = 0e0
@@ -65,8 +65,7 @@ end
 
 plt = plot()
 for i=1:length(sol.u)
-    plot!(plt, x, sol.u[i], legend=true)
-    plot!(plt, x, utr[:,i], legend=true)
+    plot!(plt, x, pred[:,i], legend=true)
 end
 display(plt)
 
