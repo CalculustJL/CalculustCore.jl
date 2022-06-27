@@ -32,8 +32,8 @@ v = 1.0; vel = @. x*0 + v
 Ĉ = advectionOp((ftr * vel,), tspace, discr)
 F̂ = -Ĉ
 
-Â = cache_operator(Â, k)
-F̂ = cache_operator(F̂, k)
+Â = cache_operator(Â, im*k)
+F̂ = cache_operator(F̂, im*k)
 
 """ IC """
 function uIC(x)

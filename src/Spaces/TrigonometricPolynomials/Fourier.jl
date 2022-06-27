@@ -355,7 +355,8 @@ function advectionOp(vels::NTuple{D},
     VV_phys = FF \ XXh * VV
     DD_phys = FF \ XXh * DDh
 
-    VV_phys' * MM * DD_phys
+    VV_phys' * MM * DD_phys # <- this is zero
+#   transpose(VV) * XXh * FF * MM * DD_phys
 end
 
 # interpolation
