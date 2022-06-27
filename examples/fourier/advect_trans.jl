@@ -36,14 +36,9 @@ Â = cache_operator(Â, im*k)
 F̂ = cache_operator(F̂, im*k)
 
 """ IC """
-function uIC(x)
-    @. sin(1x)
-#   u0 = rand(ComplexF64, size(k))
-#   u0[20:end] .= 0
-#   ftr \ u0
-end
-u0 = uIC(x)
-û0 = ftr * uIC(x)
+X  = truncationOp(space, 1//2)
+u0 = X * rand(size(x)...)
+û0 = ftr * u0
 
 """ time discr """
 tspan = (0.0, 10.0)
@@ -56,12 +51,12 @@ prob = SplitODEProblem(Â, F̂, û0, tspan, p)
 pred = itr.(sol.u, nothing, 0)
 pred = hcat(pred...)
 
-utrue(x,v,t) = uIC(@. x - v*t)
-utr = utrue(x,v,sol.t[1])
-for i=2:length(sol.u)
-    ut = utrue(x,v,sol.t[i])
-    global utr = hcat(utr, ut)
-end
+#utrue(x,v,t) = uIC(@. x - v*t)
+#utr = utrue(x,v,sol.t[1])
+#for i=2:length(sol.u)
+#    ut = utrue(x,v,sol.t[i])
+#    global utr = hcat(utr, ut)
+#end
 
 plt = plot()
 for i=1:length(sol.u)
@@ -69,7 +64,7 @@ for i=1:length(sol.u)
 end
 display(plt)
 
-err = norm(pred .- utr,Inf)
-display(err)
-@test err < 1e-4
+#err = norm(pred .- utr,Inf)
+#display(err)
+#@test err < 1e-4
 #

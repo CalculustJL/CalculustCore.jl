@@ -22,6 +22,7 @@ function massOp(space1::AbstractSpace{<:Any,D},
                 discr::AbstractDiscretization;
                 J = nothing,
                ) where{D}
+    @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
@@ -169,6 +170,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
                      vel::AbstractVector...;
                      J = nothing,
                     ) where{D}
+    @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
