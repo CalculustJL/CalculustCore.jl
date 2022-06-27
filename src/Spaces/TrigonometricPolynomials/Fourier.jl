@@ -198,8 +198,7 @@ end
 # global_numbering(space::FourierSpace)
 
 ###
-# TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
-# TODO   before writing vector calculus ops, transform operation on space
+# TODO - FourierSpace operators - review https://math.mit.edu/~stevenj/fft-deriv.pdf
 ###
 
 function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
@@ -332,28 +331,31 @@ function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
 end
 
 function advectionOp(vels::NTuple{D},
-                     space::TransformedSpace{<:Any,D,<:FourierSpace},
+                     tspace::TransformedSpace{<:Any,D,<:FourierSpace},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
+                     truncation_frac=nothing,
                     ) where{D}
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
 
-    Fi = transformOp(space)
-    M   = massOp(space.space, discr)
-    MM  = Diagonal([M for i=1:D])
-    DD  = gradientOp(space, discr)
+    DDh = gradientOp(tspace, discr)
 
-    VV = VV[1]
-    MM = MM[1]
-    DD = DD[1]
+    # physical space
+    space = transform(tspace)
 
-    VV_phys = Fi * VV
-    DD_phys = Fi * DD
+    F  = transformOp(space)
+    M  = massOp(space, discr)
+    Xh = truncationOp(tspace, truncation_frac)
 
-    adv = VV_phys' * MM * DD_phys
+    MM  = Diagonal([M  for i=1:D])
+    FF  = Diagonal([F  for i=1:D])
+    XXh = Diagonal([Xh for i=1:D])
 
-    Fi \ adv
+    VV_phys = FF \ XXh * VV
+    DD_phys = FF \ XXh * DDh
+
+    VV_phys' * MM * DD_phys
 end
 
 # interpolation
@@ -364,7 +366,6 @@ function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
     M = size(space2)[1] # output
     N = size(space1)[1] # input
 
-    # TODO use DiagonalOperator instead
     J = sparse(I, (M,N)) |> MatrixOperator
 
     J
