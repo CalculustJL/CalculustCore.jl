@@ -89,6 +89,7 @@ export
 
        # transform
        transformOp,
+       truncationOp,
 
        ### Spaces
 

@@ -23,7 +23,7 @@ function uIC(x, ftr, k)
     u0 = begin
         u  = 2*rand(size(x)...)
         uh = ftr * u
-        uh[20:end] .= 0
+        uh[10:end] .= 0
         ftr \ uh
     end
 

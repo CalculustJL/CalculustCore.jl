@@ -1,4 +1,4 @@
-
+#
 ###
 # Vector Calculus Operators
 ###
@@ -22,6 +22,7 @@ function massOp(space1::AbstractSpace{<:Any,D},
                 discr::AbstractDiscretization;
                 J = nothing,
                ) where{D}
+    @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
@@ -137,30 +138,18 @@ for v,u,T in H¹₀(Ω)
 
 implemented as
 
-R'R * QQ' * B * (ux*∂xT + uy*∂yT)
-
 (u⃗⋅∇)T = ux*∂xT + uy*∂yT
 
        = [ux uy] * [Dx] T
                    [Dx]
 """
-function advectionOp(vel::NTuple{D},
+function advectionOp(vels::NTuple{D},
                      space::AbstractSpace{<:Any,D},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
                     ) where{D}
 
-    VV = AbstractSciMLOperator[]
-    for i=1:D
-        vel_update_func = if vel_update_funcs isa Nothing
-            DEFAULT_UPDATE_FUNC
-        else
-            vel_update_funcs[i]
-        end
-
-        V = DiagonalOperator(vel[i];update_func=vel_update_func)
-        push!(VV, V)
-    end
+    VV = _pair_update_funcs(vels, vel_update_funcs)
 
     DD = gradientOp(space, discr)
     M  = massOp(space, discr)
@@ -181,6 +170,7 @@ function advectionOp(space1::AbstractSpace{<:Any,D},
                      vel::AbstractVector...;
                      J = nothing,
                     ) where{D}
+    @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
