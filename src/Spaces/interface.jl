@@ -147,8 +147,6 @@ Lazily transforms between physical and modal space.
 """
 function transform end
 
-#transform(space::AbstractSpace) = space
-
 """
 forward transform operator
 
@@ -163,6 +161,17 @@ AbstractVecOrMat type, call
 `space = make_transform(space, input_vec)`
 """
 function transformOp end
+
+"""
+zero high frequency modes
+
+args:
+    - space::AbstractSpace
+    - frac::Number truncation fraction
+ret:
+    - truncation operator on space
+"""
+function truncationOp end
 
 """
 Form transform operator per new input vector for space

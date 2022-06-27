@@ -91,8 +91,6 @@ end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 
-transformOp(space::FourierSpace) = space.ftransform
-
 function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D}
 
     ssp = size(space)
@@ -159,55 +157,7 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
     ftransform
 end
 
-## TODO - local system <-> global system
-## global system for computation
-## local system for plotting
-# local_numbering(space::FourierSpace)
-# global_numbering(space::FourierSpace)
-
-###
-# vector calculus
-###
-
-###
-# TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
-# TODO   before writing vector calculus ops, transform operation on space
-###
-
-function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
-    w = mass_matrix(space)
-    DiagonalOperator(w)
-end
-
-function gradientOp(space::FourierSpace{<:Any,D}) where{D}
-    sph = transform(space)  # transformed space
-    DDh = gradientOp(sph)   # ∇ in transformed space
-
-    F  = transformOp(space) # forward transform
-    FF = Diagonal([F for i=1:D])
-
-    FF .\ DDh .* FF |> vec
-end
-
-function hessianOp(space::FourierSpace{<:Any,D}) where{D}
-    sph  = transform(space)
-    DD2h = hessianOp(sph)
-
-    F  = transformOp(space)
-    FF = Diagonal([F for i=1:D])
-
-    FF .\ DD2h .* FF |> vec
-end
-
-function biharmonicOp(space::FourierSpace{<:Any,D}) where{D}
-    sph  = transform(space)
-    DD4h = biharmonicOp(sph)
-
-    F  = transformOp(space)
-    FF = Diagonal([F for i=1:D])
-
-    FF .\ DD4h .* FF |> vec
-end
+transformOp(space::FourierSpace) = space.ftransform
 
 function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
     X = truncationOp(transform(space), frac)
@@ -237,6 +187,71 @@ function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=noth
     DiagonalOperator(a)
 end
 
+###
+# vector calculus
+###
+
+## TODO - local system <-> global system
+## global system for computation
+## local system for plotting
+# local_numbering(space::FourierSpace)
+# global_numbering(space::FourierSpace)
+
+###
+# TODO - review gradientOp(::FourierSpace) https://math.mit.edu/~stevenj/fft-deriv.pdf
+# TODO   before writing vector calculus ops, transform operation on space
+###
+
+function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
+    w = mass_matrix(space)
+    DiagonalOperator(w)
+end
+
+function gradientOp(space::FourierSpace{<:Any,D}) where{D}
+    sph = transform(space)  # transformed space
+    DDh = gradientOp(sph)   # ∇ in transformed space
+
+    F  = transformOp(space) # forward transform
+    FF = [F for i=1:D]
+
+    FF .\ DDh .* FF
+end
+
+function hessianOp(space::FourierSpace{<:Any,D}) where{D}
+    sph  = transform(space)
+    DD2h = hessianOp(sph)
+
+    F  = transformOp(space)
+    FF = [F for i=1:D]
+
+    FF .\ DD2h .* FF
+end
+
+function biharmonicOp(space::FourierSpace{<:Any,D}) where{D}
+    sph  = transform(space)
+    DD4h = biharmonicOp(sph)
+
+    F  = transformOp(space)
+    FF = [F for i=1:D]
+
+    FF .\ DD4h .* FF
+end
+
+function _fusedGradientTruncationOp(space::FourierSpace{<:Any,D},
+                                    truncation_frac=nothing,
+                                   ) where{D}
+    tspace = transform(space)
+
+    F   = transformOp(space)
+    Xh  = truncationOp(tspace, truncation_frac)
+    DDh = gradientOp(tspace)
+
+    FF  = [F  for i=1:D]
+    XXh = [Xh for i=1:D]
+
+    FF .\ XXh .* DDh .* FF
+end
+
 function advectionOp(vels::NTuple{D},
                      space::FourierSpace{<:Any,D},
                      discr::AbstractDiscretization;
@@ -245,15 +260,29 @@ function advectionOp(vels::NTuple{D},
                     ) where{D}
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
-
     M  = massOp(space, discr)
-    X  = truncationOp(space, truncation_frac)
-    DD = gradientOp(space, discr)
 
-    MM = Diagonal([M for i=1:D])
-    XX = Diagonal([X for i=1:D])
+    C = if M isa IdentityOperator # Collocation
+        tspace = transform(space)
 
-    (XX*VV)' * MM * (XX*DD)
+        F   = transformOp(space)
+        Xh  = truncationOp(tspace, truncation_frac)
+        DDh = gradientOp(tspace)
+
+        FF  = [F  for i=1:D]
+        XXh = [Xh for i=1:D]
+
+        VV' * (Diagonal(FF) \ Diagonal(XXh) * Diagonal(DDh)) * FF
+    else # Galerkin
+        X   = truncationOp(space, truncation_frac)
+        XDD = _fusedGradientTruncationOp(space, truncation_frac)
+
+        XX = Diagonal([X for i=1:D])
+        MM = Diagonal([M for i=1:D])
+        (XX*VV)' * MM * XDD
+    end
+
+    C
 end
 
 ###
@@ -268,7 +297,7 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
 
     J = interpOp(sp1h, sp2h)
 
-    F2 \ J * F2
+    F2 \ J * F1
 end
 
 ###
@@ -310,7 +339,7 @@ function advectionOp(vels::NTuple{D},
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
 
-    itr = transformOp(space)
+    Fi = transformOp(space)
     M   = massOp(space.space, discr)
     MM  = Diagonal([M for i=1:D])
     DD  = gradientOp(space, discr)
@@ -319,12 +348,12 @@ function advectionOp(vels::NTuple{D},
     MM = MM[1]
     DD = DD[1]
 
-    VV_phys = itr * VV
-    DD_phys = itr * DD
+    VV_phys = Fi * VV
+    DD_phys = Fi * DD
 
-    adv = VV_phys' * MM * DD_phys # 
+    adv = VV_phys' * MM * DD_phys
 
-    itr \ adv
+    Fi \ adv
 end
 
 # interpolation
@@ -335,6 +364,7 @@ function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
     M = size(space2)[1] # output
     N = size(space1)[1] # input
 
+    # TODO use DiagonalOperator instead
     J = sparse(I, (M,N)) |> MatrixOperator
 
     J
