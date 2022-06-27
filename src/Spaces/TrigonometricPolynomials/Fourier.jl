@@ -241,7 +241,7 @@ function advectionOp(vels::NTuple{1},
                      space::FourierSpace{<:Any,1},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
-                     truncation_frac=true,
+                     truncation=true,
                     )
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
