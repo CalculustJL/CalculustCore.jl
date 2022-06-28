@@ -59,11 +59,8 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, x)
 
     """ time discr """
-#   odealg = CVODE_BDF(method=:Functional)
     odealg = Tsit5()
-#   odealg = FBDF()
-#   odealg = Rodas5(autodiff=false,linsolve=IterativeSolversJL_GMRES())
-#   odealg = Rodas5()
+    odealg = SSPRK43()
     tsave = range(tspan...; length=nsave)
     prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8, abstol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave)
@@ -97,7 +94,7 @@ end
 sol, space = solve_burgers(N, ν, p)
 #plt = plot_sol(sol, space)
 anim = anim8(sol, space)
-#gif(anim, "examples/fourier/a.gif", fps= 20)
+gif(anim, "examples/fourier/a.gif", fps= 20)
 
 #
 nothing

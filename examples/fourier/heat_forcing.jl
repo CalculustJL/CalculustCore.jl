@@ -47,13 +47,25 @@ F = cache_operator(F, x)
 u0 = uic(x)
 tspan = (0.0, 2π)
 tsave = range(tspan...; length=10)
-odealg = CVODE_BDF(method=:Functional)
-#odealg = Tsit5()
-#odealg = Rodas5(autodiff=false,linsolve=IterativeSolversJL_GMRES())
-#odealg = Rodas5(autodiff=false,)
-prob = SplitODEProblem(A, F, u0, tspan, p)
+odealg = Tsit5()
+#odealg = SSPRK43()
 
-@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-8, abstol=1e-8)
+#prob = SplitODEProblem(A, F, u0, tspan, p)
+#@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-10, abstol=1e-10)
+
+dudt = A + F
+dudt = cache_operator(rhs, x)
+
+function dudt_jac(Jv, v, u, p, t)
+    SciMLOperators.update_coefficients!(dudt, u, p, t)
+    mul!(Jv, dudt, v)
+end
+
+odefunc = ODEFunction{true}(dudt)
+odefunc = ODEFunction{true}(dudt; jvp=dudt_jac)
+
+prob = ODEProblem(odefunc, u0, tspan, p)
+@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-10, abstol=1e-10)
 
 """ analysis """
 pred = Array(sol)
