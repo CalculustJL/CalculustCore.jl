@@ -29,6 +29,7 @@ function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
                        nsave=100,
+                       odealg=SSPRK43(),
                       )
 
     """ space discr """
@@ -59,10 +60,14 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, x)
 
     """ time discr """
-    odealg = Tsit5()
-    odealg = SSPRK43()
+    function Ajac(Jv, v, u, p, t;A=A)
+        SciMLOperators.update_coefficients!(A, u, p, t)
+        mul!(Jv, A, v)
+    end
+    odefunc = SplitFunction(A, F; jvp=Ajac)
+
     tsave = range(tspan...; length=nsave)
-    prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8, abstol=1e-8)
+    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1e-8, abstol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave)
 
     sol, space
