@@ -61,6 +61,9 @@ function solve_burgers(N, ν, p;
     """ time discr """
 #   odealg = CVODE_BDF(method=:Functional)
     odealg = Tsit5()
+#   odealg = FBDF()
+#   odealg = Rodas5(autodiff=false,linsolve=IterativeSolversJL_GMRES())
+#   odealg = Rodas5()
     tsave = range(tspan...; length=nsave)
     prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8, abstol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave)

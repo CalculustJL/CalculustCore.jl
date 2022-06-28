@@ -47,7 +47,10 @@ F = cache_operator(F, x)
 u0 = uic(x)
 tspan = (0.0, 2π)
 tsave = range(tspan...; length=10)
-odealg = Tsit5()
+odealg = CVODE_BDF(method=:Functional)
+#odealg = Tsit5()
+#odealg = Rodas5(autodiff=false,linsolve=IterativeSolversJL_GMRES())
+#odealg = Rodas5(autodiff=false,)
 prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave, reltol=1e-8, abstol=1e-8)
@@ -68,5 +71,6 @@ end
 display(plt)
 
 err = norm(pred .- ut, Inf)
-@test err < 1e-8
+display(err)
+@test err < 1e-7
 #
