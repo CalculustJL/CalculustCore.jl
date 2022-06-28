@@ -14,6 +14,8 @@ using UnPack: @unpack
 using Setfield: @set!
 using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
+import FFTW
+import CUDA
 
 using ..Domains
 using ..Domains: AbstractDomain

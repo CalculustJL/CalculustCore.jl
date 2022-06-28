@@ -21,3 +21,6 @@ function _pair_update_funcs(vecs, funcs)
 
     VV
 end
+
+_fft_lib(u::AbstractArray) = FFTW
+_fft_lib(u::CUDA.CuArray) = CUDA.FFT

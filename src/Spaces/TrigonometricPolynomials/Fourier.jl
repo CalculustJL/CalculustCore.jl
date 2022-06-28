@@ -1,7 +1,4 @@
 #
-import FFTW: plan_fft, plan_ifft, fftfreq
-import FFTW: plan_rfft, plan_irfft, rfftfreq
-
 """
 with stuff in physical space. operators use FFT
 """
@@ -46,17 +43,12 @@ function FourierSpace(n::Integer;
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
-    ComplexT = if T isa Type{Float16}
-        ComplexF16
-    elseif T isa Type{Float32}
-        ComplexF32
-    else
-        ComplexF64
-    end
 
     dx = L / n
     x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
-    k  = rfftfreq(n, 2π*n/L) |> Array
+
+    FFTLIB = FFTW #_fft_lib(x)
+    k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
 
     domain = T(domain)
     npoints = (n,)
@@ -100,14 +92,15 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
     equal to length(space) in its first dimension"
     K   = size(u, 2)
 
-    # transform input
+    # transform input shape
     sin = (ssp..., K)
     U   = _reshape(u, sin)
 
     # transform object
-    ftr = plan_rfft(U, 1:D)
+    FFTLIB = _fft_lib(u)
+    ftr = FFTLIB.plan_rfft(U, 1:D)
 
-    # transform output
+    # transform output shape
     V    = ftr * U
     sout = size(V)
 
