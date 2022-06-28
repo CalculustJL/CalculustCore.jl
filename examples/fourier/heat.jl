@@ -58,5 +58,5 @@ end
 display(plt)
 
 err = norm(pred .- ut, Inf)
-@test err < 1e-8
+@test err < 1e-7
 #
