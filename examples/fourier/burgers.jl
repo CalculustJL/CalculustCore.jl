@@ -16,16 +16,11 @@ N = 1024
 p = ()
 
 Random.seed!(0)
-function uIC(x, ftr, k)
-#   u0 = @. sin(2x) + sin(3x) + sin(5x)
-#   u0 = @. sin(x-π)
+function uIC(x, space)
+    x = points(space)[1]
+    X = truncationOp(space,1//20)
 
-    u0 = begin
-        u  = 2*rand(size(x)...)
-        uh = ftr * u
-        uh[10:end] .= 0
-        ftr \ uh
-    end
+    u0 = X * rand(size(x)...)
 
     u0
 end
@@ -41,11 +36,9 @@ function solve_burgers(N, ν, p;
     discr = Collocation()
 
     (x,) = points(space)
-    (k,) = modes(space)
-    ftr  = transformOp(space)
 
     """ IC """
-    u0 = uIC(x, ftr, k)
+    u0 = uIC(x, space)
 
     """ operators """
     A = diffusionOp(ν, space, discr)
@@ -67,8 +60,9 @@ function solve_burgers(N, ν, p;
 
     """ time discr """
     odealg = CVODE_BDF(method=:Functional)
+    odealg = Tsit5()
     tsave = range(tspan...; length=nsave)
-    prob = SplitODEProblem(A, F, u0, tspan, p)
+    prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave)
 
     sol, space
