@@ -49,7 +49,7 @@ tsave = (0, π/4, π/2, 3π/4, 2π,)
 odealg = Rodas5(autodiff=false)
 #odealg = Tsit5()
 prob = SplitODEProblem(A, F, u0, tspan, p)
-@time sol = solve(prob, odealg, saveat=tsave)
+@time sol = solve(prob, odealg, saveat=tsave, abstol=1e-8, reltol=1e-8)
 
 """ analysis """
 pred = Array(sol)
@@ -69,6 +69,5 @@ end
 display(plt)
 
 err = norm(pred .- utr,Inf)
-display(err)
-@test err < 1e-4
+@test err < 1e-8
 #

@@ -59,10 +59,10 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, x)
 
     """ time discr """
-    odealg = CVODE_BDF(method=:Functional)
+#   odealg = CVODE_BDF(method=:Functional)
     odealg = Tsit5()
     tsave = range(tspan...; length=nsave)
-    prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8)
+    prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8, abstol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave)
 
     sol, space

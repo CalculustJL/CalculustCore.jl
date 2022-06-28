@@ -50,7 +50,7 @@ tsave = range(tspan...; length=10)
 odealg = Tsit5()
 prob = SplitODEProblem(A, F, u0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave)
+@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-8, abstol=1e-8)
 
 """ analysis """
 pred = Array(sol)
@@ -68,5 +68,5 @@ end
 display(plt)
 
 err = norm(pred .- ut, Inf)
-@test err < 1e-4
+@test err < 1e-8
 #
