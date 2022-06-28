@@ -97,7 +97,7 @@ end
 sol, space = solve_burgers(N, ν, p)
 #plt = plot_sol(sol, space)
 anim = anim8(sol, space)
-gif(anim, "examples/fourier/a.gif", fps= 20)
+#gif(anim, "examples/fourier/a.gif", fps= 20)
 
 #
 nothing
