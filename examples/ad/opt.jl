@@ -9,8 +9,10 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Optimization, DiffEqSensitivity, Zygote
 using Lux, Random, ComponentArrays
+using DiffEqSensitivity, Zygote
+using Optimization, OptimizationOptimJL, OptimizationOptimisers
+using Plots
 
 N = 32
 ν = 1e-1
@@ -79,8 +81,16 @@ function loss(p)
     loss, pred
 end
 
-function cb(p, l, pred; doplot=true, space=space)
+function cb(p, l, pred; doplot=false, space=space)
     println(l)
+
+    if doplot
+        plt = plot()
+        for i=1:size(pred,2)
+            x = points(space)[1]
+            plot!(plt, x, pred[:,i])
+        end
+    end
     return false
 end
 
@@ -88,24 +98,26 @@ end
 println("fwd"); cb(ps,loss(ps)...;doplot=true)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-#""" optimization """
-#adtype = Optimization.AutoZygote()
-#optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype) # x=object to optimize
-#optprob = Optimization.OptimizationProblem(optf, pinit)
-#
-#optres = Optimization.solve(optprob,
-#                            ADAM(0.05),
-#                            callback = callback,
-#                            maxiters = 300
-#                           )
-#
-##optprob = remake(optprob,u0 = result_neuralode.u)
-##
-##optres = Optimization.solve(optprob,
-##                            Optim.BFGS(initial_stepnorm=0.01),
-##                            callback=callback,
-##                            allow_f_increases = false
-##                           )
-#
-#callback(optres.u, loss(optres.u)...; doplot=true)
+""" optimization """
+adtype = Optimization.AutoZygote()
+optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype) # x=object to optimize
+optprob = Optimization.OptimizationProblem(optf, ps)
+
+optres = Optimization.solve(
+                            optprob,
+                            ADAM(0.05),
+                            callback=cb,
+                            maxiters=50,
+                           )
+
+optprob = remake(optprob,u0 = optres.u)
+
+println("BFGS")
+optres = Optimization.solve(optprob,
+                            Optim.BFGS(initial_stepnorm=0.01),
+                            callback=cb,
+                            allow_f_increases = false,
+                           )
+
+cb(optres.u, loss(optres.u)...; doplot=true)
 #
