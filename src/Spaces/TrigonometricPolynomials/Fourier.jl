@@ -25,7 +25,6 @@ end
 
 function FourierSpace(n::Integer;
                       domain::AbstractDomain{<:Any,1}=FourierDomain(1),
-                      T=Float64,
                      )
 
     if domain isa IntervalDomain
@@ -43,6 +42,7 @@ function FourierSpace(n::Integer;
 
     dx = L / n
     x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
+    T  = eltype(x)
 
     FFTLIB = FFTW #_fft_lib(x)
     k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
@@ -63,6 +63,24 @@ function FourierSpace(n::Integer;
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
+# TODO - just @functor FourierSpace instead
+function Adapt.adapt_storage(::LuxCUDAAdaptor, space::FourierSpace)
+    grid = CUDA.cu(space.grid)
+    modes = CUDA.cu(space.modes)
+    mass_matrix = CUDA.cu(space.mass_matrix)
+
+    x = first(grid)
+    T = eltype(x)
+
+    domain = T(space.domain)
+    ftransform = form_transform(x, space)
+
+    FourierSpace(
+                 domain, grid, modes,
+                 mass_matrix, ftransform,
+                )
+end
+
 ###
 # interface
 ###
@@ -79,7 +97,7 @@ end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 
-function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D}
+function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D}) where{T,D}
 
     ssp = size(space)
     N   = length(space)
@@ -145,6 +163,10 @@ function form_transform(u::AbstractVecOrMat, space::FourierSpace{T,D}) where{T,D
 
     ftransform
 end
+
+###
+# Operators
+###
 
 transformOp(space::FourierSpace) = space.ftransform
 

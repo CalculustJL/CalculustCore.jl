@@ -116,9 +116,9 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendre(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychev(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
+GaussLobattoLegendreSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
+GaussLegendreSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
+GaussChebychevSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
 ###
 # interface

@@ -106,9 +106,9 @@ export
 
        # Lagrange polynomial spaces
        LagrangePolynomialSpace,
-       GaussLobattoLegendre,
-       GaussLegendre,
-       GaussChebychev,
+       GaussLobattoLegendreSpace,
+       GaussLegendreSpace,
+       GaussChebychevSpace,
 
        # Trigonometric polynomial spaces
 #      SineSpace,
