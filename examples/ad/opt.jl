@@ -90,6 +90,7 @@ function cb(p, l, pred; doplot=false, space=space)
             x = points(space)[1]
             plot!(plt, x, pred[:,i])
         end
+        display(plt)
     end
     return false
 end
