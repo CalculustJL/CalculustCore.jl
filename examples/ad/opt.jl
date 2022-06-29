@@ -8,15 +8,13 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, Sundials, LinearAlgebra
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Zygote, Random, Lux, DiffEqSensitivity, ComponentArrays
 
-N = 128
+N = 32
 ν = 1e-1
 
-odealg = Tsit5()
-#odealg = CVODE_BDF(method=:Functional)
-#odealg = Rodas5(autodiff=false)
+odealg = SSPRK43()
 
 """ space discr """
 domain = FourierDomain(1)

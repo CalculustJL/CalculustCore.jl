@@ -7,7 +7,6 @@ Once you plug in your discretizations, you can do a lot of cool things like appl
 After describing your problem, it should spit out the right BoundaryValueProblem  or ODEProblem  that you can solve using the correct `DiffEq` package.
 
 Goals:
-- [ ] Add `AbstractCalculus` object between function space, and `AbstractDiscretization`
 - [ ] Abstract Domain interface
   - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
   - [X] Logically rectangular
@@ -34,9 +33,9 @@ Goals:
   - [X] Deform space
   - [X] orthogonal polynomials
   - [ ] Spectral with transforms (Fourier, Cosine, Sin, Ultraspherical, Jacobi)
-  - [ ] option to solve in transformed space
+  - [X] option to solve in transformed space
   - [ ] spectral elements
-- [ ] Create a distinction between `Space`, and `Discretization`
+- [X] Create a distinction between `Space`, and `Discretization`
   - [ ] Space is how to represent functions
   - [ ] Discretization is how you form operators
 - [ ] Boundary Condition interface

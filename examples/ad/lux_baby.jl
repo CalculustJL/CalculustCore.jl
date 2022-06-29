@@ -1,8 +1,12 @@
 #
-# add dependencies to env stack
-pkgpath = dirname(dirname(@__FILE__))
-tstpath = joinpath(pkgpath, "test")
-!(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+using PDEInterfaces
+let
+    # add dependencies to env stack
+    pkgpath = dirname(dirname(pathof(PDEInterfaces)))
+    tstpath = joinpath(pkgpath, "test")
+    !(tstpath in LOAD_PATH) && push!(LOAD_PATH, tstpath)
+    nothing
+end
 
 using OrdinaryDiffEq, Lux
 using Zygote, Random, DiffEqSensitivity, ComponentArrays
