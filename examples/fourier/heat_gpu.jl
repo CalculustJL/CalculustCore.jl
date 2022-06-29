@@ -48,8 +48,8 @@ end
 tspan = (0f0, 10f0) 
 tsave = range(tspan...; length=10)
 odealg = Tsit5()
-#prob = SplitODEProblem(A, F, u0, tspan, p)
 prob = SplitODEProblem(implicit, explicit, u0, tspan, p)
+#prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave, reltol=1f-6)
 
