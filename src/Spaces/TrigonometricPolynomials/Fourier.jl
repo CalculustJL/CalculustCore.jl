@@ -6,7 +6,6 @@ struct FourierSpace{
                     T,
                     D,
                     Tdom<:AbstractDomain{T,D},
-                    Tpts,
                     Tgrid,
                     Tmodes,
                     Tmass,
@@ -14,8 +13,6 @@ struct FourierSpace{
                    } <: AbstractSpace{T,D}
     """ Domain """
     domain::Tdom
-    """ size tuple """
-    npoints::Tpts
     """ grid points """
     grid::Tgrid
     """ modes """
@@ -51,14 +48,13 @@ function FourierSpace(n::Integer;
     k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
 
     domain = T(domain)
-    npoints = (n,)
     grid = (x,)
     modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
     ftransform = nothing
 
     space = FourierSpace(
-                         domain, npoints, grid, modes,
+                         domain, grid, modes,
                          mass_matrix, ftransform,
                         )
 
@@ -71,7 +67,7 @@ end
 # interface
 ###
 
-Base.size(space::FourierSpace) = space.npoints
+Base.size(space::FourierSpace) = points(space) |> first |> size
 domain(space::FourierSpace) = space.domain
 points(space::FourierSpace) = space.grid
 function quadratures(space::FourierSpace{<:Any,1})

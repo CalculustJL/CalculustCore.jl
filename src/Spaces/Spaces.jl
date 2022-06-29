@@ -16,6 +16,8 @@ using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
 import FFTW
 import CUDA
+import Adapt
+import Lux
 
 using ..Domains
 using ..Domains: AbstractDomain
@@ -23,9 +25,12 @@ using ..Domains: AbstractDomain
 # overload
 import Base: eltype, length, size
 import Base: summary, display, show
-import Plots: plot, plot!
-import ..Domains: dims, deform
+import Adapt: adapt_storage
+
 import SciMLOperators: IdentityOperator, NullOperator, ⊗
+import ..Domains: dims, deform
+
+import Plots: plot, plot!
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end
@@ -63,6 +68,10 @@ export
        dims,
        domain,
        deform,
+
+       # from Lux
+       cpu,
+       gpu,
 
        # from SciMLOperators
        IdentityOperator,

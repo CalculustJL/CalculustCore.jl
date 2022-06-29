@@ -1,6 +1,6 @@
 #
 include("NDgrid.jl")
-using SciMLOperators: ⊗, IdentityOperator, _reshape, _vec
+using SciMLOperators: _reshape, _vec
 
 _transp(a, ::AbstractDiscretization) = transpose(a)
 
@@ -22,5 +22,15 @@ function _pair_update_funcs(vecs, funcs)
     VV
 end
 
+###
+# GPU
+###
+
+import Lux: cpu, gpu, LuxCPUAdaptor, LuxCUDAAdaptor
+
 _fft_lib(u::AbstractArray) = FFTW
 _fft_lib(u::CUDA.CuArray) = CUDA.FFT
+
+#function Adapt.adapt_storage(::LuxCUDAAdaptor, space::FourierSpace)
+#    CUDA.cu(x)
+#end

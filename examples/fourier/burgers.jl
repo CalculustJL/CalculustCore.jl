@@ -8,7 +8,7 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Sundials, Random
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
 using Plots
 
 N = 1024
