@@ -68,10 +68,11 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, x)
 
     """ time discr """
-    odefunc = SplitFunction(A, F)
+#   odefunc = SplitFunction(A, F)
+    odefunc = cache_operator(A+F, x)
 
     tsave = range(tspan...; length=nsave)
-    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1e-6, abstol=1f-6)
+    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
     @time sol = solve(prob, odealg, saveat=tsave)
 
     sol, space

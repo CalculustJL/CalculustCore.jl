@@ -9,11 +9,15 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
+using DiffEqGPU
 using Plots
+
+using CUDA
+CUDA.allowscalar(false)
 
 N = 1024
 ν = 1f-3
-p = ()
+p = SciMLBase.NullParameters()
 
 Random.seed!(0)
 function uIC(space)
@@ -34,6 +38,7 @@ function solve_burgers(N, ν, p;
                        tspan=(0f0, 10f0),
                        nsave=100,
                        odealg=SSPRK43(),
+#                      odealg=GPUTsit5(),
                       )
 
     """ space discr """
@@ -42,19 +47,15 @@ function solve_burgers(N, ν, p;
 
     (x,) = points(space)
 
-    """ IC """
-    u0 = [uIC(space) for i=1:2]
-
     """ operators """
     A = diffusionOp(ν, space, discr)
 
     function burgers!(v, u, p, t)
-        copy!(v, u)
+        copyto!(v, u)
     end
 
     function forcing!(f, u, p, t)
         lmul!(false, f)
-#       f .= 1e-2*rand(length(f))
     end
 
     C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
@@ -67,19 +68,19 @@ function solve_burgers(N, ν, p;
     odefunc = SplitFunction(A, F)
 
     tsave = range(tspan...; length=nsave)
-    odeprob = ODEProblem(odefunc, u0[1], tspan, p; reltol=1f-8, abstol=1f-8)
-    @time sol = solve(odeprob, odealg, saveat=tsave)
+    odeprob = ODEProblem(odefunc, uIC(space), tspan, p; reltol=1f-6, abstol=1f-6)
+    #@time sol = solve(odeprob, odealg, saveat=tsave)
 
     # problems selector function
     function prob_func(odeprob, i, repeat)
-        odeprob = remake(ode_prob, u0=u0[i])
+        odeprob = remake(odeprob, u0=uIC(space))
     end
     
     eprob = EnsembleProblem(odeprob, prob_func = prob_func)
     esol  = solve(eprob,
                   odealg,
                   EnsembleGPUArray();
-                  trajectories=length(u0),
+                  trajectories=2,
                   saveat=tsave,
                  )
 
