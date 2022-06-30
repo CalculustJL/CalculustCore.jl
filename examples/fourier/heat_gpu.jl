@@ -36,20 +36,11 @@ F = SciMLOperators.NullOperator(space)
 A = cache_operator(A, x)
 F = cache_operator(F, x)
 
-function implicit(u, p, t;op=A)
-    op * u
-end
-
-function explicit(u, p, t; op=F)
-    op * u
-end
-
 """ time discr """
 tspan = (0f0, 10f0) 
 tsave = range(tspan...; length=10)
 odealg = Tsit5()
-prob = SplitODEProblem(implicit, explicit, u0, tspan, p)
-#prob = SplitODEProblem(A, F, u0, tspan, p)
+prob = SplitODEProblem(A, F, gpu(u0), tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave, reltol=1f-6)
 
@@ -73,5 +64,5 @@ display(plt)
 
 err = norm(pred .- ut, Inf)
 display(err)
-@test err < 1e-6
+@test err < 1e-5
 #
