@@ -12,34 +12,38 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
 using Plots
 
 N = 1024
-ν = 1e-3
+ν = 1f-3
 p = ()
 
 Random.seed!(0)
-function uIC(x, space)
+function uIC(space)
     x = points(space)[1]
     X = truncationOp(space,1//20)
 
-    u0 = X * rand(size(x)...)
+    u0 = if x isa CUDA.CuArray
+        X * CUDA.rand(size(x)...)
+    else
+        X * rand(size(x)...)
+    end
 
     u0
 end
 
 function solve_burgers(N, ν, p;
                        uIC=uIC,
-                       tspan=(0.0, 10.0),
+                       tspan=(0f0, 10f0),
                        nsave=100,
                        odealg=SSPRK43(),
                       )
 
     """ space discr """
-    space = FourierSpace(N)
+    space = FourierSpace(N) |> gpu
     discr = Collocation()
 
     (x,) = points(space)
 
     """ IC """
-    u0 = uIC(x, space)
+    u0 = [uIC(space) for i=1:2]
 
     """ operators """
     A = diffusionOp(ν, space, discr)
@@ -60,44 +64,58 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, x)
 
     """ time discr """
-    function Ajac(Jv, v, u, p, t;A=A)
-        SciMLOperators.update_coefficients!(A, u, p, t)
-        mul!(Jv, A, v)
-    end
-    odefunc = SplitFunction(A, F; jvp=Ajac)
+    odefunc = SplitFunction(A, F)
 
     tsave = range(tspan...; length=nsave)
-    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1e-8, abstol=1e-8)
-    @time sol = solve(prob, odealg, saveat=tsave)
+    odeprob = ODEProblem(odefunc, u0[1], tspan, p; reltol=1f-8, abstol=1f-8)
+    @time sol = solve(odeprob, odealg, saveat=tsave)
 
-    sol, space
+    # problems selector function
+    function prob_func(odeprob, i, repeat)
+        odeprob = remake(ode_prob, u0=u0[i])
+    end
+    
+    eprob = EnsembleProblem(odeprob, prob_func = prob_func)
+    esol  = solve(eprob,
+                  odealg,
+                  EnsembleGPUArray();
+                  trajectories=length(u0),
+                  saveat=tsave,
+                 )
+
+    esol, space
 end
 
-function plot_sol(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
+function plot_sol(pred, time, x)
     plt = plot()
-    for i=1:length(sol)
-        plot!(plt, x, sol.u[i], legend=false)
+    for i=1:length(time)
+        plot!(plt, x, pred[:,i], legend=false)
     end
     plt
 end
 
-function anim8(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
+function anim8(pred, time, x)
     ylims = begin
-        u = sol.u[1]
+        u = @views pred[:,1]
         mi = minimum(u)
         ma = maximum(u)
         buf = (ma-mi)/5
         (mi-buf, ma+buf)
     end
-    anim = @animate for i=1:length(sol)
-        plt = plot(x, sol.u[i], legend=false, ylims=ylims)
+    anim = @animate for i=1:length(time)
+        plt = plot(x, pred[:,i], legend=false, ylims=ylims)
     end
 end
 
 sol, space = solve_burgers(N, ν, p)
-#plt = plot_sol(sol, space)
-anim = anim8(sol, space)
+
+pred = Array(sol) |> cpu
+time = sol.t |> cpu
+(x,) = points(space) |> cpu
+
+plt = plot_sol(pred, time, x)
+display(plt)
+anim = anim8(pred, time, x)
 gif(anim, "examples/fourier/a.gif", fps= 20)
+display(plt)
 #

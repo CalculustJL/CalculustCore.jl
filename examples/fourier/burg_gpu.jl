@@ -15,8 +15,8 @@ using Plots
 using CUDA
 CUDA.allowscalar(false)
 
-N = 8192
-ν = 1f-5
+N = 1024
+ν = 1f-3
 p = ()
 
 Random.seed!(0)
@@ -38,6 +38,7 @@ function solve_burgers(N, ν, p;
                        tspan=(0f0, 10f0),
                        nsave=100,
                        odealg=SSPRK43(),
+#                      odealg=GPUTsit5(),
                       )
 
     """ space discr """
