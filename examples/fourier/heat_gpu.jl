@@ -73,5 +73,5 @@ display(plt)
 
 err = norm(pred .- ut, Inf)
 display(err)
-@test err < 1e-5
+@test err < 1e-6
 #

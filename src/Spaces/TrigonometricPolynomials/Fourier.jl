@@ -191,9 +191,13 @@ function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=noth
 
     (n,) = length.(points(space))
 
-    a = [true for i=1:n]
-    m = n * frac |> round |> Int
-    a[m:n] .= false
+    a = begin
+        a = [true for i=1:n]
+        m = n * frac |> round |> Int
+        a[m:n] .= false
+
+        points(space)[1] isa CUDA.CuArray ? gpu(a) : a
+    end
 
     DiagonalOperator(a)
 end
