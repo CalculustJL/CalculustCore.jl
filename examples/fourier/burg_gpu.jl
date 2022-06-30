@@ -9,6 +9,7 @@ let
 end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
+using DiffEqGPU
 using Plots
 
 using CUDA

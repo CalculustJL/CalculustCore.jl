@@ -14,7 +14,7 @@ using OrdinaryDiffEq
 p = nothing
 t = 0f0
 
-K = 2
+K = 10
 for N in 2 .^(14:14)
     println("problem size, N: ", N)
     println("num cases, K: ", K)
@@ -55,8 +55,8 @@ for N in 2 .^(14:14)
 #       println("imp oop")
 #       @btime $A($u, $p, $t)
 
-#       println("exp iip")
-#       @btime $F($du, $u, $p, $t)
+        println("exp iip")
+        @btime $F($du, $u, $p, $t)
 
 #       println("exp oop")
 #       @btime $F($u, $p, $t)
@@ -79,8 +79,8 @@ for N in 2 .^(14:14)
 #       println("imp oop")
 #       @btime $A.($u, $p, $t)
 
-#       println("exp iip")
-#       @btime $F.($du, $u, $p, $t)
+        println("exp iip")
+        @btime $F.($du, $u, $p, $t)
 
 #       println("exp oop")
 #       @btime $F.($u, $p, $t)
@@ -99,8 +99,8 @@ for N in 2 .^(14:14)
 
         A = diffusionOp(1f0, space, discr)
 
-        C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
-        F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
+        C = advectionOp((zero(u),), space, discr; vel_update_funcs=(burgers!,))
+        F = -C + forcingOp(zero(u), space, discr; f_update_func=forcing!)
 
         A = cache_operator(A, u)
         F = cache_operator(F, u)
@@ -111,8 +111,8 @@ for N in 2 .^(14:14)
 #       println("imp oop")
 #       @btime $A($u, $p, $t)
 
-#       println("exp iip")
-#       @btime $F($du, $u, $p, $t)
+        println("exp iip")
+        @btime $F($du, $u, $p, $t)
 
 #       println("exp oop")
 #       @btime $F($u, $p, $t)
