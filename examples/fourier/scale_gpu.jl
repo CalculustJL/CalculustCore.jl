@@ -52,14 +52,14 @@ for N in 2 .^(14:14)
         println("imp iip")
         @btime $A($du, $u, $p, $t)
 
-#       println("imp oop")
-#       @btime $A($u, $p, $t)
+        println("imp oop")
+        @btime $A($u, $p, $t)
 
         println("exp iip")
         @btime $F($du, $u, $p, $t)
 
-#       println("exp oop")
-#       @btime $F($u, $p, $t)
+        println("exp oop")
+        @btime $F($u, $p, $t)
     end
 
     println("########################")
@@ -76,14 +76,14 @@ for N in 2 .^(14:14)
         println("imp iip")
         @btime $A.($du, $u, $p, $t)
 
-#       println("imp oop")
-#       @btime $A.($u, $p, $t)
+        println("imp oop")
+        @btime $A.($u, $p, $t)
 
         println("exp iip")
         @btime $F.($du, $u, $p, $t)
 
-#       println("exp oop")
-#       @btime $F.($u, $p, $t)
+        println("exp oop")
+        @btime $F.($u, $p, $t)
     end
 
     println("########################")
@@ -108,15 +108,54 @@ for N in 2 .^(14:14)
         println("imp iip")
         @btime $A($du, $u, $p, $t)
 
-#       println("imp oop")
-#       @btime $A($u, $p, $t)
+        println("imp oop")
+        @btime $A($u, $p, $t)
 
         println("exp iip")
         @btime $F($du, $u, $p, $t)
 
-#       println("exp oop")
-#       @btime $F($u, $p, $t)
+        println("exp oop")
+        @btime $F($u, $p, $t)
     end
 
 end
+
+"""
+julia> include("examples/fourier/scale_gpu.jl")                                                
+problem size, N: 16384                                                                         
+num cases, K: 10                                                                               
+#######################                                                                       
+Baseline, [u]                                                                                  
+########################                                                                       
+imp iip                                                                                        
+ 31.529 μs (134 allocations: 12.36 KiB)                                                       
+imp oop                                                                                        
+ 39.455 μs (149 allocations: 10.95 KiB)                                                       
+exp iip                                                                                        
+ 62.047 μs (237 allocations: 21.84 KiB)                                                       
+exp oop                                        
+ 132.570 μs (400 allocations: 29.22 KiB)                                                      
+########################                                                                       
+Batching via Broadcast [u... K times])                                                         
+########################                                                                       
+imp iip                                                                                        
+ 303.402 μs (1341 allocations: 123.72 KiB)                                                    
+imp oop                                                                                        
+ 402.199 μs (1491 allocations: 109.66 KiB)
+exp iip
+ 617.234 μs (2371 allocations: 218.56 KiB)
+exp oop
+ 1.454 ms (3999 allocations: 288.23 KiB)
+########################
+Batching via mul (N,K) array
+########################
+imp iip
+ 30.999 μs (132 allocations: 12.39 KiB)
+imp oop
+ 38.282 μs (146 allocations: 11.06 KiB)
+exp iip
+ 63.850 μs (240 allocations: 22.17 KiB)
+exp oop
+ 140.034 μs (400 allocations: 31.20 KiB)
+"""
 #
