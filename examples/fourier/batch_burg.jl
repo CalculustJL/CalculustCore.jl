@@ -8,12 +8,12 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Sundials, Random
+using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random, Sundials
 using Plots
 
 N = 1024
 ν = 1e-3
-p = ()
+p = nothing
 
 Random.seed!(0)
 function uIC(x, ftr)
@@ -33,6 +33,7 @@ end
 function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
+                       nsims=5,
                        nsave=100,
                       )
 
@@ -44,7 +45,7 @@ function solve_burgers(N, ν, p;
     """ IC """
     u0 = uIC(x, transformOp(space))
 
-    u0 = u0 * ones(1,2)
+    u0 = u0 * ones(1,nsims)
     space = make_transform(space, u0)
 
     """ operators """
@@ -59,7 +60,7 @@ function solve_burgers(N, ν, p;
 #       f .= 1e-2*rand(length(f))
     end
 
-    C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
+    C = advectionOp((zero(u0),), space, discr; vel_update_funcs=(burgers!,))
     F = -C + forcingOp(zero(u0), space, discr; f_update_func=forcing!)
 
     A = cache_operator(A, u0)

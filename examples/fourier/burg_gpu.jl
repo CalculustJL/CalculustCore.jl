@@ -17,7 +17,7 @@ CUDA.allowscalar(false)
 
 N = 1024
 ν = 1f-3
-p = ()
+p = nothing
 
 Random.seed!(0)
 function uIC(space)

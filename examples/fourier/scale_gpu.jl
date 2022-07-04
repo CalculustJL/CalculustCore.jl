@@ -14,7 +14,7 @@ using OrdinaryDiffEq
 p = nothing
 t = 0f0
 
-K = 10
+K = 50
 for N in 2 .^(14:14)
     println("problem size, N: ", N)
     println("num cases, K: ", K)
@@ -62,29 +62,29 @@ for N in 2 .^(14:14)
         @btime $F($u, $p, $t)
     end
 
-    println("########################")
-    println("Batching via Broadcast [u... K times])") # linear scaling
-    println("########################")
+#   println("########################")
+#   println("Batching via Broadcast [u... K times])") # linear scaling
+#   println("########################")
 
-    let
-        u  = [copy(x) for i=1:K]
-        du = [copy(x) for i=1:K]
+#   let
+#       u  = [copy(x) for i=1:K]
+#       du = [copy(x) for i=1:K]
 
-        A = cache_operator(A, u[1])
-        F = cache_operator(F, u[1])
+#       A = cache_operator(A, u[1])
+#       F = cache_operator(F, u[1])
 
-        println("imp iip")
-        @btime $A.($du, $u, $p, $t)
+#       println("imp iip")
+#       @btime $A.($du, $u, $p, $t)
 
-        println("imp oop")
-        @btime $A.($u, $p, $t)
+#       println("imp oop")
+#       @btime $A.($u, $p, $t)
 
-        println("exp iip")
-        @btime $F.($du, $u, $p, $t)
+#       println("exp iip")
+#       @btime $F.($du, $u, $p, $t)
 
-        println("exp oop")
-        @btime $F.($u, $p, $t)
-    end
+#       println("exp oop")
+#       @btime $F.($u, $p, $t)
+#   end
 
     println("########################")
     println("Batching via mul (N,K) array") # insane!!
@@ -158,4 +158,6 @@ exp iip
 exp oop
  140.034 μs (400 allocations: 31.20 KiB)
 """
+
+nothing
 #
