@@ -12,20 +12,15 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random, Sundials
 using Plots
 
 N = 1024
-ν = 1e-3
+ν = 1f-3
 p = nothing
 
 Random.seed!(0)
-function uIC(x, ftr)
-#   u0 = @. sin(2x) + sin(3x) + sin(5x)
-#   u0 = @. sin(x-π)
+function uIC(space)
+    x = points(space)[1]
+    X = truncationOp(space,1//20)
 
-    u0 = begin
-        u  = 2*rand(size(x)...)
-        uh = ftr * u
-        uh[20:end] .= 0
-        ftr \ uh
-    end
+    u0 = X * rand(size(x)...)
 
     u0
 end
@@ -33,7 +28,7 @@ end
 function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
-                       nsims=5,
+                       nsims=2,
                        nsave=100,
                       )
 
@@ -43,8 +38,7 @@ function solve_burgers(N, ν, p;
     (x,)  = points(space)
 
     """ IC """
-    u0 = uIC(x, transformOp(space))
-
+    u0 = uIC(space)
     u0 = u0 * ones(1,nsims)
     space = make_transform(space, u0)
 

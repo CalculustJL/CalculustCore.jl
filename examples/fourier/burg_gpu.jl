@@ -36,6 +36,7 @@ end
 function solve_burgers(N, ν, p;
                        uIC=uIC,
                        tspan=(0f0, 10f0),
+                       nsims=1,
                        nsave=100,
                        odealg=SSPRK43(),
 #                      odealg=GPUTsit5(),
@@ -49,6 +50,8 @@ function solve_burgers(N, ν, p;
 
     """ IC """
     u0 = uIC(space)
+    u0 = u0 * gpu(ones(1,nsims))
+    space = make_transform(space, u0; p=p)
 
     """ operators """
     A = diffusionOp(ν, space, discr)
@@ -61,15 +64,15 @@ function solve_burgers(N, ν, p;
         lmul!(false, f)
     end
 
-    C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
-    F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
+    C = advectionOp((zero(u0),), space, discr; vel_update_funcs=(burgers!,))
+    F = -C + forcingOp(zero(u0), space, discr; f_update_func=forcing!)
 
-    A = cache_operator(A, x)
-    F = cache_operator(F, x)
+    A = cache_operator(A, u0)
+    F = cache_operator(F, u0)
 
     """ time discr """
 #   odefunc = SplitFunction(A, F)
-    odefunc = cache_operator(A+F, x)
+    odefunc = cache_operator(A+F, u0)
 
     tsave = range(tspan...; length=nsave)
     prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
@@ -105,9 +108,10 @@ pred = Array(sol) |> cpu
 time = sol.t |> cpu
 (x,) = points(space) |> cpu
 
-plt = plot_sol(pred, time, x)
-display(plt)
-anim = anim8(pred, time, x)
-gif(anim, "examples/fourier/a.gif", fps= 20)
-display(plt)
+#plt = plot_sol(pred, time, x)
+#display(plt)
+#anim = anim8(pred, time, x)
+#gif(anim, "examples/fourier/a.gif", fps= 20)
+#display(plt)
+nothing
 #
