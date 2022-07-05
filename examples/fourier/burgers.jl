@@ -13,10 +13,10 @@ using Plots
 
 N = 1024
 ν = 1e-3
-p = ()
+p = nothing
 
 Random.seed!(0)
-function uIC(x, space)
+function uIC(space)
     x = points(space)[1]
     X = truncationOp(space,1//20)
 
@@ -39,7 +39,7 @@ function solve_burgers(N, ν, p;
     (x,) = points(space)
 
     """ IC """
-    u0 = uIC(x, space)
+    u0 = uIC(space)
 
     """ operators """
     A = diffusionOp(ν, space, discr)

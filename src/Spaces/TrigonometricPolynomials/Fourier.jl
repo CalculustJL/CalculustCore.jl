@@ -97,7 +97,8 @@ end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 
-function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D}) where{T,D}
+function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
+                        p=nothing, t=zero(T)) where{T,D}
 
     ssp = size(space)
     N   = length(space)
@@ -159,6 +160,9 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D}) wh
                                   op_inverse=bwd,
                                   op_adjoint=bwd,
                                   op_adjoint_inverse=fwd,
+
+                                  p=p,
+                                  t=t,
                                  )
 
     ftransform
