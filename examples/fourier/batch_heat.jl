@@ -14,7 +14,7 @@ using Plots, Test
 
 N = 128
 ν = 1e-2
-p = ()
+p = nothing
 
 """ space discr """
 space = FourierSpace(N)

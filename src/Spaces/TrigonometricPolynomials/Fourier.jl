@@ -324,7 +324,9 @@ end
 
 function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = points(space)
-    ik = DiagonalOperator(im * k)
+    ik = im * k
+    CUDA.@allowscalar ik[1] = 0
+    ik = DiagonalOperator(ik)
 
     [
      ik,
@@ -333,7 +335,9 @@ end
 
 function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = points(space)
-    ik2 = DiagonalOperator(@. -k * k)
+    ik2 = @. -k * k
+    CUDA.@allowscalar ik2[1] = 0
+    ik2 = DiagonalOperator(ik2)
 
     [
      ik2,
@@ -342,7 +346,9 @@ end
 
 function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
     (k,) = points(space)
-    ik4 = DiagonalOperator(@. k^4)
+    ik4 = @. k^4
+    CUDA.@allowscalar ik4[1] = 0
+    ik4 = DiagonalOperator(ik4)
 
     [
      ik4,

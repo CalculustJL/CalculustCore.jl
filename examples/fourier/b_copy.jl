@@ -13,7 +13,7 @@ using Plots
 
 N = 8192
 ν = 1e-5
-p = ()
+p = nothing
 
 Random.seed!(0)
 function uIC(x, ftr, k)

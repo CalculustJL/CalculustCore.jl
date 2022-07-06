@@ -13,7 +13,7 @@ using Plots
 
 N = 1024
 ν = 1e-2
-p = ()
+p = nothing
 
 """ space discr """
 space = FourierSpace(N)

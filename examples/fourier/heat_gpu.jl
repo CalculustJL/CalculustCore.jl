@@ -16,7 +16,7 @@ CUDA.allowscalar(false)
 
 N = 128
 ν = 1f-2
-p = ()
+p = nothing
 
 """ space discr """
 space = FourierSpace(N)

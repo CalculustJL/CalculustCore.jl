@@ -13,7 +13,7 @@ using Plots, Test
 
 N = 128
 ν = 0e0
-p = ()
+p = nothing
 
 """ space discr """
 space = FourierSpace(N)
