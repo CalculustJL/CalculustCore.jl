@@ -17,9 +17,9 @@ function process(name)
     t = data["t"]
     u = data["pred"]
 
-    nx, ns, nt = size(pred)
+    nx, ns, nt = size(u)
 
-    for i=1:10:ns
+    for i=1:20:ns
         @views ut = u[:,i,:]
         anim8_traj(ut, t, x; name="traj"*string(i))
     end
@@ -47,7 +47,7 @@ function anim8_traj(u, t, x; name=nothing)
     end
 
     filename = joinpath(dirname(@__FILE__), name * ".gif")
-    gif(anim, filename, fps=20)
+    gif(anim, filename, fps=10)
 end
 
 #================#
