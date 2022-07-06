@@ -13,38 +13,47 @@ using JLD2, Plots
 function process(name)
     data = jldopen(name)
 
-    pred  = data["pred"]
-    time  = data["time"]
-    space = data["space"]
+    x = data["x"]
+    t = data["t"]
+    u = data["pred"]
 
-    npts, nsims, ntime = size(pred)
-    x = points(space) |> first
+    nx, ns, nt = size(pred)
 
-    for i=1:5:nsims
-        @views upred = pred[:,1,:]
+    for i=1:10:ns
+        @views ut = u[:,i,:]
+        anim8_traj(ut, t, x; name="traj"*string(i))
     end
-
 end
 
 function plot_traj(u, t, x)
     plt = plot()
-    for i=1:length(time)
-        plot!(plt, x, pred[:,i], legend=false)
+    for i=1:length(t)
+        plot!(plt, x, u[:,i], legend=false)
     end
     plt
 end
 
-function anim8_traj(pred, time, x)
+function anim8_traj(u, t, x; name=nothing)
     ylims = begin
-        u = @views pred[:,1]
-        mi = minimum(u)
-        ma = maximum(u)
+        u0 = @views u[:,1]
+        mi = minimum(u0)
+        ma = maximum(u0)
         buf = (ma-mi)/5
         (mi-buf, ma+buf)
     end
-    anim = @animate for i=1:length(time)
-        plt = plot(x, pred[:,i], legend=false, ylims=ylims)
+
+    anim = @animate for i=1:length(t)
+        plt = plot(x, u[:,i], legend=false, ylims=ylims)
     end
+
+    filename = joinpath(dirname(@__FILE__), name * ".gif")
+    gif(anim, filename, fps=20)
 end
 
+#================#
+name = "burgers_nu1em5_n8192"
+filename = joinpath(@__DIR__, name * ".jld2") 
+
+#process(filename)
+nothing
 #

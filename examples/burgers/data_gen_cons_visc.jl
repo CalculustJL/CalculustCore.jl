@@ -15,12 +15,13 @@ Random.seed!(0)
 CUDA.allowscalar(false)
 
 N = 8192
-ν = 1f-5
-p = nothing
-
-N = 1024
 ν = 1f-3
 p = nothing
+
+## warm up
+#N = 1024
+#ν = 1f-3
+#p = nothing
 
 N_target = 128
 
@@ -79,6 +80,9 @@ function solve_burgers(N, ν, p;
 #   odefunc = SplitFunction(A, F)
     odefunc = cache_operator(A+F, u0)
 
+#   function cb()
+#   end
+
     tsave = range(tspan...; length=nsave)
     prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
     @time sol = solve(prob, odealg, saveat=tsave)
@@ -88,12 +92,12 @@ end
 
 sol, space = solve_burgers(N, ν, p)
 
-pred = Array(sol) |> cpu # [npts, nsims, nsave]
-time = sol.t |> cpu
-(x,) = points(space) |> cpu
+x = points(space) |> cpu |> first
+t = sol.t |> cpu
+u = Array(sol) |> cpu # [npts, nsims, nsave]
 
-filename = joinpath(dirname(@__FILE__), name * ".jld2")
-jldsave(filename; pred, time, space)
+filename = joinpath(@__DIR__, name * ".jld2")
+jldsave(filename; x, t, u)
 
 nothing
 #
