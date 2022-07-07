@@ -1,12 +1,13 @@
 #
-import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
 include("LagrangeMatrices.jl")
 
 ###
 # Lagrange polynomial function spaces
 ###
 
-""" Lagrange polynomial spectral space """
+"""
+Lagrange polynomial spectral space
+"""
 struct LagrangePolynomialSpace{T,
                                D,
                                Tdom<:AbstractDomain{T,D},

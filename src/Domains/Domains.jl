@@ -3,7 +3,7 @@ Domain Interface
 """
 module Domains
 
-import Base: eltype, ∈, in, length
+import Base: eltype, ∈, in
 import SciMLOperators: ⊗
 
 """ D-Dimensional Domain """
@@ -24,11 +24,13 @@ include("maps.jl")
 export
        # interface
        dims,
+       lengths,
        isperiodic,
        endpoints,
        boundary_tags,
        boundary_tag,
        num_boundaries,
+       bounding_box,
 
        ⊗,
        ∈,

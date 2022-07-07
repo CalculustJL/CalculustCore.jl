@@ -14,10 +14,12 @@ using UnPack: @unpack
 using Setfield: @set!
 using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
-import FFTW
 import CUDA
 import Adapt
 import Lux
+
+import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
+import FFTW
 
 using ..Domains
 using ..Domains: AbstractDomain

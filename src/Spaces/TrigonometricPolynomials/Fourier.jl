@@ -1,6 +1,6 @@
 #
 """
-with stuff in physical space. operators use FFT
+Fourier spectral space
 """
 struct FourierSpace{
                     T,
@@ -35,6 +35,44 @@ function FourierSpace(n::Integer;
 
     domain = FourierDomain(1)
     L = 2π #size(domain)
+    #""" reset deformation to map from [-π,π]^D """
+    #ref_domain = reference_box(2)
+    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+
+
+    dx = L / n
+    x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
+    T  = eltype(x)
+
+    FFTLIB = FFTW #_fft_lib(x)
+    k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
+
+    domain = T(domain)
+    grid = (x,)
+    modes = (k,)
+    mass_matrix = ones(T, n) * (2π/L)
+    ftransform = nothing
+
+    space = FourierSpace(
+                         domain, grid, modes,
+                         mass_matrix, ftransform,
+                        )
+
+    space = make_transform(space, x)
+
+    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
+end
+
+function FourierSpace(nr::Integer, ns::Integer;
+                      domain::AbstractDomain{<:Any,2}=FourierDomain(2),
+                     )
+
+    if !(domain isa BoxDomain)
+        @error "Trigonometric polynomials work with logically rectangular domains"
+    end
+
+    domain = FourierDomain(2)
+    Lr = 2π #lengths(domain)
     #""" reset deformation to map from [-π,π]^D """
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
