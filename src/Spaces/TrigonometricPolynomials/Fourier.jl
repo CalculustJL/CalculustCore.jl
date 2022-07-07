@@ -113,7 +113,7 @@ function FourierSpace(nr::Integer, ns::Integer;
     dr = Lr / nr
     ds = Ls / ns
     zr = range(start=-Lr/2, stop=Lr/2-dr, length=nr) |> Array
-    zs = range(start=-Lr/2, stop=Lr/2-ds, length=nr) |> Array
+    zs = range(start=-Lr/2, stop=Lr/2-ds, length=ns) |> Array
 
     FFTLIB = _fft_lib(zr)
     kr = FFTLIB.rfftfreq(nr, 2π*nr/Lr) |> Array
@@ -199,7 +199,7 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
     function bwd(v, u, p, t)
         U = _reshape(u, sout)
         V = _reshape(v, sin)
-        ldiv!(V, ftr, U)
+        ldiv!(V, ftr, U) # TODO - check if fftlib caches inv(plan)
 
         v
     end

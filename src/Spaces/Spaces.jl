@@ -32,7 +32,7 @@ import Adapt: adapt_storage, adapt_structure
 import SciMLOperators: IdentityOperator, NullOperator, ⊗
 import ..Domains: dims, deform
 
-import Plots: plot, plot!
+import Plots: plot, plot!, @animate, animate
 
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T,D} end

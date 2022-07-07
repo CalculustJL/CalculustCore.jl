@@ -45,7 +45,52 @@ args:
     - u scalar field
     - space AbstractSpace
 """
-Plots.plot
+function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any,1}; kwargs...)
+
+    (x,) = points(space)
+    plt  = plot(x, u; kwargs...)
+end
+
+function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any,2}; a=30, b=30, kwargs...)
+
+    npts = size(space)
+    (x,y) = points(space)
+
+    u = _reshape(u, npts)
+    x = _reshape(x, npts)
+    y = _reshape(y, npts)
+
+#   plt = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
+#   plt = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
+
+    plt = Plots.heatmap(u; kwargs...)
+
+    plt
+end
+
+function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,1}; kwargs...)
+    ylims = begin
+        u = sol.u[1]
+        mi = minimum(u)
+        ma = maximum(u)
+        buf = (ma-mi)/5
+        (mi-buf, ma+buf)
+    end
+    anim = @animate for i=1:size(u, 2)
+        plt = plot(u[:,i], space; ylims=ylims, kwargs...)
+    end
+end
+
+function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,2}; kwargs...)
+    clim = begin
+        mi = minimum(u)
+        ma = maximum(u)
+        (mi, ma)
+    end
+    anim = @animate for i=1:size(u, 2)
+        plt = plot(u[:,i], space; clim=clim, kwargs...)
+    end
+end
 
 """
 get domain
@@ -113,16 +158,6 @@ get indices of boudnary nodes
 """
 function boundary_nodes end
 
-"""
-modes
-"""
-function modes end
-
-"""
-size of modal basis
-"""
-function mode_size end
-
 ### interpolation
 """
 Interpolate function values to to points.
@@ -149,6 +184,18 @@ ret:
     space1 to space2
 """
 function interpOp end
+
+### modes
+
+"""
+modes
+"""
+function modes end
+
+"""
+size of modal basis
+"""
+function mode_size end
 
 ### transform
 

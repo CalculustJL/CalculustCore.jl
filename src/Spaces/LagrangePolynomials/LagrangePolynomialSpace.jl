@@ -130,27 +130,6 @@ GaussChebychevSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadr
 
 Base.size(space::LagrangePolynomialSpace) = space.npoints
 
-function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,1})
-
-    (x,) = points(space)
-    plt  = plot(x, u, legend=false)
-end
-
-function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,2}; a=45, b=60)
-
-    npts = size(space)
-    (x,y,) = points(space)
-
-    u = _reshape(u, npts)
-    x = _reshape(x, npts)
-    y = _reshape(y, npts)
-
-    plt = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
-    plt = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
-
-    plt
-end
-
 domain(space::LagrangePolynomialSpace) = space.domain
 points(space::LagrangePolynomialSpace) = space.grid
 quadratures(space::LagrangePolynomialSpace) = space.quads
