@@ -216,10 +216,6 @@ end
 # local_numbering(space::FourierSpace)
 # global_numbering(space::FourierSpace)
 
-###
-# TODO - FourierSpace operators - review https://math.mit.edu/~stevenj/fft-deriv.pdf
-###
-
 function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
     w = mass_matrix(space)
     DiagonalOperator(w)
@@ -324,8 +320,11 @@ end
 
 function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = points(space)
+    (n,) = size(transform(space))
+
     ik = im * k
-    CUDA.@allowscalar ik[1] = 0
+#   CUDA.@allowscalar ik[1] = 0
+    iseven(n) && CUDA.@allowscalar ik[end] = 0 # https://math.mit.edu/~stevenj/fft-deriv.pdf
     ik = DiagonalOperator(ik)
 
     [
@@ -335,8 +334,9 @@ end
 
 function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
     (k,) = points(space)
+
     ik2 = @. -k * k
-    CUDA.@allowscalar ik2[1] = 0
+#   CUDA.@allowscalar ik2[1] = 0
     ik2 = DiagonalOperator(ik2)
 
     [
