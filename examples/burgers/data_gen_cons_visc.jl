@@ -19,9 +19,9 @@ N = 8192
 p = nothing
 
 ## warm up
-#N = 1024
-#ν = 1f-3
-#p = nothing
+N = 1024
+ν = 1f-3
+p = nothing
 
 N_target = 128
 
@@ -96,8 +96,8 @@ x = points(space) |> cpu |> first
 t = sol.t |> cpu
 u = Array(sol) |> cpu # [npts, nsims, nsave]
 
-filename = joinpath(@__DIR__, name * ".jld2")
-jldsave(filename; x, t, u)
+#filename = joinpath(@__DIR__, name * ".jld2")
+#jldsave(filename; x, t, u)
 
 nothing
 #

@@ -25,7 +25,7 @@ using ..Domains: AbstractDomain
 # overload
 import Base: eltype, length, size
 import Base: summary, display, show
-import Adapt: adapt_storage
+import Adapt: adapt_storage, adapt_structure
 
 import SciMLOperators: IdentityOperator, NullOperator, ⊗
 import ..Domains: dims, deform

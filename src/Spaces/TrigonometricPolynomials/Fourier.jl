@@ -63,11 +63,10 @@ function FourierSpace(n::Integer;
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
-# TODO - just @functor FourierSpace instead
-function Adapt.adapt_storage(::LuxCUDAAdaptor, space::FourierSpace)
-    grid = CUDA.cu(space.grid)
-    modes = CUDA.cu(space.modes)
-    mass_matrix = CUDA.cu(space.mass_matrix)
+function adapt_structure(to, space::FourierSpace)
+    grid  = adapt_structure(to, space.grid)
+    modes = adapt_structure(to, space.modes)
+    mass_matrix = adapt_structure(to, space.mass_matrix)
 
     x = first(grid)
     T = eltype(x)
