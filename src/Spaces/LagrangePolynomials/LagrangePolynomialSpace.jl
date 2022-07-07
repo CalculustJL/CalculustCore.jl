@@ -10,6 +10,7 @@ Lagrange polynomial spectral space
 """
 struct LagrangePolynomialSpace{T,
                                D,
+                               Tpts<:NTuple{D},
                                Tdom<:AbstractDomain{T,D},
                                Tquad,
                                Tgrid,
@@ -18,6 +19,8 @@ struct LagrangePolynomialSpace{T,
                                Tloc,
 #                              Tglo
                               } <: AbstractSpace{T,D}
+    """ size """
+    npoints::Tpts
     """ Domain """
     domain::Tdom
     """ quadratures """
@@ -35,7 +38,7 @@ struct LagrangePolynomialSpace{T,
 end
 
 function LagrangePolynomialSpace(n::Integer;
-        domain::AbstractDomain{<:Any,1}=ChebychevBox(1),
+        domain::AbstractDomain{<:Any,1}=ChebychevDomain(1),
         quadrature = gausslobatto,
         T = Float64,
        )
@@ -47,7 +50,7 @@ function LagrangePolynomialSpace(n::Integer;
     end
 
     #""" reset deformation to map from [-1,1]^D """
-    #ref_domain = ChebychevBox(1)
+    #ref_domain = ChebychevDomain(1)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
     ## change domain eltype
 
@@ -57,17 +60,17 @@ function LagrangePolynomialSpace(n::Integer;
     w = T.(w)
 
     D = lagrange_deriv_mat(z)
-    npoints = (n,)
 
+    npoints = (n,)
     domain = T(domain)
-    quads = ((z, w),)
-    grid = _vec.((z,))
+    quads  = ((z, w),)
+    grid   = _vec.((z,))
     mass_matrix = _vec(w)
     deriv_mats = (D,)
     local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    domain, quads, grid,
+                                    npoints, domain, quads, grid,
                                     mass_matrix, deriv_mats, 
                                     local_numbering,
                                    )
@@ -76,7 +79,7 @@ function LagrangePolynomialSpace(n::Integer;
 end
 
 function LagrangePolynomialSpace(nr::Integer, ns::Integer;
-        domain::AbstractDomain{<:Number,2}=ChebychevBox(2),
+        domain::AbstractDomain{<:Number,2}=ChebychevDomain(2),
         quadrature = gausslobatto,
         T = Float64,
        )
@@ -86,7 +89,7 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     end
 
     #""" reset deformation to map from [-1,1]^D """
-    #ref_domain = ChebychevBox(2)
+    #ref_domain = ChebychevDomain(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
     zr, wr = quadrature(nr)
@@ -99,8 +102,8 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
 
     Dr = lagrange_deriv_mat(zr)
     Ds = lagrange_deriv_mat(zs)
-    npoints = (nr, ns,)
 
+    npoints = (nr, ns,)
     domain = T(domain)
     quads = ((zr, wr), (zs, ws),)
     grid = _vec.((r, s,))
@@ -109,7 +112,7 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     local_numbering = _reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    domain, quads, grid,
+                                    npoints, domain, quads, grid,
                                     mass_matrix, deriv_mats,
                                     local_numbering,
                                    )
@@ -125,7 +128,7 @@ GaussChebychevSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadr
 # interface
 ###
 
-Base.size(space::LagrangePolynomialSpace) = points(space) |> first |> size
+Base.size(space::LagrangePolynomialSpace) = space.npoints
 
 function Plots.plot(u, space::LagrangePolynomialSpace{<:Number,1})
 

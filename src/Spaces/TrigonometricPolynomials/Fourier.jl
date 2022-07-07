@@ -1,16 +1,28 @@
 #
+# TODO - local system <-> global system
+# global system for computation
+# local system for plotting
+# local_numbering(space::FourierSpace)
+# global_numbering(space::FourierSpace)
+
 """
 Fourier spectral space
 """
 struct FourierSpace{
                     T,
                     D,
+                    Tpts<:NTuple{D},
+                    Tmds<:NTuple{D},
                     Tdom<:AbstractDomain{T,D},
                     Tgrid,
                     Tmodes,
                     Tmass,
                     Ttr,
                    } <: AbstractSpace{T,D}
+    """ points """
+    npoints::Tpts
+    """ modes """
+    nmodes::Tmds
     """ Domain """
     domain::Tdom
     """ grid points """
@@ -21,6 +33,25 @@ struct FourierSpace{
     mass_matrix::Tmass
     """ forward transform `mul!(û, T , u)` """
     ftransform::Ttr
+end
+
+function adapt_structure(to, space::FourierSpace)
+    grid  = adapt_structure(to, space.grid)
+    modes = adapt_structure(to, space.modes)
+    mass_matrix = adapt_structure(to, space.mass_matrix)
+
+    x = first(grid)
+    T = eltype(x)
+
+    npoints = space.npoints
+    nmodes  = space.nmodes
+    domain = T(space.domain)
+    ftransform = form_transform(x, space)
+
+    FourierSpace(
+                 npoints, nmodes, domain, grid, modes,
+                 mass_matrix, ftransform,
+                )
 end
 
 function FourierSpace(n::Integer;
@@ -34,31 +65,33 @@ function FourierSpace(n::Integer;
     end
 
     domain = FourierDomain(1)
-    L = 2π #size(domain)
+    (L,) = lengths(domain)
     #""" reset deformation to map from [-π,π]^D """
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
 
-    dx = L / n
-    x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
-    T  = eltype(x)
+    dz = L / n
+    z  = range(start=-L/2, stop=L/2-dz, length=n) |> Array
+    T  = eltype(z)
 
-    FFTLIB = FFTW #_fft_lib(x)
+    FFTLIB = _fft_lib(z)
     k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
 
+    npoints = (n,)
+    nmodes  = (length(k),)
     domain = T(domain)
-    grid = (x,)
+    grid = (z,)
     modes = (k,)
     mass_matrix = ones(T, n) * (2π/L)
     ftransform = nothing
 
     space = FourierSpace(
-                         domain, grid, modes,
+                         npoints, nmodes, domain, grid, modes,
                          mass_matrix, ftransform,
                         )
 
-    space = make_transform(space, x)
+    space = make_transform(space, z)
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
@@ -72,57 +105,51 @@ function FourierSpace(nr::Integer, ns::Integer;
     end
 
     domain = FourierDomain(2)
-    Lr = 2π #lengths(domain)
-    #""" reset deformation to map from [-π,π]^D """
+    (Lr, Ls) = lengths(domain)
+    # reset deformation to map from [-π,π]^D
     #ref_domain = reference_box(2)
     #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
 
+    dr = Lr / nr
+    ds = Ls / ns
+    zr = range(start=-Lr/2, stop=Lr/2-dr, length=nr) |> Array
+    zs = range(start=-Lr/2, stop=Lr/2-ds, length=nr) |> Array
 
-    dx = L / n
-    x  = range(start=-L/2, stop=L/2-dx, length=n) |> Array
-    T  = eltype(x)
+    FFTLIB = _fft_lib(zr)
+    kr = FFTLIB.rfftfreq(nr, 2π*nr/Lr) |> Array
+    ks = FFTLIB.rfftfreq(ns, 2π*ns/Ls) |> Array
+    nkr = length(kr)
+    nks = length(ks)
 
-    FFTLIB = FFTW #_fft_lib(x)
-    k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
+    r, s   = _vec.(ndgrid(zr, zs))
+    kr, ks = _vec.(ndgrid(kr, ks))
 
-    domain = T(domain)
-    grid = (x,)
-    modes = (k,)
-    mass_matrix = ones(T, n) * (2π/L)
-    ftransform = nothing
+    T  = eltype(r)
+
+    npoints = (nr, ns)
+    nmodes  = (nkr, nks)
+    domain  = T(domain)
+    grid    = (r, s)
+    modes   = (kr, ks)
+    mass_matrix = ones(T, nr * ns) * (2π/Lr) * (2π/Ls)
+    ftransform  = nothing
 
     space = FourierSpace(
-                         domain, grid, modes,
+                         npoints, nmodes, domain, grid, modes,
                          mass_matrix, ftransform,
                         )
 
-    space = make_transform(space, x)
+    space = make_transform(space, r)
 
     domain isa Domains.DeformedDomain ? deform(space, mapping) : space
-end
-
-function adapt_structure(to, space::FourierSpace)
-    grid  = adapt_structure(to, space.grid)
-    modes = adapt_structure(to, space.modes)
-    mass_matrix = adapt_structure(to, space.mass_matrix)
-
-    x = first(grid)
-    T = eltype(x)
-
-    domain = T(space.domain)
-    ftransform = form_transform(x, space)
-
-    FourierSpace(
-                 domain, grid, modes,
-                 mass_matrix, ftransform,
-                )
 end
 
 ###
 # interface
 ###
 
-Base.size(space::FourierSpace) = points(space) |> first |> size
+Base.size(space::FourierSpace) = space.npoints
+mode_size(space::FourierSpace) = space.nmodes
 domain(space::FourierSpace) = space.domain
 points(space::FourierSpace) = space.grid
 function quadratures(space::FourierSpace{<:Any,1})
@@ -142,7 +169,7 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
 
     @assert size(u, 1) == N "size mismatch. input array must have length
     equal to length(space) in its first dimension"
-    K   = size(u, 2)
+    K = size(u, 2)
 
     # transform input shape
     sin = (ssp..., K)
@@ -185,28 +212,26 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
         ComplexF64
     end
 
-    ftransform = FunctionOperator(
-                                  fwd;
-                                  isinplace=true,
-                                  T=ComplexT,
-                                  size=(M,N),
+    FunctionOperator(
+                     fwd;
+                     isinplace=true,
+                     T=ComplexT,
+                     size=(M,N),
 
-                                  input_prototype=u,
-                                  output_prototype=v,
+                     input_prototype=u,
+                     output_prototype=v,
 
-                                  op_inverse=bwd,
-                                  op_adjoint=bwd,
-                                  op_adjoint_inverse=fwd,
+                     op_inverse=bwd,
+                     op_adjoint=bwd,
+                     op_adjoint_inverse=fwd,
 
-                                  p=p,
-                                  t=t,
-                                 )
-
-    ftransform
+                     p=p,
+                     t=t,
+                    )
 end
 
 ###
-# Operators
+# operators in phys space
 ###
 
 transformOp(space::FourierSpace) = space.ftransform
@@ -223,37 +248,7 @@ function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
     F \ X * F
 end
 
-function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=nothing)
-
-    frac = frac isa Nothing ? 2//3 : frac
-    if isone(frac)
-        return IdentityOperator(space)
-    end
-
-    (n,) = length.(points(space))
-
-    a = begin
-        a = [true for i=1:n]
-        m = n * frac |> round |> Int
-        a[m:n] .= false
-
-        points(space)[1] isa CUDA.CuArray ? gpu(a) : a
-    end
-
-    DiagonalOperator(a)
-end
-
-###
-# vector calculus
-###
-
-## TODO - local system <-> global system
-## global system for computation
-## local system for plotting
-# local_numbering(space::FourierSpace)
-# global_numbering(space::FourierSpace)
-
-function massOp(space::FourierSpace{<:Any,1}, ::Galerkin)
+function massOp(space::FourierSpace, ::Galerkin)
     w = mass_matrix(space)
     DiagonalOperator(w)
 end
@@ -265,7 +260,7 @@ function gradientOp(space::FourierSpace{<:Any,D}) where{D}
     F  = transformOp(space) # forward transform
     FF = [F for i=1:D]
 
-    FF .\ DDh .* FF
+    FF .\ DDh .* FF # TODO - this is doing transform D times. should only be 1
 end
 
 function hessianOp(space::FourierSpace{<:Any,D}) where{D}
@@ -336,10 +331,6 @@ function advectionOp(vels::NTuple{D},
     C
 end
 
-###
-# interpolation operators
-###
-
 function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
     F1   = transformOp(space1)
     F2   = transformOp(space2)
@@ -355,41 +346,48 @@ end
 # operators in transformed space
 ###
 
-function gradientOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = points(space)
-    (n,) = size(transform(space))
+function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=nothing)
+    frac = frac isa Nothing ? 2//3 : frac
+    if isone(frac)
+        return IdentityOperator(space)
+    end
 
-    ik = im * k
-#   CUDA.@allowscalar ik[1] = 0
-    iseven(n) && CUDA.@allowscalar ik[end] = 0 # https://math.mit.edu/~stevenj/fft-deriv.pdf
-    ik = DiagonalOperator(ik)
+    (n,) = length.(points(space))
 
-    [
-     ik,
-    ]
+    a = begin
+        a = [true for i=1:n]
+        m = n * frac |> round |> Int
+        a[m:n] .= false
+
+        points(space)[1] isa CUDA.CuArray ? gpu(a) : a
+    end
+
+    DiagonalOperator(a)
 end
 
-function hessianOp(space::TransformedSpace{<:Any,1,<:FourierSpace})
-    (k,) = points(space)
+function gradientOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
+    ks = points(space)
+    ns = size(transform(space))
 
-    ik2 = @. -k * k
-#   CUDA.@allowscalar ik2[1] = 0
-    ik2 = DiagonalOperator(ik2)
+    # https://math.mit.edu/~stevenj/fft-deriv.pdf
+    iks = [@. im*ks[i] for i=1:D]
+    for i=1:D iseven(ns[i]) && CUDA.@allowscalar iks[i][end] = 0  end
 
-    [
-     ik2,
-    ]
+    DiagonalOperator.(iks)
 end
 
-function biharmonicOp(space::TransformedSpace{<:Any,1,FourierSpace})
-    (k,) = points(space)
-    ik4 = @. k^4
-    CUDA.@allowscalar ik4[1] = 0
-    ik4 = DiagonalOperator(ik4)
+function hessianOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
+    ks = points(space)
+    ik2s = [@. -ks[i]^2 for i=1:D]
 
-    [
-     ik4,
-    ]
+    DiagonalOperator.(ik2s)
+end
+
+function biharmonicOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
+    ks = points(space)
+    ik4s = [@. ks[i]^4 for i=1:D]
+
+    DiagonalOperator.(ik4s)
 end
 
 function advectionOp(vels::NTuple{D},
@@ -422,7 +420,7 @@ function advectionOp(vels::NTuple{D},
     VV_phys = FF \ XXh * VV
     DD_phys = FF \ XXh * DDh
 
-    # V * (Dh * û0) == 0 <-- problem
+    # problem: V * (Dh * û0) == 0 <-- problem
 
     VV_phys' * MM * DD_phys # <- this is zero
 #   transpose(VV) * XXh * FF * MM * DD_phys

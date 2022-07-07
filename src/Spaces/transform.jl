@@ -14,7 +14,7 @@ transform(space::TransformedSpace) = space.space
 ###
 # interface
 ###
-Base.size(space::TransformedSpace) = length.(points(space))
+Base.size(space::TransformedSpace) = mode_size(space.space)
 
 domain(space::TransformedSpace) = domain(space.space)
 points(space::TransformedSpace) = modes(space.space)

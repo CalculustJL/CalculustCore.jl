@@ -113,6 +113,16 @@ get indices of boudnary nodes
 """
 function boundary_nodes end
 
+"""
+modes
+"""
+function modes end
+
+"""
+size of modal basis
+"""
+function mode_size end
+
 ### interpolation
 """
 Interpolate function values to to points.
