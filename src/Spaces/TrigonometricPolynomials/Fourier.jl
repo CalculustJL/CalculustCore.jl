@@ -117,7 +117,7 @@ function FourierSpace(nr::Integer, ns::Integer;
 
     FFTLIB = _fft_lib(zr)
     kr = FFTLIB.rfftfreq(nr, 2π*nr/Lr) |> Array
-    ks = FFTLIB.rfftfreq(ns, 2π*ns/Ls) |> Array
+    ks = FFTLIB.fftfreq(ns, 2π*ns/Ls)  |> Array
     nkr = length(kr)
     nks = length(ks)
 
