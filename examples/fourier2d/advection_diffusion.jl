@@ -11,9 +11,9 @@ end
 using OrdinaryDiffEq, LinearSolve
 using Plots
 
-nx = 32
-ny = 32
-ν = 1e-0
+nx = 128
+ny = 128
+ν = 1e-2
 p = nothing
 
 """ space discr """
@@ -41,8 +41,9 @@ odealg = Tsit5()
 prob = SplitODEProblem(A, F, u0, tspan, p)
 
 @time sol = solve(prob, odealg, saveat=tsave)
+pred = Array(sol)
 
 anim = animate(pred, space)
 filename = joinpath(dirname(@__FILE__), "advection_diffusion" * ".gif")
 gif(anim, filename, fps=5)
-
+#

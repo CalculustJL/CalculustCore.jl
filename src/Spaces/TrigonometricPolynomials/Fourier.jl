@@ -273,6 +273,15 @@ function hessianOp(space::FourierSpace{<:Any,D}) where{D}
     FF .\ DD2h .* FF
 end
 
+function laplaceOp(space::FourierSpace{<:Any,D}, discr::Collocation) where{D}
+    sph = transform(space)
+    D2h = laplaceOp(sph, discr)
+
+    F = transformOp(space)
+
+    F \ D2h * F
+end
+
 function biharmonicOp(space::FourierSpace{<:Any,D}) where{D}
     sph  = transform(space)
     DD4h = biharmonicOp(sph)
@@ -388,6 +397,13 @@ function hessianOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
     ik2s = [@. -ks[i]^2 for i=1:D]
 
     DiagonalOperator.(ik2s)
+end
+
+function laplaceOp(space::TransformedSpace{<:Any,D,FourierSpace}, ::Collocation) where{D}
+    ks = points(space)
+    ik2 = [@. -ks[i]^2 for i=1:D] |> sum
+
+    DiagonalOperator.(ik2)
 end
 
 function biharmonicOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}

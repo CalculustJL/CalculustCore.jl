@@ -11,8 +11,9 @@ end
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
 using Plots
 
-N = 1024
-ν = 1e-3
+nx = 128
+ny = 128
+ν = 1e-2
 p = nothing
 
 Random.seed!(0)
@@ -25,7 +26,7 @@ function uIC(space)
     u0
 end
 
-function solve_burgers(N, ν, p;
+function solve_burgers(nx, ny, ν, p;
                        uIC=uIC,
                        tspan=(0.0, 10.0),
                        nsave=100,
@@ -33,10 +34,10 @@ function solve_burgers(N, ν, p;
                       )
 
     """ space discr """
-    space = FourierSpace(N)
+    space = FourierSpace(nx, ny)
     discr = Collocation()
 
-    (x,) = points(space)
+    x, y = points(space)
 
     """ IC """
     u0 = uIC(space)
@@ -50,7 +51,6 @@ function solve_burgers(N, ν, p;
 
     function forcing!(f, u, p, t)
         lmul!(false, f)
-#       f .= 1e-2*rand(length(f))
     end
 
     C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
@@ -73,33 +73,8 @@ function solve_burgers(N, ν, p;
     sol, space
 end
 
-function plot_sol(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
-    plt = plot()
-    for i=1:length(sol)
-        plot!(plt, x, sol.u[i], legend=false)
-    end
-    plt
-end
-
-function anim8(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
-    ylims = begin
-        u = sol.u[1]
-        mi = minimum(u)
-        ma = maximum(u)
-        buf = (ma-mi)/5
-        (mi-buf, ma+buf)
-    end
-    anim = @animate for i=1:length(sol)
-        plt = plot(x, sol.u[i], legend=false, ylims=ylims)
-    end
-end
-
-sol, space = solve_burgers(N, ν, p)
-#plt = plot_sol(sol, space)
-anim = anim8(sol, space)
+sol, space = solve_burgers(nx, ny, ν, p)
+pred = Array(sol)
+anim = animate(pred, space)
 gif(anim, "examples/fourier/a.gif", fps= 20)
-
 #
-nothing
