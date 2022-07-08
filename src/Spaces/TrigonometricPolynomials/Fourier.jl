@@ -346,7 +346,8 @@ end
 # operators in transformed space
 ###
 
-function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=nothing)
+function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace},
+                      frac=nothing)
     frac = frac isa Nothing ? 2//3 : frac
     if isone(frac)
         return IdentityOperator(space)
@@ -363,6 +364,12 @@ function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace}, frac=noth
     end
 
     DiagonalOperator(a)
+end
+
+function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
+                      frac=nothing) where{D}
+    ks = modes(space)
+    IdentityOperator(space)
 end
 
 function gradientOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}

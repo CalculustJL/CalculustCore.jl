@@ -20,8 +20,7 @@ p = nothing
 space = FourierSpace(nx, ny)
 discr = Collocation()
 
-(x, y,) = points(space)
-(kx, ky,) = modes(space)
+x, y = points(space)
 ftr  = transformOp(space)
 
 """ IC """
