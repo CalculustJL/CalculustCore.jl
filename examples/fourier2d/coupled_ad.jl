@@ -27,8 +27,13 @@ Ay = diffusionOp(ν, space, discr)
 
 Cx = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> fill!(v, true),
-                                   (v,u,p,t) -> fill!(v, true),
+                                   # error because u = u0.vx and operator
+                                   # doesn't have access to vy
+                                   #
+                                   # so need to write tensor operators acting on
+                                   # ComponentArray(vx=.., vy=..)
+                                   (v,u,p,t) -> fill!(v, true),#copy!(v, u.vx),
+                                   (v,u,p,t) -> fill!(v, true),#copy!(v, u.vy),
                                   )
                 )
 
