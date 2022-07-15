@@ -96,7 +96,7 @@ end
 """
 Diffusion operator - ∇⋅(ν∇⋅)
 """
-function diffusionOp(ν::AbstractVector,
+function diffusionOp(ν::AbstractVecOrMat,
                      space1::AbstractSpace{<:Any,D},
                      space2::AbstractSpace{<:Any,D},
                      discr::AbstractDiscretization;
@@ -165,11 +165,12 @@ for dealiasing (over-integration)
 so we don't commit any
 "variational crimes"
 """
-function advectionOp(space1::AbstractSpace{<:Any,D},
-                     space2::AbstractSpace{<:Any,D},
-                     vel::AbstractVector...;
+function advectionOp(vel::NTuple{D},
+                     space1::AbstractSpace{<:Any,D},
+                     space2::AbstractSpace{<:Any,D};
                      J = nothing,
                     ) where{D}
+
     @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO

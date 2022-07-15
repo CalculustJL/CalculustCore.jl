@@ -6,7 +6,7 @@ using Plots
 N = 32
 
 @testset "1D Laplace" begin
-    dom = reference_box(1)
+    dom = GaussLobattoLegendreDomain(1)
     space = GaussLobattoLegendre(N; domain=dom)
     (x,) = points(space)
 
@@ -46,7 +46,7 @@ N = 32
 end
 
 @testset "2D Laplace" begin
-    dom = reference_box(2)
+    dom = GaussLobattoLegendreDomain(2)
     space = GaussLobattoLegendre(N, N; domain=dom)
     (x, y,) = points(space)
 

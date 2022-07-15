@@ -260,6 +260,7 @@ function gradientOp(space::FourierSpace{<:Any,D}) where{D}
     F  = transformOp(space) # forward transform
     FF = [F for i=1:D]
 
+    # https://github.com/vpuri3/PDEInterfaces.jl/issues/25
     FF .\ DDh .* FF # TODO - this is doing transform D times. should only be 1
 end
 

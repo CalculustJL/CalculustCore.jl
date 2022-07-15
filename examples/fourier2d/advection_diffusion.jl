@@ -8,8 +8,7 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve
-using Plots
+using OrdinaryDiffEq, Plots
 
 nx = 128
 ny = 128
