@@ -71,11 +71,11 @@ tsave = range(tspan...; length=10)
 odealg = Tsit5()
 prob = ODEProblem(ddt, u0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave);
+@time sol = solve(prob, odealg, saveat=tsave)
 
 pred = Array(sol)
-vx = pred[:vx, :]
-vy = pred[:vx, :]
+vx = @views pred[:vx, :]
+vy = @views pred[:vx, :]
 
 anim = animate(vx, space)
 filename = joinpath(dirname(@__FILE__), "burgers_x" * ".gif")

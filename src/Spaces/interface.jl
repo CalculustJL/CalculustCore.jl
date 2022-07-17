@@ -253,7 +253,11 @@ args:
 ret:
     - space::AbstractSpace with transform operator that can act on `u`
 """
-function make_transform(space::AbstractSpace, u::AbstractVecOrMat{T}; p=nothing, t=zero(T)) where{T}
+function make_transform(space::AbstractSpace,
+                        u::AbstractVecOrMat{T} = first(points(space));
+                        p=nothing,
+                        t=zero(T),
+                       ) where{T}
     ftr = form_transform(u, space, p=p, t=t)
     @set! space.ftransform = ftr
 

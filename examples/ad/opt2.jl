@@ -8,34 +8,15 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Lux, Random, ComponentArrays
+using OrdinaryDiffEq, LinearAlgebra, ComponentArrays
+using Lux, Random
 using DiffEqSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Plots
 
 N = 128
 ν = 1e-1
-
 odealg = SSPRK43()
-
-""" space discr """
-domain = FourierDomain(1)
-space  = FourierSpace(N; domain=domain)
-discr  = Collocation()
-
-(x,) = points(space)
-
-# diffusion
-D = diffusionOp(ν, space, discr)
-
-# forcing
-Z = NullOperator(space)
-F = Z
-#F = AffineOperator(Z, zero(x)) <-- NN output
-
-D = cache_operator(D, x)
-F = cache_operator(F, x)
 
 """ NN """
 model = Lux.Chain(
@@ -47,32 +28,65 @@ rng = Random.default_rng()
 ps, st = Lux.setup(rng, model)
 ps = ComponentArray(ps)
 
+""" space discr """
+domain = FourierDomain(1)
+space  = FourierSpace(N; domain=domain)
+space  = make_transform(space; p=ps)
+discr  = Collocation()
+
+(x,) = points(space)
+
+D = diffusionOp(ν, space, discr)
+D = cache_operator(D, x)
+
 u0 = @. sin(10x)
 tspan = (0.0, 1.0)
 tsteps = range(tspan..., length=10)
 
-""" fully explicit problem """
-function implicit(u, p, t;op=D)
-    SciMLOperators.update_coefficients!(op, u, p, t)
-    op * u
-end
+""" fully oop problem """
+#implicit(u, p, t) = D(u,p,t)
+#function explicit(u, p, t; space=space, model=model, st=st)
+#    x = points(space)[1]
+#
+#    dut = model(x', p, st)[1]
+#    return vec(dut)
+#end
+#prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
+#sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
-function explicit(u, p, t; space=space, model=model, st=st)
+""" fully iip problem """
+#implicit(du, u, p, t) = D(du,u,p,t)
+#function explicit(du, u, p, t; space=space, model=model, st=st)
+#    x = points(space)[1]
+#
+#    dut = model(x', p, st)[1]
+#    copyto!(du, dut)
+#    return du
+#end
+#prob = SplitODEProblem{true}(implicit, explicit, u0, tspan, saveat=tsteps)
+#sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+
+""" total """
+c1 = copy(x)
+function ddt(du, u, p, t; space=space, model=model, st=st, c1=c1)
     x = points(space)[1]
 
-    dut = model(x', p, st)[1]
-    return vec(dut)
-end
+    # implicit
+    D(c1, u, p, t)
 
-prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
+    # explicit
+    dut = model(x', p, st)[1]
+    copyto!(du, dut)
+
+    axpy!(true, c1, du)
+
+    return du
+end
+prob = ODEProblem{true}(ddt, u0, tspan, saveat=tsteps)
 sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
-    solve(prob,
-          odealg,
-          p=ps,
-          sensealg=sense
-         ) |> Array
+    solve(prob, odealg, p=ps, sensealg=sense) |> Array
 end
 
 function loss(p)
@@ -97,7 +111,7 @@ function cb(p, l, pred; doplot=false, space=space)
 end
 
 # dummy
-println("fwd"); cb(ps,loss(ps)...;doplot=true)
+println("fwd"); cb(ps,loss(ps)...;doplot=false)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 #""" optimization """

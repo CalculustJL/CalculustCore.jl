@@ -26,10 +26,8 @@ discr  = Collocation()
 
 (x,) = points(space)
 
-# diffusion
 D = diffusionOp(ν, space, discr)
 
-# forcing
 Z = NullOperator(space)
 F = Z
 #F = AffineOperator(Z, zero(x)) <-- NN output
@@ -51,7 +49,7 @@ u0 = @. sin(10x)
 tspan = (0.0, 1.0)
 tsteps = range(tspan..., length=10)
 
-""" fully explicit problem """
+""" fully OOP problem """
 function implicit(u, p, t;op=D)
     op * u
 end
