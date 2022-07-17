@@ -8,7 +8,7 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
+using OrdinaryDiffEq, LinearAlgebra
 using Test, Plots
 
 nx = 32

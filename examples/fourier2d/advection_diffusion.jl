@@ -10,8 +10,8 @@ end
 
 using OrdinaryDiffEq, Plots
 
-nx = 128
-ny = 128
+nx = 32
+ny = 32
 ν = 1e-2
 p = nothing
 
@@ -21,7 +21,8 @@ discr = Collocation()
 
 x, y = points(space)
 
-u0 = @. sin(2x) * sin(2y)
+uIC(x,y) = @. sin(1x) * sin(1y)
+u0 = uIC(x,y)
 
 A = diffusionOp(ν, space, discr)
 

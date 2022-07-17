@@ -74,8 +74,14 @@ prob = ODEProblem(ddt, u0, tspan, p)
 @time sol = solve(prob, odealg, saveat=tsave);
 
 pred = Array(sol)
-anim = animate(pred[:vx,:], space)
+vx = pred[:vx, :]
+vy = pred[:vx, :]
+
+anim = animate(vx, space)
 filename = joinpath(dirname(@__FILE__), "burgers_x" * ".gif")
 gif(anim, filename, fps=5)
-nothing
+
+anim = animate(vy, space)
+filename = joinpath(dirname(@__FILE__), "burgers_y" * ".gif")
+gif(anim, filename, fps=5)
 #
