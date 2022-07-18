@@ -34,15 +34,15 @@ Ay = diffusionOp(ν, space, discr)
 
 Cx = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t;val=nothing) -> copy!(v, val),
-                                   (v,u,p,t;val=nothing) -> copy!(v, val),
+                                   (v,u,p,t) -> copy!(v, u),
+                                   (v,u,p,t) -> copy!(v, u),
                                   )
                 )
 
 Cy = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t;val=nothing) -> copy!(v, val),
-                                   (v,u,p,t;val=nothing) -> copy!(v, val),
+                                   (v,u,p,t) -> copy!(v, u),
+                                   (v,u,p,t) -> copy!(v, u),
                                   )
                 )
 
@@ -65,7 +65,8 @@ function ddt(du, u, p, t)
     SciMLOperators.update_coefficients!(Dtx, u.vy, p, t)
 
     # jankily update velocity
-    Dtx.ops[2].L
+    Dtx.ops[2].L.many.layers[2].diag  = u.vy
+    Dtx.ops[2].L.many.layers[1].diag  = u.vx
 
     mul!(du.vx, Dtx, u.vx)
     mul!(du.vy, Dty, u.vy)
