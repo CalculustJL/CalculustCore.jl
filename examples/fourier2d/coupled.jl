@@ -32,22 +32,17 @@ x, y = points(space)
 Ax = diffusionOp(ν, space, discr)
 Ay = diffusionOp(ν, space, discr)
 
-# error because u = u0.vx and operator
-# doesn't have access to vy
-#
-# so need to write tensor operators acting on
-# ComponentArray(vx=.., vy=..)
 Cx = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> copy!(v, u.vx),
-                                   (v,u,p,t) -> copy!(v, u.vy),
+                                   (v,u,p,t; vel=nothing) -> copy!(v, vel.vx),
+                                   (v,u,p,t; vel=nothing) -> copy!(v, vel.vy),
                                   )
                 )
 
 Cy = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> copy!(v, u.vx),
-                                   (v,u,p,t) -> copy!(v, u.vy),
+                                   (v,u,p,t; vel=nothing) -> copy!(v, vel.vx),
+                                   (v,u,p,t; vel=nothing) -> copy!(v, vel.vy),
                                   )
                 )
 
@@ -66,8 +61,11 @@ u0 = begin
 end
 
 function ddt(du, u, p, t)
-    Dtx(du.vx, u.vx, p, t)
-    Dty(du.vy, u.vy, p, t)
+    SciMLOperators.update_coefficients!(Dtx, u.vx, p, t; vel=u)
+    SciMLOperators.update_coefficients!(Dtx, u.vy, p, t; vel=u)
+
+    mul!(du.vx, Dtx, u.vx)
+    mul!(du.vy, Dty, u.vy)
 
     du
 end
