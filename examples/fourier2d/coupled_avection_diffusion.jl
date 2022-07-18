@@ -1,11 +1,4 @@
 #
-"""
-Solve the 2D Burgers equation
-
-∂t(vx) = -(vx*∂x(vx) + vy*∂y(vx)) + ν*Δvx
-∂t(vy) = -(vx*∂x(vy) + vy*∂y(vy)) + ν*Δvy
-"""
-
 using PDEInterfaces
 let
     # add dependencies to env stack
@@ -32,22 +25,17 @@ x, y = points(space)
 Ax = diffusionOp(ν, space, discr)
 Ay = diffusionOp(ν, space, discr)
 
-# error because u = u0.vx and operator
-# doesn't have access to vy
-#
-# so need to write tensor operators acting on
-# ComponentArray(vx=.., vy=..)
 Cx = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> copy!(v, u.vx),
-                                   (v,u,p,t) -> copy!(v, u.vy),
+                                   (v,u,p,t) -> fill!(v, true),
+                                   (v,u,p,t) -> fill!(v, true),
                                   )
                 )
 
 Cy = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> copy!(v, u.vx),
-                                   (v,u,p,t) -> copy!(v, u.vy),
+                                   (v,u,p,t) -> fill!(v, true),
+                                   (v,u,p,t) -> fill!(v, true),
                                   )
                 )
 
