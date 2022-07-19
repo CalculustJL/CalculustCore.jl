@@ -18,10 +18,13 @@ end
 using OrdinaryDiffEq, Plots
 using ComponentArrays, UnPack
 
-nx = 32
-ny = 32
-ν = 5e-2
+nx = 128
+ny = 128
+ν = 5e-3
 p = nothing
+
+#odealg = Tsit5()
+odealg = SSPRK43()
 
 """ spatial discr """
 space = FourierSpace(nx, ny)
@@ -29,13 +32,13 @@ discr = Collocation()
 x, y = points(space)
 
 """ IC """
-X = truncationOp(space, (1//3, 1//3))
+X = truncationOp(space, (1//5, 1//5))
 u0 = begin
-#   vx0 = X * rand(size(x)...)
-#   vy0 = X * rand(size(x)...)
+    vx0 = X * rand(size(x)...)
+    vy0 = X * rand(size(x)...)
 
-    vx0 = @. sin(2x) * sin(2y)
-    vy0 = @. sin(3x) * sin(3y)
+#   vx0 = @. cos(x)*cos(y)
+#   vy0 = @. cos(x)*cos(y)
 
     ComponentArray(vx=vx0, vy=vy0)
 end
@@ -50,14 +53,14 @@ Ay = diffusionOp(ν, space, discr)
 Cx = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
                                    (v,u,p,t) -> copy!(v, p.vel.vx),
-                                   (v,u,p,t) -> fill!(v,0),#copy!(v, p.vel.vy),
+                                   (v,u,p,t) -> copy!(v, p.vel.vy),
                                   )
                 )
 
 Cy = advectionOp((zero(x), zero(x)), space, discr;
                  vel_update_funcs=(
-                                   (v,u,p,t) -> fill!(v,0),#copy!(v, p.vel.vx),
-                                   (v,u,p,t) -> copy!(v,u),#copy!(v, p.vel.vy),
+                                   (v,u,p,t) -> copy!(v, p.vel.vx),
+                                   (v,u,p,t) -> copy!(v, p.vel.vy),
                                   )
                 )
 
@@ -75,6 +78,7 @@ Dty = cache_operator(Ay+Fy, x)
 
 function ddt(du, u, p, t)
     ps = ComponentArray(vel=u)
+
     Dtx(du.vx, u.vx, ps, t)
     Dty(du.vy, u.vy, ps, t)
 
@@ -84,10 +88,14 @@ end
 """ time discr """
 tspan = (0.0, 10.0)
 tsave = range(tspan...; length=10)
-odealg = Tsit5()
 prob = ODEProblem(ddt, u0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave, p=ps)
+function affect!(int)
+    println(int.t)
+end
+cb = DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
+
+@time sol = solve(prob, odealg, saveat=tsave, p=ps, callback=cb);
 @show sol.retcode
 
 pred = Array(sol)

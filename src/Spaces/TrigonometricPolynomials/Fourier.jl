@@ -378,7 +378,7 @@ function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
             n-cut+1 : n
         else
             mid = n/2 + 1 |> round |> Int
-            cut = (n-1)/2/2 |> round |> Int
+            cut = (n-1)/2 * frac |> round |> Int
 
             mid-cut+1 : mid+cut-1
         end
