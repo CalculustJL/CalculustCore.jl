@@ -29,7 +29,7 @@ name = "burgers_nu1em5_n8192"
 
 function uIC(space; truncation_frac=N_target/N)
     x = points(space)[1]
-    X = truncationOp(space, truncation_frac)
+    X = truncationOp(space, (truncation_frac,))
 
     u0 = if x isa CUDA.CuArray
         X * CUDA.rand(size(x)...)

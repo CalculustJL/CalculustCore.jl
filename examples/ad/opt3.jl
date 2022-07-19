@@ -10,7 +10,7 @@ end
 
 using OrdinaryDiffEq, LinearAlgebra, ComponentArrays
 using Lux, Random
-using SciMLSensitivity, Zygote
+using DiffEqSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Plots
 
@@ -36,15 +36,24 @@ discr  = Collocation()
 
 (x,) = points(space)
 
-D = diffusionOp(ν, space, discr)
-D = cache_operator(D, x)
+A = diffusionOp(ν, space, discr)
+
+burgers!(v, u, p, t) = copy!(v, u)
+forcing!(f, u, p, t) = lmul!(false, f)
+C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
+F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
+
+A = cache_operator(A, x)
+F = cache_operator(F, x)
+
+Dt = cache_operator(A+F, x)
 
 u0 = @. sin(10x)
 tspan = (0.0, 1.0)
 tsteps = range(tspan..., length=10)
 
 """ fully oop problem """
-implicit(u, p, t) = D(u,p,t)
+implicit(u, p, t) = Dt(u,p,t)
 function explicit(u, p, t; space=space, model=model, st=st)
     x = points(space)[1]
 
@@ -59,7 +68,7 @@ sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 #    x = points(space)[1]
 #
 #    dut = model(x', p, st)[1]
-#    return vec(dut) + D(u,p,t)
+#    return vec(dut) + Dt(u,p,t)
 #end
 #prob = ODEProblem{false}(ddt, u0, tspan, saveat=tsteps)
 #sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())

@@ -15,7 +15,7 @@ F = -C + forcingOp(zero(x), space, Collocation(); f_update_func=forcing!)
 A = cache_operator(A, x)
 F = cache_operator(F, x)
 
-u0 = truncationOp(space; truncation_frac=1//4) * rand(N)
+u0 = truncationOp(space; truncation_fracs=(1//4,)) * rand(N)
 prob = SplitODEProblem(A, F, u0, tspan, p; reltol=1e-8, abstol=1e-8)
 @time sol = solve(prob, odealg, saveat=range(tspan...;length=100))
 

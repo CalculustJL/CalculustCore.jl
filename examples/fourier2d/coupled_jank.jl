@@ -84,7 +84,7 @@ prob = ODEProblem(ddt, u0, tspan, p)
 
 pred = Array(sol)
 vx = @views pred[:vx, :]
-vy = @views pred[:vx, :]
+vy = @views pred[:vy, :]
 
 anim = animate(vx, space)
 filename = joinpath(dirname(@__FILE__), "burgers_x" * ".gif")

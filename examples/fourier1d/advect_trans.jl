@@ -36,7 +36,7 @@ Â = cache_operator(Â, im*k)
 F̂ = cache_operator(F̂, im*k)
 
 """ IC """
-X  = truncationOp(space, 1//2)
+X  = truncationOp(space, (1//2,))
 u0 = X * rand(size(x)...)
 û0 = ftr * u0
 

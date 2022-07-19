@@ -21,7 +21,7 @@ p = nothing
 Random.seed!(0)
 function uIC(space)
     x = points(space)[1]
-    X = truncationOp(space,1//20)
+    X = truncationOp(space,(1//20,))
 
     u0 = if x isa CUDA.CuArray
         X * CUDA.rand(size(x)...)

@@ -236,8 +236,8 @@ end
 
 transformOp(space::FourierSpace) = space.ftransform
 
-function truncationOp(space::FourierSpace{<:Any,1}, frac=nothing)
-    X = truncationOp(transform(space), frac)
+function truncationOp(space::FourierSpace, fracs=nothing)
+    X = truncationOp(transform(space), fracs)
 
     if X isa IdentityOperator
         return IdentityOperator(space)
@@ -294,12 +294,12 @@ function biharmonicOp(space::FourierSpace{<:Any,D}) where{D}
 end
 
 function _fusedGradientTruncationOp(space::FourierSpace{<:Any,D},
-                                    truncation_frac=nothing,
+                                    truncation_fracs=nothing,
                                    ) where{D}
     tspace = transform(space)
 
     F   = transformOp(space)
-    Xh  = truncationOp(tspace, truncation_frac)
+    Xh  = truncationOp(tspace, truncation_fracs)
     DDh = gradientOp(tspace)
 
     FF  = [F  for i=1:D]
@@ -312,7 +312,7 @@ function advectionOp(vels::NTuple{D},
                      space::FourierSpace{<:Any,D},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
-                     truncation_frac=nothing,
+                     truncation_fracs=nothing,
                     ) where{D}
 
     VV = _pair_update_funcs(vels, vel_update_funcs)
@@ -322,7 +322,7 @@ function advectionOp(vels::NTuple{D},
         tspace = transform(space)
 
         F   = transformOp(space)
-        Xh  = truncationOp(tspace, truncation_frac)
+        Xh  = truncationOp(tspace, truncation_fracs)
         DDh = gradientOp(tspace)
 
         FF  = [F  for i=1:D]
@@ -330,8 +330,8 @@ function advectionOp(vels::NTuple{D},
 
         VV' * (Diagonal(FF) \ Diagonal(XXh) * Diagonal(DDh)) * FF
     else # Galerkin
-        X   = truncationOp(space, truncation_frac)
-        XDD = _fusedGradientTruncationOp(space, truncation_frac)
+        X   = truncationOp(space, truncation_fracs)
+        XDD = _fusedGradientTruncationOp(space, truncation_fracs)
 
         XX = Diagonal([X for i=1:D])
         MM = Diagonal([M for i=1:D])
@@ -356,30 +356,38 @@ end
 # operators in transformed space
 ###
 
-function truncationOp(space::TransformedSpace{<:Any,1,<:FourierSpace},
-                      frac=nothing)
-    frac = frac isa Nothing ? 2//3 : frac
-    if isone(frac)
+function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
+                      fracs::Union{NTuple{D,Number},Nothing}=nothing) where{D}
+
+    fracs = fracs isa Nothing ? ([2//3 for d=1:D]) : fracs
+
+    if isone(prod(fracs))
         return IdentityOperator(space)
     end
 
-    (n,) = length.(points(space))
+    ns = size(space)
 
-    a = begin
-        a = [true for i=1:n]
-        m = n * frac |> round |> Int
-        a[m:n] .= false
+    a = ones(Bool, ns)
+    for d=1:D
+        n = ns[d]
+        frac = fracs[d]
 
-        points(space)[1] isa CUDA.CuArray ? gpu(a) : a
+        idx = if d == 1
+            cut = (n-1)*frac |> round |> Int
+
+            n-cut+1 : n
+        else
+            mid = n/2 + 1 |> round |> Int
+            cut = (n-1)/2/2 |> round |> Int
+
+            mid-cut+1 : mid+cut-1
+        end
+
+        a[(Colon() for i=1:d-1)..., idx, (Colon() for i=d+1:D)...] .= false
     end
+    a = points(space)[1] isa CUDA.CuArray ? gpu(a) : a
 
-    DiagonalOperator(a)
-end
-
-function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
-                      frac=nothing) where{D}
-    ks = modes(space)
-    IdentityOperator(space)
+    DiagonalOperator(_vec(a))
 end
 
 function gradientOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
@@ -418,7 +426,7 @@ function advectionOp(vels::NTuple{D},
                      tspace::TransformedSpace{<:Any,D,<:FourierSpace},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
-                     truncation_frac=nothing,
+                     truncation_fracs=nothing,
                     ) where{D}
 
     @error "this method has problems. fix later"
@@ -431,7 +439,7 @@ function advectionOp(vels::NTuple{D},
 
     F  = transformOp(space)
     M  = massOp(space, discr)
-    Xh = truncationOp(tspace, truncation_frac)
+    Xh = truncationOp(tspace, truncation_fracs)
 
 #   C = if M isa IdentityOperator
 #   else
