@@ -17,9 +17,10 @@ end
 
 using OrdinaryDiffEq, Plots
 using ComponentArrays, UnPack
+using CUDA
 
-nx = 128
-ny = 128
+nx = 256
+ny = 256
 ν = 5e-3
 p = nothing
 
@@ -44,7 +45,14 @@ u0 = begin
 end
 
 ps = ComponentArray(vel=u0)
-space = make_transform(space; p=ps)
+space = make_transform(space, u0.vx; p=ps)
+
+# GPU
+#CUDA.allowscalar(false)
+#space = space |> gpu
+#x, y = points(space)
+#u0 = u0 |> gpu
+#ps = ps |> gpu
 
 """ spce ops """
 Ax = diffusionOp(ν, space, discr)
