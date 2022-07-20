@@ -19,9 +19,9 @@ using OrdinaryDiffEq, Plots
 using ComponentArrays, UnPack
 using CUDA
 
-nx = 256
-ny = 256
-ν = 5e-3
+nx = 32
+ny = 32
+ν = 5e-1
 p = nothing
 
 #odealg = Tsit5()
@@ -37,9 +37,6 @@ X = truncationOp(space, (1//5, 1//5))
 u0 = begin
     vx0 = X * rand(size(x)...)
     vy0 = X * rand(size(x)...)
-
-#   vx0 = @. cos(x)*cos(y)
-#   vy0 = @. cos(x)*cos(y)
 
     ComponentArray(vx=vx0, vy=vy0)
 end
@@ -72,17 +69,11 @@ Cy = advectionOp((zero(x), zero(x)), space, discr;
                                   )
                 )
 
-#Fx = NullOperator(space)
-#Fy = NullOperator(space)
+Fx = NullOperator(space)
+Fy = NullOperator(space)
 
-#Dtx = cache_operator(Ax-Cx+Fx, x)
-#Dty = cache_operator(Ay-Cy+Fy, x)
-
-Fx = -Cx
-Fy = -Cy
-
-Dtx = cache_operator(Ax+Fx, x)
-Dty = cache_operator(Ay+Fy, x)
+Dtx = cache_operator(Ax-Cx+Fx, x)
+Dty = cache_operator(Ay-Cy+Fy, x)
 
 function ddt(du, u, p, t)
     ps = ComponentArray(vel=u)
