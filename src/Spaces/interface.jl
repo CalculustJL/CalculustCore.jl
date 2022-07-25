@@ -236,6 +236,12 @@ Form transform operator per new input vector for space
 args:
     - u::AbstractVecOrMat
     - space::AbstractSpace
+
+kwargs:
+    - isinplace - defaults to true
+    - p: parameters
+    - t: time
+
 ret:
     - ftransform Forward transform wrapped
     `SciMLOperators.FunctionOperator`
@@ -255,10 +261,8 @@ ret:
 """
 function make_transform(space::AbstractSpace,
                         u::AbstractVecOrMat{T} = first(points(space));
-                        p=nothing,
-                        t=zero(T),
-                       ) where{T}
-    ftr = form_transform(u, space, p=p, t=t)
+                        kwargs...) where{T}
+    ftr = form_transform(u, space; kwargs...)
     @set! space.ftransform = ftr
 
     space

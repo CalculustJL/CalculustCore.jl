@@ -64,14 +64,17 @@ prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
 sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
 """ oop one func problem """
-#function ddt(u, p, t; space=space, model=model, st=st)
-#    x = points(space)[1]
-#
-#    dut = model(x', p, st)[1]
-#    return vec(dut) + Dt(u,p,t)
-#end
-#prob = ODEProblem{false}(ddt, u0, tspan, saveat=tsteps)
-#sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+function ddt(u, p, t; space=space, model=model, st=st)
+    x = points(space)[1]
+
+    dut = model(x', p, st)[1]
+    return vec(dut) + Dt(u,p,t) # <-- if this errors then
+    # we need an rrule around A(u,p,t), A(du,u,p,t)
+    # In OOP call, the inputs aren't being changed so should be ok
+    # In IIP call, we can be sneaky and do a copy(u)
+end
+prob = ODEProblem{false}(ddt, u0, tspan, saveat=tsteps)
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
     solve(prob, odealg, p=ps, sensealg=sense) |> Array

@@ -161,14 +161,20 @@ end
 mass_matrix(space::FourierSpace) = space.mass_matrix
 modes(space::FourierSpace) = space.modes
 
-function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
-                        p=nothing, t=zero(T)) where{T,D}
+function form_transform(
+                        u::AbstractVecOrMat{T},
+                        space::FourierSpace{<:Any,D};
+                        isinplace::Union{Bool,Nothing}=nothing,
+                        p=nothing,
+                        t::Real=zero(T)
+                       ) where{T,D}
 
+    sinput = size(u)
     ssp = size(space)
     N   = length(space)
 
     @assert size(u, 1) == N "size mismatch. input array must have length
-    equal to length(space) in its first dimension"
+    $(length(space)) in its first dimension"
     K = size(u, 2)
 
     # transform input shape
@@ -188,6 +194,9 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
     sret = u isa AbstractMatrix ? (M, K) : (M,)
     v    = _reshape(V, sret)
 
+    isinplace = isinplace isa Nothing ? true : isinplace
+
+    # in-place
     function fwd(v, u, p, t)
         U = _reshape(u, sin)
         V = _reshape(v, sout)
@@ -204,6 +213,21 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
         v
     end
 
+    # out-of-place
+    function fwd(u, p, t)
+        U = _reshape(u, sin)
+        V = ftr * U
+
+        _reshape(V, sret)
+    end
+
+    function bwd(u, p, t)
+        U = _reshape(u, sout)
+        V = ftr \ U
+
+        _reshape(V, sinput)
+    end
+
     ComplexT = if T isa Type{Float16}
         ComplexF16
     elseif T isa Type{Float32}
@@ -214,7 +238,7 @@ function form_transform(u::AbstractVecOrMat{T}, space::FourierSpace{<:Any,D};
 
     FunctionOperator(
                      fwd;
-                     isinplace=true,
+                     isinplace=isinplace,
                      T=ComplexT,
                      size=(M,N),
 

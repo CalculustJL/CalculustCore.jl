@@ -18,7 +18,7 @@ p = nothing
 Random.seed!(0)
 function uIC(space)
     x = points(space)[1]
-    X = truncationOp(space,1//20)
+    X = truncationOp(space, (1//20,))
 
     u0 = X * rand(size(x)...)
 
@@ -99,7 +99,7 @@ end
 sol, space = solve_burgers(N, ν, p)
 #plt = plot_sol(sol, space)
 anim = anim8(sol, space)
-gif(anim, "examples/fourier/a.gif", fps= 20)
+gif(anim, "examples/fourier1d/a.gif", fps= 20)
 
 #
 nothing
