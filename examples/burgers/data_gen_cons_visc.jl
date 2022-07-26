@@ -14,19 +14,6 @@ using CUDA, Random, JLD2
 Random.seed!(0)
 CUDA.allowscalar(false)
 
-N = 8192
-ν = 1f-3
-p = nothing
-
-## warm up
-N = 1024
-ν = 1f-3
-p = nothing
-
-N_target = 128
-
-name = "burgers_nu1em3_n1024"
-
 function uIC(space; truncation_frac=N_target/N)
     x = points(space)[1]
     X = truncationOp(space, (truncation_frac,))
@@ -40,13 +27,13 @@ function uIC(space; truncation_frac=N_target/N)
     u0
 end
 
-function solve_burgers(N, ν, p;
-                       uIC=uIC,
-                       tspan=(0f0, 10f0),
-                       nsims=10,
-                       nsave=100,
-                       odealg=SSPRK43(),
-                      )
+function solve_burgers1D(N, ν, p;
+                         uIC=uIC,
+                         tspan=(0f0, 10f0),
+                         nsims=50,
+                         nsave=100,
+                         odealg=SSPRK43(),
+                        )
 
     """ space discr """
     space = FourierSpace(N) |> gpu
@@ -86,26 +73,42 @@ function solve_burgers(N, ν, p;
     sol, space
 end
 
-sol, space = solve_burgers(N, ν, p)
+function datagen_burgers1D(N, ν, p, N_target, filename; kwargs...)
 
-# save
-sp_coarse = FourierSpace(N_target)
-sp_dense  = cpu(space)
+    sol, space = solve_burgers1D(N, ν, p; kwargs...)
 
-u_dense  = Array(sol) |> cpu
+    ## save
+    sp_coarse = FourierSpace(N_target)
+    sp_dense  = cpu(space)
 
-J = begin
-    szc  = (N_target, size(u_dense)[2:end]...)
-    u_c  = similar(u_dense, szc)
-    sp_c = make_transform(sp_coarse, u_c)
-    sp_d = make_transform(sp_dense, u_dense)
+    u_dense  = Array(sol) |> cpu
 
-    interpOp(sp_c, sp_d)
+    J = begin
+        szc  = (N_target, size(u_dense)[2:end]...)
+        u_c  = similar(u_dense, szc)
+        sp_c = make_transform(sp_coarse, u_c)
+        sp_d = make_transform(sp_dense, u_dense)
+    
+        interpOp(sp_c, sp_d)
+    end
+
+    u_coarse = J * u_dense
+    t = sol.t |> cpu
+
+    jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
+
+    return
 end
 
-u_coarse = J * u_dense
-t = sol.t |> cpu
+#########################
+N = 1024
+ν = 1f-3
+p = nothing
 
+N_target = 128
+
+name = "burgers_nu1em3_n1024"
 filename = joinpath(@__DIR__, name * ".jld2")
-jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
+
+datagen_burgers1D(N, ν, p, N_target, filename)
 #
