@@ -408,7 +408,7 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
 
     J = interpOp(sp1h, sp2h)
 
-    F2 \ J * F1
+    F1 \ J * F2
 end
 
 ###
@@ -522,8 +522,8 @@ function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
                   space2::TransformedSpace{<:Any,D,<:FourierSpace},
                  ) where{D}
 
-    M = size(space2)[1] # output
-    N = size(space1)[1] # input
+    M = size(space1)[1] # output
+    N = size(space2)[1] # input
 
     J = sparse(I, (M,N)) |> MatrixOperator
 

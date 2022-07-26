@@ -10,12 +10,12 @@ end
 
 using OrdinaryDiffEq, LinearAlgebra, ComponentArrays
 using Lux, Random
-using DiffEqSensitivity, Zygote
+using SciMLSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Plots
 
 N = 128
-ν = 1e-1
+ν = 1f-1
 odealg = SSPRK43()
 
 """ NN """
@@ -29,52 +29,39 @@ ps, st = Lux.setup(rng, model)
 ps = ComponentArray(ps)
 
 """ space discr """
-domain = FourierDomain(1)
-space  = FourierSpace(N; domain=domain)
-space  = make_transform(space; p=ps)
+space  = FourierSpace(N) |> Float32
+space  = make_transform(space; p=ps, isinplace=false)
 discr  = Collocation()
 
 (x,) = points(space)
 
 A = diffusionOp(ν, space, discr)
-
 burgers!(v, u, p, t) = copy!(v, u)
 forcing!(f, u, p, t) = lmul!(false, f)
 C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
 F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
 
-A = cache_operator(A, x)
-F = cache_operator(F, x)
-
 Dt = cache_operator(A+F, x)
 
-u0 = @. sin(10x)
-tspan = (0.0, 1.0)
+u0 = @. sin(x)
+tspan = (0f0, 10f0)
 tsteps = range(tspan..., length=10)
 
-""" fully oop problem """
-implicit(u, p, t) = Dt(u,p,t)
-function explicit(u, p, t; space=space, model=model, st=st)
+function dudt(u, p, t; Dt=Dt, space=space, st=st)
+    Zygote.ignore() do
+        SciMLOperators.update_coefficients!(Dt, u, p, t)
+    end
+
+    du1 = Dt * u
+
     x = points(space)[1]
+    du2 = model(x', p, st)[1] |> vec
 
-    dut = model(x', p, st)[1]
-    return vec(dut)
+    du1 + du2
 end
-prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
-sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
-""" oop one func problem """
-function ddt(u, p, t; space=space, model=model, st=st)
-    x = points(space)[1]
-
-    dut = model(x', p, st)[1]
-    return vec(dut) + Dt(u,p,t) # <-- if this errors then
-    # we need an rrule around A(u,p,t), A(du,u,p,t)
-    # In OOP call, the inputs aren't being changed so should be ok
-    # In IIP call, we can be sneaky and do a copy(u)
-end
-prob = ODEProblem{false}(ddt, u0, tspan, saveat=tsteps)
-sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+prob = ODEProblem(dudt, u0, tspan, saveat=tsteps)
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
     solve(prob, odealg, p=ps, sensealg=sense) |> Array
@@ -102,29 +89,31 @@ function cb(p, l, pred; doplot=false, space=space)
 end
 
 # dummy
-println("fwd"); cb(ps,loss(ps)...;doplot=false)
+println("fwd"); cb(ps,loss(ps)...;doplot=true)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-#""" optimization """
-#adtype = Optimization.AutoZygote()
-#optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype) # x=object to optimize
-#optprob = Optimization.OptimizationProblem(optf, ps)
-#
-#optres = Optimization.solve(
-#                            optprob,
-#                            ADAM(0.05),
-#                            callback=cb,
-#                            maxiters=50,
-#                           )
-#
-#optprob = remake(optprob,u0 = optres.u)
-#
-#println("BFGS")
-#optres = Optimization.solve(optprob,
-#                            Optim.BFGS(initial_stepnorm=0.01),
-#                            callback=cb,
-#                            allow_f_increases = false,
-#                           )
-#
-#cb(optres.u, loss(optres.u)...; doplot=true)
+""" optimization """
+adtype = Optimization.AutoZygote()
+# x=object to optimize
+# p=parameters for optimization loop
+optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
+optprob = Optimization.OptimizationProblem(optf, ps)
+
+optres = Optimization.solve(
+                            optprob,
+                            ADAM(0.05),
+                            callback=cb,
+                            maxiters=50,
+                           )
+
+optprob = remake(optprob,u0 = optres.u)
+
+println("BFGS")
+optres = Optimization.solve(optprob,
+                            Optim.BFGS(initial_stepnorm=0.01),
+                            callback=cb,
+                            allow_f_increases = false,
+                           )
+
+cb(optres.u, loss(optres.u)...; doplot=true)
 #

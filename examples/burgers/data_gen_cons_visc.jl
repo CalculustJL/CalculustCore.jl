@@ -25,7 +25,7 @@ p = nothing
 
 N_target = 128
 
-name = "burgers_nu1em5_n8192"
+name = "burgers_nu1em3_n1024"
 
 function uIC(space; truncation_frac=N_target/N)
     x = points(space)[1]
@@ -42,8 +42,8 @@ end
 
 function solve_burgers(N, ν, p;
                        uIC=uIC,
-                       tspan=(0f0, 100f0),
-                       nsims=100,
+                       tspan=(0f0, 10f0),
+                       nsims=10,
                        nsave=100,
                        odealg=SSPRK43(),
                       )
@@ -77,11 +77,7 @@ function solve_burgers(N, ν, p;
     F = cache_operator(F, u0)
 
     """ time discr """
-#   odefunc = SplitFunction(A, F)
     odefunc = cache_operator(A+F, u0)
-
-#   function cb()
-#   end
 
     tsave = range(tspan...; length=nsave)
     prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
@@ -92,12 +88,24 @@ end
 
 sol, space = solve_burgers(N, ν, p)
 
-x = points(space) |> cpu |> first
+# save
+sp_coarse = FourierSpace(N_target)
+sp_dense  = cpu(space)
+
+u_dense  = Array(sol) |> cpu
+
+J = begin
+    szc  = (N_target, size(u_dense)[2:end]...)
+    u_c  = similar(u_dense, szc)
+    sp_c = make_transform(sp_coarse, u_c)
+    sp_d = make_transform(sp_dense, u_dense)
+
+    interpOp(sp_c, sp_d)
+end
+
+u_coarse = J * u_dense
 t = sol.t |> cpu
-u = Array(sol) |> cpu # [npts, nsims, nsave]
 
-#filename = joinpath(@__DIR__, name * ".jld2")
-#jldsave(filename; x, t, u)
-
-nothing
+filename = joinpath(@__DIR__, name * ".jld2")
+jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
 #

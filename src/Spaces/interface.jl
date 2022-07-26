@@ -260,8 +260,20 @@ ret:
     - space::AbstractSpace with transform operator that can act on `u`
 """
 function make_transform(space::AbstractSpace,
-                        u::Union{Nothing,AbstractVecOrMat{T}} = nothing;
-                        kwargs...) where{T}
+                        u::Union{Nothing,AbstractArray} = nothing;
+                        kwargs...)
+
+    u = if u isa Union{AbstractVecOrMat,Nothing}
+        u
+    else # ND Array
+        N = length(space)
+        s = size(u)
+        K = prod(s[2:end])
+
+        @assert s[1] == N "Dimension mismatch"
+        reshape(u, (N, K))
+    end
+
     ftr = form_transform(space, u; kwargs...)
     @set! space.ftransform = ftr
 
