@@ -51,7 +51,7 @@ function (::Type{T})(space::FourierSpace) where{T<:Number}
                          mass_mat, ftransform,
                         )
 
-    make_transform(space)
+    make_transform(space) # TODO -pass kwargs here
 end
 
 function adapt_structure(to, space::FourierSpace)
@@ -72,16 +72,18 @@ function adapt_structure(to, space::FourierSpace)
                          mass_mat, ftransform,
                         )
 
-    make_transform(space)
+    make_transform(space) # TODO -pass kwargs here
 end
 
 function FourierSpace(n::Integer;
-                      dom::AbstractDomain{<:Any,1}=FourierDomain(1),
+                      domain::AbstractDomain{<:Any,1}=FourierDomain(1),
                      )
 
-    if dom isa IntervalDomain
-        dom = BoxDomain(domain)
-    elseif !(dom isa BoxDomain)
+    dom = if domain isa IntervalDomain
+        BoxDomain(domain)
+    elseif domain isa BoxDomain
+        domain
+    else
         @error "Trigonometric polynomials work with logically rectangular domains"
     end
 
@@ -118,10 +120,12 @@ function FourierSpace(n::Integer;
 end
 
 function FourierSpace(nr::Integer, ns::Integer;
-                      dom::AbstractDomain{<:Any,2}=FourierDomain(2),
+                      domain::AbstractDomain{<:Any,2}=FourierDomain(2),
                      )
 
-    if !(dom isa BoxDomain)
+    dom = if domain isa BoxDomain
+        domain
+    else
         @error "Trigonometric polynomials work with logically rectangular domains"
     end
 

@@ -20,8 +20,8 @@ N = 128
 odealg = SSPRK43()
 
 """ space discr """
-domain = FourierDomain(1)
-space  = FourierSpace(N; domain=domain)
+dom    = FourierDomain(1)
+space  = FourierSpace(N) |> Float32
 space  = make_transform(space; isinplace=false)
 discr  = Collocation()
 
@@ -48,13 +48,13 @@ function dudt(u, p, t; space=space, model=model, st=st)
     x = points(space)[1]
 
     du1 = D * u
-    du2 = model(x', p, st)[1]'
+    du2 = model(x', p, st)[1] |> vec
 
     du1 + du2
 end
 
 prob = ODEProblem(dudt, u0, tspan, saveat=tsteps)
-sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
     solve(prob,
@@ -91,7 +91,9 @@ println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 """ optimization """
 adtype = Optimization.AutoZygote()
-optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype) # x=object to optimize
+# x=object to optimize
+# p=parameters for optimization loop
+optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
 optprob = Optimization.OptimizationProblem(optf, ps)
 
 optres = Optimization.solve(
