@@ -101,20 +101,6 @@ function setup_burgers1d(N, ν, filename;
     predict, loss, space
 end
 
-function opt_cb(p, l, pred; doplot=false, space=space)
-    println(l)
-
-    if doplot
-        plt = plot()
-        for i=1:size(pred,2)
-            x = points(space)[1]
-            plot!(plt, x, pred[:,i])
-        end
-        display(plt)
-    end
-    return false
-end
-
 ##############################################
 name = "burgers_nu1em3_n1024"
 filename = joinpath(@__DIR__, name * ".jld2")
@@ -152,26 +138,40 @@ end
 
 predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
 
-## dummy
+# dummy
 println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-#""" optimization """
-#adtype = Optimization.AutoZygote()
-## x=object to optimize
-## p=parameters for optimization loop
-#optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
-#optprob = Optimization.OptimizationProblem(optf, ps)
-#
-#optres = Optimization.solve(
-#                            optprob,
-#                            ADAM(0.05),
-#                            callback=cb,
-#                            maxiters=50,
-#                           )
-#
+""" optimization """
+function opt_cb(p, l, pred; doplot=false, space=space)
+    println(l)
+
+    if doplot
+        plt = plot()
+        for i=1:size(pred,2)
+            x = points(space)[1]
+            plot!(plt, x, pred[:,i])
+        end
+        display(plt)
+    end
+    return false
+end
+
+adtype = Optimization.AutoZygote()
+# x=object to optimize
+# p=parameters for optimization loop
+optf = Optimization.OptimizationFunction((x, p) -> loss(x)[1], adtype)
+optprob = Optimization.OptimizationProblem(optf, ps)
+
+optres = Optimization.solve(
+                            optprob,
+                            ADAM(0.05),
+                            callback=opt_cb,
+                            maxiters=50,
+                           )
+
 #optprob = remake(optprob,u0 = optres.u)
-#
+
 #println("BFGS")
 #optres = Optimization.solve(optprob,
 #                            Optim.BFGS(initial_stepnorm=0.01),
@@ -179,5 +179,5 @@ println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 #                            allow_f_increases = false,
 #                           )
 #
-#cb(optres.u, loss(optres.u)...; doplot=true)
+cb(optres.u, loss(optres.u)...; doplot=false)
 #
