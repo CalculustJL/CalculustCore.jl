@@ -66,10 +66,10 @@ find_fld(::Tuple{}) = nothing
 find_fld(a::Field, rest) = a
 find_fld(::Any, rest) = find_fld(rest)
 
-LinearAlgebra.norm(u::Field, p::Real=2) = norm(_vec(u.array), p)
+LinearAlgebra.norm(u::Field, p::Real=2) = norm(vec(u.array), p)
 
 function LinearAlgebra.dot(u::Field{<:Number,D}, v::Field{<:Number,D}) where{D}
-    dot( _vec(u.array), _vec(v.array))
+    dot( vec(u.array), vec(v.array))
 end
 
 function LinearAlgebra.axpy!(a::Number, x::Field{<:Number,D}, y::Field{<:Number,D}) where{D}

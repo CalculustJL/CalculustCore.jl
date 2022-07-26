@@ -22,13 +22,13 @@ struct LagrangePolynomialSpace{T,
     """ size """
     npoints::Tpts
     """ Domain """
-    domain::Tdom
+    dom::Tdom
     """ quadratures """
     quads::Tquad
     """ grid points """
     grid::Tgrid
     """ mass matrix """
-    mass_matrix::Tmass
+    mass_mat::Tmass
     """ derivative matrices """
     deriv_mats::Tderiv
     """ local numbering """
@@ -37,22 +37,58 @@ struct LagrangePolynomialSpace{T,
 #   glo_num::Tglo
 end
 
+function (::Type{T})(space::LagrangePolynomialSpace) where{T<:Number}
+    npoints = size(space)
+    dom  = T(domain(space))
+
+    quads = Tuple((T.(z), T.(w)) for (z, w) in quadratures(space))
+    grid  = Tuple(T.(x) for x in points(space))
+
+    mass_mat = T.(mass_matrix(space))
+    deriv_mats = Tuple(T.(D) for D in space.deriv_mats)
+
+    loc_num = local_numbering(space)
+
+    LagrangePolynomialSpace(
+                            npoints, dom, quads, grid,
+                            mass_mat, deriv_mats, loc_num,
+                           )
+end
+
+function adapt_structure(to, space::LagrangePolynomialSpace)
+    grid  = adapt_structure(to, points(space))
+    quads = adapt_structure(to, quadratures(space))
+    mass_mat = adapt_structure(to, mass_matrix(space))
+    loc_num = adapt_structure(to, local_numbering(space))
+
+    x = first(grid)
+    T = eltype(x)
+
+    npoints = size(space)
+    dom     = T(domain(space))
+
+    LagrangePolynomialSpace(
+                            npoints, dom, quads, grid,
+                            mass_mat, deriv_mats, loc_num,
+                           )
+end
+
 function LagrangePolynomialSpace(n::Integer;
-        domain::AbstractDomain{<:Any,1}=ChebychevDomain(1),
+        dom::AbstractDomain{<:Any,1}=ChebychevDomain(1),
         quadrature = gausslobatto,
         T = Float64,
        )
 
-    if domain isa IntervalDomain
-        domain = BoxDomain(domain)
-    elseif !(domain isa BoxDomain)
+    if dom isa IntervalDomain
+        dom = BoxDomain(dom)
+    elseif !(dom isa BoxDomain)
         @error "spectral polynomials work with logically rectangular domains"
     end
 
     #""" reset deformation to map from [-1,1]^D """
-    #ref_domain = ChebychevDomain(1)
-    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
-    ## change domain eltype
+    #ref_dom = ChebychevDomain(1)
+    #dom = ref_domain # map_from_ref(domain, ref_dom) # TODO
+    ## change dom eltype
 
     z, w = quadrature(n)
 
@@ -62,35 +98,35 @@ function LagrangePolynomialSpace(n::Integer;
     D = lagrange_deriv_mat(z)
 
     npoints = (n,)
-    domain = T(domain)
-    quads  = ((z, w),)
-    grid   = _vec.((z,))
-    mass_matrix = _vec(w)
+    dom     = T(dom)
+    quads   = ((z, w),)
+    grid    = vec.((z,))
+    mass_mat = vec(w)
     deriv_mats = (D,)
-    local_numbering = _reshape(1:prod(npoints), npoints)
+    loc_num = reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    npoints, domain, quads, grid,
-                                    mass_matrix, deriv_mats, 
-                                    local_numbering,
+                                    npoints, dom, quads, grid,
+                                    mass_mat, deriv_mats, 
+                                    loc_num,
                                    )
 
-    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
+    dom isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 function LagrangePolynomialSpace(nr::Integer, ns::Integer;
-        domain::AbstractDomain{<:Number,2}=ChebychevDomain(2),
+        dom::AbstractDomain{<:Number,2}=ChebychevDomain(2),
         quadrature = gausslobatto,
         T = Float64,
        )
 
-    if !(domain isa BoxDomain)
+    if !(dom isa BoxDomain)
         @error "spectral polynomials work with logically rectangular domains"
     end
 
     #""" reset deformation to map from [-1,1]^D """
-    #ref_domain = ChebychevDomain(2)
-    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    #ref_dom = ChebychevDomain(2)
+    #dom = ref_dom # map_from_ref(dom, ref_dom) # TODO
 
     zr, wr = quadrature(nr)
     zs, ws = quadrature(ns)
@@ -104,25 +140,28 @@ function LagrangePolynomialSpace(nr::Integer, ns::Integer;
     Ds = lagrange_deriv_mat(zs)
 
     npoints = (nr, ns,)
-    domain = T(domain)
+    dom = T(dom)
     quads = ((zr, wr), (zs, ws),)
-    grid = _vec.((r, s,))
-    mass_matrix = _vec(wr * ws')
+    grid = vec.((r, s,))
+    mass_mat = vec(wr * ws')
     deriv_mats = (Dr, Ds,)
-    local_numbering = _reshape(1:prod(npoints), npoints)
+    loc_num = reshape(1:prod(npoints), npoints)
 
     space = LagrangePolynomialSpace(
-                                    npoints, domain, quads, grid,
-                                    mass_matrix, deriv_mats,
-                                    local_numbering,
+                                    npoints, dom, quads, grid,
+                                    mass_mat, deriv_mats,
+                                    loc_num,
                                    )
 
-    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
+    dom isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
-GaussLobattoLegendreSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
-GaussLegendreSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
-GaussChebychevSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
+GaussLobattoLegendreSpace(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslobatto, kwargs...)
+GaussLegendreSpace(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausslegendre, kwargs...)
+GaussChebychevSpace(args...; kwargs...) =
+    LagrangePolynomialSpace(args...; quadrature=gausschebyshev, kwargs...)
 
 ###
 # interface
@@ -130,10 +169,10 @@ GaussChebychevSpace(args...; kwargs...) = LagrangePolynomialSpace(args...; quadr
 
 Base.size(space::LagrangePolynomialSpace) = space.npoints
 
-domain(space::LagrangePolynomialSpace) = space.domain
+domain(space::LagrangePolynomialSpace) = space.dom
 points(space::LagrangePolynomialSpace) = space.grid
 quadratures(space::LagrangePolynomialSpace) = space.quads
-mass_matrix(space::LagrangePolynomialSpace) = DiagonalOperator(space.mass_matrix)
+mass_matrix(space::LagrangePolynomialSpace) = space.mass_mat
 local_numbering(space::LagrangePolynomialSpace) = space.loc_num
 
 function global_numbering(space::AbstractSpace)
@@ -149,8 +188,8 @@ function boundary_nodes(space::LagrangePolynomialSpace)
     indices = ()
     for i=1:D
         n = npoints[i]
-        range_lower = ([1:npoints[j] for j=1:i-1]..., 1, [1:npoints[j] for j=i+1:D]...)
-        range_upper = ([1:npoints[j] for j=1:i-1]..., n, [1:npoints[j] for j=i+1:D]...)
+        range_lower = ([1:npoints[j] for j=1:i-1]...,1,[1:npoints[j] for j=i+1:D]...)
+        range_upper = ([1:npoints[j] for j=1:i-1]...,n,[1:npoints[j] for j=i+1:D]...)
         indices = (indices..., loc_num[range_lower...])
         indices = (indices..., loc_num[range_upper...])
     end
@@ -163,9 +202,9 @@ end
 ###
 
 function massOp(space::LagrangePolynomialSpace, ::Galerkin)
-    @unpack mass_matrix = space
+    mass_mat = mass_matrix(space)
 
-    DiagonalOperator(mass_matrix)
+    DiagonalOperator(mass_mat)
 end
 
 function gradientOp(space::LagrangePolynomialSpace{<:Number,1})

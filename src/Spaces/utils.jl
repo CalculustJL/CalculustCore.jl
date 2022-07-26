@@ -1,8 +1,5 @@
 #
 include("NDgrid.jl")
-import SciMLOperators: _reshape, _vec, copy!
-
-_reshape(a::CUDA.CuArray, dims::NTuple{D,Int}) where{D} = reshape(a,dims)
 
 _transp(a, ::AbstractDiscretization) = transpose(a)
 

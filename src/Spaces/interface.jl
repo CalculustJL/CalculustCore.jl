@@ -56,9 +56,9 @@ function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any,2}; a=30, b=30
     npts = size(space)
     (x,y) = points(space)
 
-    u = _reshape(u, npts)
-    x = _reshape(x, npts)
-    y = _reshape(y, npts)
+    u = reshape(u, npts)
+    x = reshape(x, npts)
+    y = reshape(y, npts)
 
 #   plt = plot(x, y, u, legend=false, c=:grays, camera=(a,b))
 #   plt = plot!(x', y', u', legend=false, c=:grays, camera=(a,b))
@@ -234,8 +234,8 @@ function truncationOp end
 Form transform operator per new input vector for space
 
 args:
-    - u::AbstractVecOrMat
     - space::AbstractSpace
+    - u::AbstractVecOrMat
 
 kwargs:
     - isinplace - defaults to true
@@ -260,9 +260,9 @@ ret:
     - space::AbstractSpace with transform operator that can act on `u`
 """
 function make_transform(space::AbstractSpace,
-                        u::AbstractVecOrMat{T} = first(points(space));
+                        u::Union{Nothing,AbstractVecOrMat{T}} = nothing;
                         kwargs...) where{T}
-    ftr = form_transform(u, space; kwargs...)
+    ftr = form_transform(space, u; kwargs...)
     @set! space.ftransform = ftr
 
     space

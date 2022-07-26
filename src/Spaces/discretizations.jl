@@ -54,7 +54,7 @@ end
 Collocation
 """
 struct Collocation <: AbstractDiscretization end
-_transp(a, ::Collocation) = _reshape(a, (1, length(a),),)
+_transp(a, ::Collocation) = reshape(a, (1, length(a),),)
 
 function massOp(space::AbstractSpace, discr::Collocation)
     N = length(space)

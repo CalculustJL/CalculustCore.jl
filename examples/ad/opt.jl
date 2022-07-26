@@ -8,32 +8,27 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
+using OrdinaryDiffEq, LinearAlgebra
 using Lux, Random, ComponentArrays
-using DiffEqSensitivity, Zygote
+using SciMLSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Plots
 
 N = 128
-ν = 1e-1
+ν = 1f-1
 
 odealg = SSPRK43()
 
 """ space discr """
 domain = FourierDomain(1)
 space  = FourierSpace(N; domain=domain)
+space  = make_transform(space; isinplace=false)
 discr  = Collocation()
 
 (x,) = points(space)
 
 D = diffusionOp(ν, space, discr)
-
-Z = NullOperator(space)
-F = Z
-#F = AffineOperator(Z, zero(x)) <-- NN output
-
 D = cache_operator(D, x)
-F = cache_operator(F, x)
 
 """ NN """
 model = Lux.Chain(
@@ -46,22 +41,19 @@ ps, st = Lux.setup(rng, model)
 ps = ComponentArray(ps)
 
 u0 = @. sin(10x)
-tspan = (0.0, 1.0)
+tspan = (0f0, 1f0)
 tsteps = range(tspan..., length=10)
 
-""" fully OOP problem """
-function implicit(u, p, t;op=D)
-    op * u
-end
-
-function explicit(u, p, t; space=space, model=model, st=st)
+function dudt(u, p, t; space=space, model=model, st=st)
     x = points(space)[1]
 
-    dut = model(x', p, st)[1]
-    return vec(dut)
+    du1 = D * u
+    du2 = model(x', p, st)[1]'
+
+    du1 + du2
 end
 
-prob = SplitODEProblem{false}(implicit, explicit, u0, tspan, saveat=tsteps)
+prob = ODEProblem(dudt, u0, tspan, saveat=tsteps)
 sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
@@ -94,7 +86,7 @@ function cb(p, l, pred; doplot=false, space=space)
 end
 
 # dummy
-println("fwd"); cb(ps,loss(ps)...;doplot=true)
+println("fwd"); cb(ps,loss(ps)...;doplot=false)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 """ optimization """

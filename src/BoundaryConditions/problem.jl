@@ -195,7 +195,7 @@ function SciMLBase.solve(cache::BVPDECache; kwargs...)
     lhsOp = cache_operator(lhsOp, f)
     rhs   = makeRHS(f, bc)
 
-    linprob = LinearProblem(lhsOp, rhs; u0=_vec(u))
+    linprob = LinearProblem(lhsOp, rhs; u0=vec(u))
     linsol  = solve(linprob, linalg; kwargs...)
 
     resid = norm(lhsOp * linsol.u - rhs, Inf)

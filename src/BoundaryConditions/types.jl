@@ -47,7 +47,7 @@ function boundary_antimasks(space::AbstractSpace, dom::AbstractDomain, indices)
 
     antimasks = []
     for i=1:num_boundaries(dom)
-        M = similar(loc_num, Bool) * false |> _vec
+        M = similar(loc_num, Bool) * false |> vec
         idx = indices[i]
         set_val!(M, true, idx)
         push!(antimasks, M)
@@ -59,7 +59,7 @@ end
 function dirichlet_mask(space::AbstractSpace, dom::AbstractDomain, indices, bc_dict)
     tags = boundary_tags(dom)
     x    = points(space) |> first
-    M    = similar(x, Bool) * false .+ true |> _vec
+    M    = similar(x, Bool) * false .+ true |> vec
 
     for i=1:num_boundaries(dom)
         tag = boundary_tag(dom, i)

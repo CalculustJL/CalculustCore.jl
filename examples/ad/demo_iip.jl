@@ -56,10 +56,11 @@ function vjp(Jv,v,u,p,t)
 end
 
 odefunc = SplitFunction{true}(implicit, explicit; vjp=vjp)
+odefunc = SplitFunction{true}(implicit, explicit; vjp=vjp)
 
 prob = ODEProblem(odefunc, u0, tspan, saveat=tsteps)
-#sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
-sense = InterpolatingAdjoint(autojacvec=ReverseDiffVJP())
+sense = InterpolatingAdjoint(autojacvec=ZygoteVJP())
+#sense = InterpolatingAdjoint(autojacvec=ReverseDiffVJP())
 
 function predict(ps; prob=prob, odealg=odealg, sense=sense)
     solve(prob, odealg, p=ps, sensealg=sense) |> Array

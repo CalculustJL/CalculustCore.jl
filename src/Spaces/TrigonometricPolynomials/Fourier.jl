@@ -11,64 +11,85 @@ Fourier spectral space
 struct FourierSpace{
                     T,
                     D,
-                    Tpts<:NTuple{D},
-                    Tmds<:NTuple{D},
+                    Tnpoints<:NTuple{D,Integer},
+                    Tnfreqs<:NTuple{D,Integer},
                     Tdom<:AbstractDomain{T,D},
-                    Tgrid,
-                    Tmodes,
-                    Tmass,
-                    Ttr,
+                    Tgrid<:NTuple{D,AbstractArray{T}},
+                    Tfreqs<:NTuple{D,AbstractArray{T}},
+                    Tmass_mat<:AbstractArray{T},
+                    Tftransform,
                    } <: AbstractSpace{T,D}
-    """ points """
-    npoints::Tpts
-    """ modes """
-    nmodes::Tmds
+    """ # points """
+    npoints::Tnpoints
+    """ # freq size """
+    nfreqs::Tnfreqs
     """ Domain """
-    domain::Tdom
+    dom::Tdom
     """ grid points """
     grid::Tgrid
-    """ modes """
-    modes::Tmodes
+    """ frequencies """
+    freqs::Tfreqs
     """ mass matrix """
-    mass_matrix::Tmass
+    mass_mat::Tmass_mat
     """ forward transform `mul!(û, T , u)` """
-    ftransform::Ttr
+    ftransform::Tftransform
+end
+
+function (::Type{T})(space::FourierSpace) where{T<:Number}
+    npoints = size(space)
+    nfreqs  = mode_size(space)
+    dom     = T(domain(space))
+
+    grid  = Tuple(T.(x) for x in points(space))
+    freqs = Tuple(T.(x̂) for x̂ in modes(space))
+
+    mass_mat = T.(mass_matrix(space))
+    ftransform = nothing
+
+    space = FourierSpace(
+                         npoints, nfreqs, dom, grid, freqs,
+                         mass_mat, ftransform,
+                        )
+
+    make_transform(space)
 end
 
 function adapt_structure(to, space::FourierSpace)
-    grid  = adapt_structure(to, space.grid)
-    modes = adapt_structure(to, space.modes)
-    mass_matrix = adapt_structure(to, space.mass_matrix)
+    grid  = adapt_structure(to, points(space))
+    freqs = adapt_structure(to, modes(space))
+    mass_mat = adapt_structure(to, mass_matrix(space))
 
     x = first(grid)
     T = eltype(x)
 
-    npoints = space.npoints
-    nmodes  = space.nmodes
-    domain = T(space.domain)
-    ftransform = form_transform(x, space)
+    npoints = size(space)
+    nfreqs  = mode_size(space)
+    dom     = T(domain(space))
+    ftransform = nothing
 
-    FourierSpace(
-                 npoints, nmodes, domain, grid, modes,
-                 mass_matrix, ftransform,
-                )
+    space = FourierSpace(
+                         npoints, nfreqs, dom, grid, freqs,
+                         mass_mat, ftransform,
+                        )
+
+    make_transform(space)
 end
 
 function FourierSpace(n::Integer;
-                      domain::AbstractDomain{<:Any,1}=FourierDomain(1),
+                      dom::AbstractDomain{<:Any,1}=FourierDomain(1),
                      )
 
-    if domain isa IntervalDomain
-        domain = BoxDomain(domain)
-    elseif !(domain isa BoxDomain)
+    if dom isa IntervalDomain
+        dom = BoxDomain(domain)
+    elseif !(dom isa BoxDomain)
         @error "Trigonometric polynomials work with logically rectangular domains"
     end
 
-    domain = FourierDomain(1)
-    (L,) = lengths(domain)
+    dom = FourierDomain(1)
+    (L,) = lengths(dom)
     #""" reset deformation to map from [-π,π]^D """
-    #ref_domain = reference_box(2)
-    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    #ref_dom = reference_box(2)
+    #dom = ref_dom # map_from_ref(dom, ref_dom) # TODO
 
 
     dz = L / n
@@ -79,36 +100,36 @@ function FourierSpace(n::Integer;
     k = FFTLIB.rfftfreq(n, 2π*n/L) |> Array
 
     npoints = (n,)
-    nmodes  = (length(k),)
-    domain = T(domain)
+    nfreqs  = (length(k),)
+    dom = T(dom)
     grid = (z,)
-    modes = (k,)
-    mass_matrix = ones(T, n) * (2π/L)
+    freqs = (k,)
+    mass_mat = ones(T, n) * (2π/L)
     ftransform = nothing
 
     space = FourierSpace(
-                         npoints, nmodes, domain, grid, modes,
-                         mass_matrix, ftransform,
+                         npoints, nfreqs, dom, grid, freqs,
+                         mass_mat, ftransform,
                         )
 
     space = make_transform(space, z)
 
-    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
+    dom isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 function FourierSpace(nr::Integer, ns::Integer;
-                      domain::AbstractDomain{<:Any,2}=FourierDomain(2),
+                      dom::AbstractDomain{<:Any,2}=FourierDomain(2),
                      )
 
-    if !(domain isa BoxDomain)
+    if !(dom isa BoxDomain)
         @error "Trigonometric polynomials work with logically rectangular domains"
     end
 
-    domain = FourierDomain(2)
-    (Lr, Ls) = lengths(domain)
+    dom = FourierDomain(2)
+    (Lr, Ls) = lengths(dom)
     # reset deformation to map from [-π,π]^D
-    #ref_domain = reference_box(2)
-    #domain = ref_domain # map_from_ref(domain, ref_domain) # TODO
+    #ref_dom = reference_box(2)
+    #dom = ref_dom # map_from_ref(dom, ref_dom) # TODO
 
     dr = Lr / nr
     ds = Ls / ns
@@ -121,27 +142,27 @@ function FourierSpace(nr::Integer, ns::Integer;
     nkr = length(kr)
     nks = length(ks)
 
-    r, s   = _vec.(ndgrid(zr, zs))
-    kr, ks = _vec.(ndgrid(kr, ks))
+    r, s   = vec.(ndgrid(zr, zs))
+    kr, ks = vec.(ndgrid(kr, ks))
 
     T  = eltype(r)
 
     npoints = (nr, ns)
-    nmodes  = (nkr, nks)
-    domain  = T(domain)
+    nfreqs  = (nkr, nks)
+    dom  = T(dom)
     grid    = (r, s)
-    modes   = (kr, ks)
-    mass_matrix = ones(T, nr * ns) * (2π/Lr) * (2π/Ls)
+    freqs   = (kr, ks)
+    mass_mat = ones(T, nr * ns) * (2π/Lr) * (2π/Ls)
     ftransform  = nothing
 
     space = FourierSpace(
-                         npoints, nmodes, domain, grid, modes,
-                         mass_matrix, ftransform,
+                         npoints, nfreqs, dom, grid, freqs,
+                         mass_mat, ftransform,
                         )
 
     space = make_transform(space, r)
 
-    domain isa Domains.DeformedDomain ? deform(space, mapping) : space
+    dom isa Domains.DeformedDomain ? deform(space, mapping) : space
 end
 
 ###
@@ -149,8 +170,8 @@ end
 ###
 
 Base.size(space::FourierSpace) = space.npoints
-mode_size(space::FourierSpace) = space.nmodes
-domain(space::FourierSpace) = space.domain
+mode_size(space::FourierSpace) = space.nfreqs
+domain(space::FourierSpace) = space.dom
 points(space::FourierSpace) = space.grid
 function quadratures(space::FourierSpace{<:Any,1})
     x = points(space) |> first
@@ -158,19 +179,29 @@ function quadratures(space::FourierSpace{<:Any,1})
 
     ((x, w),)
 end
-mass_matrix(space::FourierSpace) = space.mass_matrix
-modes(space::FourierSpace) = space.modes
+mass_matrix(space::FourierSpace) = space.mass_mat
+modes(space::FourierSpace) = space.freqs
 
 function form_transform(
-                        u::AbstractVecOrMat{T},
-                        space::FourierSpace{<:Any,D};
+                        space::FourierSpace{<:Any,D},
+                        u::Union{Nothing,AbstractVecOrMat}=nothing;
                         isinplace::Union{Bool,Nothing}=nothing,
                         p=nothing,
-                        t::Real=zero(T)
-                       ) where{T,D}
+                        t::Union{Real,Nothing}=nothing,
+                       ) where{D}
+
+    # sinput : (N,K) - input size
+    # soutput: (M,K) - output size
+    #
+    # sin : (n1,...,nd) - input size to FFT st n1*...*nd=N
+    # sout: (m1,...,md) - output size to FFT st m1*...*md=M
+
+    u = u isa Nothing ? points(space) |> first : u
+    T = eltype(u)
+    t = zero(T)
 
     sinput = size(u)
-    ssp = size(space)
+    sspace = size(space)
     N   = length(space)
 
     @assert size(u, 1) == N "size mismatch. input array must have length
@@ -178,8 +209,8 @@ function form_transform(
     K = size(u, 2)
 
     # transform input shape
-    sin = (ssp..., K)
-    U   = _reshape(u, sin)
+    sin = (sspace..., K)
+    U   = reshape(u, sin)
 
     # transform object
     FFTLIB = _fft_lib(u)
@@ -190,42 +221,42 @@ function form_transform(
     sout = size(V)
 
     # output prototype
-    M    = length(V) ÷ K
-    sret = u isa AbstractMatrix ? (M, K) : (M,)
-    v    = _reshape(V, sret)
+    M = length(V) ÷ K
+    soutput = u isa AbstractMatrix ? (M, K) : (M,)
+    v    = reshape(V, soutput)
 
     isinplace = isinplace isa Nothing ? true : isinplace
 
     # in-place
     function fwd(v, u, p, t)
-        U = _reshape(u, sin)
-        V = _reshape(v, sout)
+        U = reshape(u, sin)
+        V = reshape(v, sout)
         mul!(V, ftr, U)
 
         v
     end
 
     function bwd(v, u, p, t)
-        U = _reshape(u, sout)
-        V = _reshape(v, sin)
-        ldiv!(V, ftr, U) # TODO - check if fftlib caches inv(plan)
+        U = reshape(u, sout)
+        V = reshape(v, sin)
+        ldiv!(V, ftr, U) # TODO - confirm that fftlib caches inv(plan)
 
         v
     end
 
     # out-of-place
     function fwd(u, p, t)
-        U = _reshape(u, sin)
+        U = reshape(u, sin)
         V = ftr * U
 
-        _reshape(V, sret)
+        reshape(V, soutput)
     end
 
     function bwd(u, p, t)
-        U = _reshape(u, sout)
+        U = reshape(u, sout)
         V = ftr \ U
 
-        _reshape(V, sinput)
+        reshape(V, sinput)
     end
 
     ComplexT = if T isa Type{Float16}
@@ -411,7 +442,7 @@ function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
     end
     a = points(space)[1] isa CUDA.CuArray ? gpu(a) : a
 
-    DiagonalOperator(_vec(a))
+    DiagonalOperator(vec(a))
 end
 
 function gradientOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
