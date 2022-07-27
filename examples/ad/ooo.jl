@@ -14,43 +14,31 @@ using SciMLSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers
 using Plots
 
-N = 128
-ν = 1f-1
+Random.seed!(0)
+CUDA.allowscalar(false)
 
+N = 128
 odealg = SSPRK43()
 
-""" space discr """
-space  = FourierSpace(N)
-space  = make_transform(space; isinplace=false)
-discr  = Collocation()
-
-(x,) = points(space)
-
-D = diffusionOp(ν, space, discr)
-D = cache_operator(D, x)
-
-""" NN """
 model = Lux.Chain(
-                  Lux.Dense(1, 10),
-                  Lux.Dense(10, 1),
+                  Lux.Dense(N, N),
+                  Lux.Dense(N, N),
                  )
 
 rng = Random.default_rng()
 ps, st = Lux.setup(rng, model)
-ps = ComponentArray(ps)
-st = st
+ps = ComponentArray(ps) |> gpu
+st = st |> gpu
 
-u0 = @. sin(10x)
+""" space discr """
+space  = FourierSpace(N)
+(x,) = points(space)
+u0 = sin.(10x) |> gpu
 tspan = (0f0, 1f0)
 tsteps = range(tspan..., length=10)
 
-function dudt(u, p, t; space=space, model=model, st=st)
-    x = points(space)[1]
-
-    du1 = D * u
-    du2 = model(x', p, st)[1] |> vec
-
-    du1 + du2
+function dudt(u, p, t; model=model, st=st)
+    model(u, p, st)[1]
 end
 
 prob = ODEProblem(dudt, u0, tspan, saveat=tsteps)
@@ -61,7 +49,7 @@ function predict(ps; prob=prob, odealg=odealg, sense=sense)
           odealg,
           p=ps,
           sensealg=sense
-         )
+         ) |> CuArray
 end
 
 function loss(p)
@@ -71,22 +59,14 @@ function loss(p)
     loss, pred
 end
 
-function cb(p, l, pred; doplot=false, space=space)
+function cb(p, l, pred; space=space)
     println(l)
 
-    if doplot
-        plt = plot()
-        for i=1:size(pred,2)
-            x = points(space)[1]
-            plot!(plt, x, pred[:,i])
-        end
-        display(plt)
-    end
     return false
 end
 
 # dummy
-println("fwd"); cb(ps,loss(ps)...;doplot=false)
+println("fwd"); cb(ps,loss(ps)...)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 """ optimization """

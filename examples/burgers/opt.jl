@@ -10,7 +10,7 @@ end
 
 using OrdinaryDiffEq, CUDA, LinearAlgebra, ComponentArrays
 using Lux, Random, JLD2, SciMLSensitivity, Zygote
-using Optimization, OptimizationOptimJL, OptimizationOptimisers
+using Optimization, OptimizationOptimJL, OptimizationOptimisers, Optimisers
 using Plots
 
 Random.seed!(0)
@@ -109,7 +109,7 @@ N = 128
 ν = 1f-3
 
 """ NN """
-model, ps = begin
+model, ps, st = begin
     w = N
     nn = Lux.Chain(
                    Lux.Dense(w, w),
@@ -117,16 +117,19 @@ model, ps = begin
                   )
 
     rng = Random.default_rng()
+    Random.seed!(rng, 0)
+
     ps, st = Lux.setup(rng, nn)
     ps = ComponentArray(ps) |> gpu
+    st = st |> gpu
 
     function model(u, p, t, space)
-
         nn(u, p, st)[1]
     end
 
-    model, ps
+    model, ps, st
 end
+##############################################
 
 ode_cb = begin
     function affect!(int)
@@ -136,13 +139,6 @@ ode_cb = begin
     DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
 end
 
-predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
-
-# dummy
-println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
-println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
-
-""" optimization """
 function opt_cb(p, l, pred; doplot=false, space=space)
     println(l)
 
@@ -157,10 +153,37 @@ function opt_cb(p, l, pred; doplot=false, space=space)
     return false
 end
 
+predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
+
+# dummy
+println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
+println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
+
+""" optimization """
+function train(loss, p;
+               optalg=Optimisers.ADAM(1f-3),
+               niters=100,
+              )
+
+    st = Optimisers.setup(optalg, p)
+
+    func = p -> loss(p)[1]
+
+    stime = time()
+    for i in 1:niters
+        (l,_), back = pullback(func, p)
+        g = back((one(l), nothing))[1]
+
+        st, p = Optimisers.update(st, p, g)
+    end
+end
+
+##########
+
 adtype = Optimization.AutoZygote()
 # x=object to optimize
 # p=parameters for optimization loop
-optf = Optimization.OptimizationFunction((x, p) -> loss(x)[1], adtype)
+optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
 optprob = Optimization.OptimizationProblem(optf, ps)
 
 optres = Optimization.solve(
@@ -179,5 +202,5 @@ optres = Optimization.solve(
 #                            allow_f_increases = false,
 #                           )
 #
-cb(optres.u, loss(optres.u)...; doplot=false)
+#cb(optres.u, loss(optres.u)...; doplot=false)
 #
