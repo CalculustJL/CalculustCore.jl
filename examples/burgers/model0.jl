@@ -13,8 +13,16 @@ using Lux, Random, JLD2, SciMLSensitivity, Zygote
 using Optimization, OptimizationOptimJL, OptimizationOptimisers, Optimisers
 using Plots
 
-Random.seed!(0)
 CUDA.allowscalar(false)
+
+rng = Random.default_rng()
+Random.seed!(rng, 0)
+
+"""
+1D Burgers + NN forcing
+
+∂t(u) + u∂x(u) = νΔ(u) + NN(u)
+"""
 
 """ data """
 function ut_from_data(filename)
@@ -101,6 +109,50 @@ function setup_burgers1d(N, ν, filename;
     predict, loss, space
 end
 
+function train(loss, p;
+               optalg=Optimisers.ADAM(1f-3),
+               niters=100,
+              )
+
+    opt_f  = p -> loss(p)[1]
+    opt_st = Optimisers.setup(optalg, p)
+
+    stime = time()
+    for iter in 1:niters
+
+        # loss, gradient
+        l, back = pullback(opt_f, p)
+        g = back(one(l))[1]
+
+        # update 
+        opt_st, p = Optimisers.update(opt_st, p, g)
+
+        # logging
+        ttime = time() - stime
+        opt_cb(p, l, pred; steptime=ttime)
+
+    end
+
+    p
+end
+
+ode_cb = begin
+    function affect!(int)
+        println(int.t)
+    end
+
+    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
+end
+
+function opt_cb(p, l, pred; doplot=false, space=space, steptime=nothing)
+    println(
+            "[$iter/$niters] \t Time $(round(ttime; digits=2))s \t Loss: " *
+            "$(round(l; digits=8)) \t "
+           )
+
+    return false
+end
+
 ##############################################
 name = "burgers_nu1em3_n1024"
 filename = joinpath(@__DIR__, name * ".jld2")
@@ -129,78 +181,12 @@ model, ps, st = begin
 
     model, ps, st
 end
-##############################################
-
-ode_cb = begin
-    function affect!(int)
-        println(int.t)
-    end
-
-    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
-end
-
-function opt_cb(p, l, pred; doplot=false, space=space)
-    println(l)
-
-    if doplot
-        plt = plot()
-        for i=1:size(pred,2)
-            x = points(space)[1]
-            plot!(plt, x, pred[:,i])
-        end
-        display(plt)
-    end
-    return false
-end
 
 predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
 
-# dummy
+# dummy calls
 println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-""" optimization """
-function train(loss, p;
-               optalg=Optimisers.ADAM(1f-3),
-               niters=100,
-              )
-
-    st = Optimisers.setup(optalg, p)
-
-    func = p -> loss(p)[1]
-
-    stime = time()
-    for i in 1:niters
-        (l,_), back = pullback(func, p)
-        g = back((one(l), nothing))[1]
-
-        st, p = Optimisers.update(st, p, g)
-    end
-end
-
-##########
-
-adtype = Optimization.AutoZygote()
-# x=object to optimize
-# p=parameters for optimization loop
-optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
-optprob = Optimization.OptimizationProblem(optf, ps)
-
-optres = Optimization.solve(
-                            optprob,
-                            ADAM(0.05),
-                            callback=opt_cb,
-                            maxiters=50,
-                           )
-
-#optprob = remake(optprob,u0 = optres.u)
-
-#println("BFGS")
-#optres = Optimization.solve(optprob,
-#                            Optim.BFGS(initial_stepnorm=0.01),
-#                            callback=cb,
-#                            allow_f_increases = false,
-#                           )
-#
-#cb(optres.u, loss(optres.u)...; doplot=false)
+#ps = train(loss, ps)
 #

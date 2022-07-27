@@ -191,16 +191,17 @@ function divergenceOp end
 
 """
 Added forcing as an operator
-"""
-function forcingOp end
 
+F = forcingOp(f)
+
+F(u) = u + M*f
+"""
 function forcingOp(f::AbstractVecOrMat,
                    space::AbstractSpace,
                    discr::AbstractDiscretization;
                    f_update_func=DEFAULT_UPDATE_FUNC,
                   )
     M = massOp(space, discr)
-    M * f
 
     AddVector(M, f; update_func=f_update_func)
 end
