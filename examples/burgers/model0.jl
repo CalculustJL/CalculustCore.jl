@@ -214,7 +214,7 @@ for i=1:10
     name = joinpath(@__DIR__,"trajectory" * "$i")
     u = @view pred[:,i,:]
     anim = animate(u, space)
-    gif(anim, name * ".gif"; fps=10)
+    gif(anim, name * ".gif"; fps=20)
 end
 
 #
