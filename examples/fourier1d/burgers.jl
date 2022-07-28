@@ -11,7 +11,7 @@ end
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
 using Plots
 
-N = 1024
+N = 128
 ν = 1e-3
 p = nothing
 
