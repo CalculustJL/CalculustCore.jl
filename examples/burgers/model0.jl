@@ -108,7 +108,7 @@ function setup_burgers1d(N, ν, datafile;
         end
 
         du1 = Dt * u
-        du2 = 1f-4*model(u, p, t, space)
+        du2 = +1f-4*model(u, p, t, space)
 
         du1 + du2
     end
@@ -155,8 +155,8 @@ function train(loss, p;
 end
 
 ##############################################
-name = "burgers_nu1em3_n1024"
-datafile = joinpath(@__DIR__, name * ".jld2")
+filename = "burgers_nu1em3_n1024"
+datafile = joinpath(@__DIR__, filename * ".jld2")
 savefile = joinpath(@__DIR__, "model0" * ".jld2")
 
 N = 128
@@ -166,7 +166,8 @@ N = 128
 model, ps, st = begin
     w = N
     nn = Lux.Chain(
-                   Lux.Dense(w, w),
+                   Lux.Dense(w, w, tanh),
+                   Lux.Dense(w, w, tanh),
                    Lux.Dense(w, w),
                   )
 
@@ -192,21 +193,25 @@ predict, loss, space = setup_burgers1d(N, ν, datafile; odealg=odealg, p=ps, mod
 println("fwd"); @time optcb(ps, loss(0*ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], 0*ps) |> display
 
-ps = train(loss, ps; alg=ADAM(1f-1), maxiters=100)
-ps = train(loss, ps; alg=ADAM(1f-2), maxiters=1000)
+#ps = train(loss, ps; alg=ADAM(1f-1), maxiters=100)
+#ps = train(loss, ps; alg=ADAM(1f-2), maxiters=1000)
 #ps = train(loss, ps; alg=ADAM(1f-3), maxiters=5000)
+
+#mod = jldopen(savefile)
+#ps = mod["ps"]
 
 l, pred = loss(ps)
 display(l)
 
+ps = 0*cpu(ps)
 pred = cpu(pred)
 space = cpu(space)
 
-jldsave(savefile; ps)
+#jldsave(savefile; ps)
 
 # plot
 for i=1:10
-    name = "trajectory" * "$i"
+    name = joinpath(@__DIR__,"trajectory" * "$i")
     u = @view pred[:,i,:]
     anim = animate(u, space)
     gif(anim, name * ".gif"; fps=10)
