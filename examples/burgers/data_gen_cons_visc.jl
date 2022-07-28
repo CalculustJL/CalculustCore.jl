@@ -14,7 +14,7 @@ using CUDA, Random, JLD2
 Random.seed!(0)
 CUDA.allowscalar(false)
 
-function uIC(space; truncation_frac=N_target/N)
+function uIC(space; truncation_frac=N_target/N/2)
     x = points(space)[1]
     X = truncationOp(space, (truncation_frac,))
 
@@ -30,7 +30,7 @@ end
 function solve_burgers1D(N, ν, p;
                          uIC=uIC,
                          tspan=(0f0, 10f0),
-                         nsims=50,
+                         nsims=10,
                          nsave=100,
                          odealg=SSPRK43(),
                         )
