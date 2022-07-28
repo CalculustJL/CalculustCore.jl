@@ -18,11 +18,11 @@ p = nothing
 Random.seed!(0)
 function uIC(space)
     x = points(space)[1]
-    X = truncationOp(space, (1//20,))
+    X = truncationOp(space, (1//1,))
 
     u0 = X * rand(size(x)...)
 
-    u0
+    u0 = rand(size(x)...)
 end
 
 function solve_burgers(N, ν, p;
