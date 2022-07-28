@@ -432,14 +432,13 @@ function truncationOp(space::TransformedSpace{<:Any,D,<:FourierSpace},
         frac = fracs[d]
 
         idx = if d == 1
-            cut = (n-1)*frac |> round |> Int
+            cut = round(Int, n*frac, RoundUp)
 
-            n-cut+1 : n
+            cut : n
         else
-            mid = n/2 + 1 |> round |> Int
-            cut = (n-1)/2 * frac |> round |> Int
+            cut = round(Int, n ÷ 2 * frac, RoundUp)
 
-            mid-cut+1 : mid+cut-1
+            cut : n-cut
         end
 
         a[(Colon() for i=1:d-1)..., idx, (Colon() for i=d+1:D)...] .= false
