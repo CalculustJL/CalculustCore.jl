@@ -70,7 +70,6 @@ end
 
 function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,1}; kwargs...)
     ylims = begin
-        u = sol.u[1]
         mi = minimum(u)
         ma = maximum(u)
         buf = (ma-mi)/5

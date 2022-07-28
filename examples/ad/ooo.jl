@@ -70,6 +70,33 @@ println("fwd"); cb(ps,loss(ps)...)
 println("bwd"); Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 """ optimization """
+#function train(loss, p;
+#               optalg=Optimisers.ADAM(1f-3),
+#               niter=100,
+#              )
+#
+#    opt_f  = p -> loss(p)[1]
+#    opt_st = Optimisers.setup(optalg, p)
+#
+#    stime = time()
+#    for iter in 1:niter
+#
+#        # loss, gradient
+#        l, back = pullback(opt_f, p)
+#        g = back(one(l))[1]
+#
+#        # update 
+#        opt_st, p = Optimisers.update(opt_st, p, g)
+#
+#        # logging
+#        ttime = time() - stime
+#        opt_cb(p, l, nothing; steptime=ttime, iter=iter, niter=niter)
+#
+#    end
+#
+#    p
+#end
+
 adtype = Optimization.AutoZygote()
 # x=object to optimize
 # p=parameters for optimization loop

@@ -25,8 +25,8 @@ Random.seed!(rng, 0)
 """
 
 """ data """
-function ut_from_data(filename)
-    data = jldopen(filename)
+function ut_from_data(datafile)
+    data = jldopen(datafile)
     
     t = data["t"]
     u = data["u_coarse"]
@@ -34,12 +34,40 @@ function ut_from_data(filename)
     u, t
 end
 
+odecb = begin
+    function affect!(int)
+        println(int.t)
+    end
+
+    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
+end
+
+function optcb(p, l, pred;
+                doplot=false,
+                space=space,
+                steptime=nothing,
+                iter=nothing,
+                niter=nothing,
+               )
+
+    steptime = steptime isa Nothing ? 0.0 : steptime
+    iter = iter isa Nothing ? 0 : iter
+    niter = niter isa Nothing ? 0 : niter
+
+    println(
+            "[$iter/$niter] \t Time $(round(steptime; digits=2))s \t Loss: " *
+            "$(round(l; digits=8)) \t "
+           )
+
+    return false
+end
+
 """ space discr """
-function setup_burgers1d(N, ν, filename;
+function setup_burgers1d(N, ν, datafile;
                          p=nothing,
                          model=nothing,
                          odealg=SSPRK43(),
-                         ode_cb=nothing,
+                         odecb=nothing,
                         )
 
     model = model isa Nothing ? (u, p, t, space) -> zero(u) : model
@@ -51,7 +79,7 @@ function setup_burgers1d(N, ν, filename;
     (x,) = points(space)
 
     """ get data """
-    u_data, t_data = ut_from_data(filename)
+    u_data, t_data = ut_from_data(datafile)
     u_data = gpu(u_data)
     u0 = @views u_data[:,:,1]
     n_data = length(u_data)
@@ -80,16 +108,16 @@ function setup_burgers1d(N, ν, filename;
         end
 
         du1 = Dt * u
-        du2 = model(u, p, t, space)
+        du2 = 1f-4*model(u, p, t, space)
 
         du1 + du2
     end
 
     tspan = (t_data[1], t_data[end])
-    prob = ODEProblem(dudt, u0, tspan, p; reltol=1f-6, abstol=1f-6)
+    prob = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
-    function predict(p; callback=ode_cb)
+    function predict(p; callback=odecb)
         solve(prob,
               odealg,
               p=p,
@@ -110,52 +138,26 @@ function setup_burgers1d(N, ν, filename;
 end
 
 function train(loss, p;
-               optalg=Optimisers.ADAM(1f-3),
-               niters=100,
+               alg=Optimisers.Adam(1f-2),
+               maxiters=1000,
+               callback=optcb,
               )
 
-    opt_f  = p -> loss(p)[1]
-    opt_st = Optimisers.setup(optalg, p)
+    adtype = Optimization.AutoZygote()
+    # x=object to optimize
+    # p=parameters for optimization loop
+    optf = Optimization.OptimizationFunction((x, p) -> loss(x), adtype)
+    optprob = Optimization.OptimizationProblem(optf, ps)
 
-    stime = time()
-    for iter in 1:niters
+    optres = Optimization.solve(optprob, alg, callback=callback, maxiters=maxiters)
 
-        # loss, gradient
-        l, back = pullback(opt_f, p)
-        g = back(one(l))[1]
-
-        # update 
-        opt_st, p = Optimisers.update(opt_st, p, g)
-
-        # logging
-        ttime = time() - stime
-        opt_cb(p, l, pred; steptime=ttime)
-
-    end
-
-    p
-end
-
-ode_cb = begin
-    function affect!(int)
-        println(int.t)
-    end
-
-    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
-end
-
-function opt_cb(p, l, pred; doplot=false, space=space, steptime=nothing)
-    println(
-            "[$iter/$niters] \t Time $(round(ttime; digits=2))s \t Loss: " *
-            "$(round(l; digits=8)) \t "
-           )
-
-    return false
+    optres.u
 end
 
 ##############################################
 name = "burgers_nu1em3_n1024"
-filename = joinpath(@__DIR__, name * ".jld2")
+datafile = joinpath(@__DIR__, name * ".jld2")
+savefile = joinpath(@__DIR__, "model0" * ".jld2")
 
 N = 128
 ν = 1f-3
@@ -182,11 +184,32 @@ model, ps, st = begin
     model, ps, st
 end
 
-predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
+#odealg = Tsit5()
+odealg = SSPRK43()
+predict, loss, space = setup_burgers1d(N, ν, datafile; odealg=odealg, p=ps, model=model);
 
 # dummy calls
-println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
-println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
+println("fwd"); @time optcb(ps, loss(0*ps)...;doplot=false)
+println("bwd"); @time Zygote.gradient(p -> loss(p)[1], 0*ps) |> display
 
-#ps = train(loss, ps)
+ps = train(loss, ps; alg=ADAM(1f-1), maxiters=100)
+ps = train(loss, ps; alg=ADAM(1f-2), maxiters=1000)
+#ps = train(loss, ps; alg=ADAM(1f-3), maxiters=5000)
+
+l, pred = loss(ps)
+display(l)
+
+pred = cpu(pred)
+space = cpu(space)
+
+jldsave(savefile; ps)
+
+# plot
+for i=1:10
+    name = "trajectory" * "$i"
+    u = @view pred[:,i,:]
+    anim = animate(u, space)
+    gif(anim, name * ".gif"; fps=10)
+end
+
 #
