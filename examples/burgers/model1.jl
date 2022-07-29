@@ -149,18 +149,20 @@ function setup_model1(N, ν, filename;
 #                                       η=,
 #                                      )
 #                    )
-        solve(prob,
+        solve(
+              prob,
               odealg,
               p=p,
               sensealg=sense,
-              callback=callback,
+              callback=nothing,
               saveat=t_data,
              ) |> CuArray
     end
 
     function loss(p)
         pred = predict(p)
-        loss = sum(abs2.(u_data .- pred)) / n_data
+        vx = pred[:vx,:]
+        loss = sum(abs2.(vx_data .- pred)) / n_data
 
         loss, pred
     end
@@ -177,22 +179,23 @@ ode_cb = begin
 end
 
 ##############################################
-name = "burgers_nu1em3_n1024"
-filename = joinpath(@__DIR__, name * ".jld2")
+filename = "burgers_nu1em3_n1024"
+datafile = joinpath(@__DIR__, filename, filename * ".jld2")
+savefile = joinpath(@__DIR__, filename, "model1" * ".jld2")
 
 N = 128
 ν = 1f-3
 
 model, ps, st = begin
     nn_η_init = Lux.Chain(
-                          Lux.Dense(N, N),
+                          Lux.Dense(N, N, tanh),
                           Lux.Dense(N, N),
                          )
 
     p_η_init, st_η_init = Lux.setup(rng, nn_η_init)
 
     nn_η_forcing = Lux.Chain(
-                             Lux.Dense(N,N),
+                             Lux.Dense(N,N, tanh),
                              Lux.Dense(N,N),
                             )
 
@@ -220,12 +223,19 @@ model, ps, st = begin
 
     model, ps, st
 end
+##############################################
 
-predict, loss, space = setup_burgers1d(N, ν, filename; p=ps, model=model);
+predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 
 # dummy calls
-println("fwd"); @time opt_cb(ps, loss(ps)...;doplot=false)
-#println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
+println("fwd"); @time optcb(ps, loss(ps)...;doplot=false)
+println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-#ps = train(loss, ps)
+optf = p -> loss(p)[1]
+Zygote.gradient(optf, ps)
+@time Zygote.gradient(optf, ps)
+
+ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
+
+model = jldsave(savefile; ps)
 #

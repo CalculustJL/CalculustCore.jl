@@ -172,6 +172,7 @@ model, ps, st = begin
 
     model, ps, st
 end
+##############################################
 
 predict, loss, space = setup_model0(N, ν, datafile; p=ps, model=model);
 
@@ -180,6 +181,8 @@ println("fwd"); @time optcb(ps, loss(ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
 optf = p -> loss(p)[1]
+Zygote.gradient(optf, ps)
+@time Zygote.gradient(optf, ps)
 
 ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
 
