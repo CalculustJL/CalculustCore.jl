@@ -8,8 +8,7 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra
-using Plots, Test
+using OrdinaryDiffEq, LinearAlgebra, Plots, Test
 
 N = 128
 ν = 1e-2
@@ -20,52 +19,34 @@ space = FourierSpace(N)
 discr = Collocation()
 
 (x,) = points(space)
-(k,) = modes(space)
-ftr  = transformOp(space)
 
 α = 2
 uic(x) = @. sin(α*x)
+u0 = uic(x)
 function utrue(t,x)
     cos(t) * uic(x)
 end
 
 A = diffusionOp(ν, space, discr)
-
-f = @. x*0 + .1
 function forcing!(f, u, p, t)
     ui = -sin(t)*uic(x)
     ud = -ν*α*α*uic(x)*cos(t)
     f .= ui - ud
     f
 end
-F = forcingOp(f, space, discr; f_update_func=forcing!)
+F = forcingOp(zero(u0), space, discr; f_update_func=forcing!)
+ddt = cache_operator(A+F, u0)
 
-A = cache_operator(A, x)
-F = cache_operator(F, x)
+function dudt(du, u, p, t)
+    ddt(du, u, p, t)
+end
 
 """ time discr """
-u0 = uic(x)
 tspan = (0.0, 2π)
 tsave = range(tspan...; length=10)
-odealg = Tsit5()
-#odealg = SSPRK43()
 
-prob = SplitODEProblem(A, F, u0, tspan, p)
-@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-10, abstol=1e-10)
-
-#dudt = A + F
-#dudt = cache_operator(rhs, x)
-#
-#function dudt_jac(Jv, v, u, p, t)
-#    SciMLOperators.update_coefficients!(dudt, u, p, t)
-#    mul!(Jv, dudt, v)
-#end
-#
-#odefunc = ODEFunction{true}(dudt)
-#odefunc = ODEFunction{true}(dudt; jvp=dudt_jac)
-#
-#prob = ODEProblem(odefunc, u0, tspan, p)
-#@time sol = solve(prob, odealg, saveat=tsave, reltol=1e-10, abstol=1e-10)
+odeprob = ODEProblem(dudt, u0, tspan, p)
+@time sol = solve(odeprob, Tsit5(), saveat=tsave, reltol=1e-10, abstol=1e-10)
 
 """ analysis """
 pred = Array(sol)

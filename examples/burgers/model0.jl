@@ -36,7 +36,9 @@ end
 
 odecb = begin
     function affect!(int)
-        println(int.t)
+        println(
+                "[$(int.k)] \t Time $(round(int.t; digits=8))s"
+               )
     end
 
     DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))

@@ -201,8 +201,9 @@ function forcingOp(f::AbstractVecOrMat,
                    discr::AbstractDiscretization;
                    f_update_func=DEFAULT_UPDATE_FUNC,
                   )
+    Z = NullOperator(space)
     M = massOp(space, discr)
 
-    AddVector(M, f; update_func=f_update_func)
+    AffineOperator(Z, M, f; update_func=f_update_func)
 end
 #
