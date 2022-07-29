@@ -27,6 +27,9 @@ Manifest.toml
 *.jld
 *.jld2
 
+# Figures
+*.gif
+
 # Editor generatoed file
 .*.swp
 .*.swo
