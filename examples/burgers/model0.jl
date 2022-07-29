@@ -191,7 +191,7 @@ predict, loss, space = setup_burgers1d(N, ν, datafile; odealg=odealg, p=ps, mod
 
 # dummy calls
 println("fwd"); @time optcb(ps, loss(0*ps)...;doplot=false)
-println("bwd"); @time Zygote.gradient(p -> loss(p)[1], 0*ps) |> display
+#println("bwd"); @time Zygote.gradient(p -> loss(p)[1], 0*ps) |> display
 
 #ps = train(loss, ps; alg=ADAM(1f-1), maxiters=100)
 #ps = train(loss, ps; alg=ADAM(1f-2), maxiters=1000)

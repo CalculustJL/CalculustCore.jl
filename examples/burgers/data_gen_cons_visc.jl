@@ -14,7 +14,7 @@ using CUDA, Random, JLD2
 Random.seed!(0)
 CUDA.allowscalar(false)
 
-function uIC(space; truncation_frac=N_target/N/2)
+function uIC(space; truncation_frac=N_target/N)
     x = points(space)[1]
     X = truncationOp(space, (truncation_frac,))
 
@@ -25,6 +25,14 @@ function uIC(space; truncation_frac=N_target/N/2)
     end
 
     u0
+end
+
+odecb = begin
+    function affect!(int)
+        println(int.t)
+    end
+
+    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
 end
 
 function solve_burgers1D(N, ν, p;
@@ -64,11 +72,17 @@ function solve_burgers1D(N, ν, p;
     F = cache_operator(F, u0)
 
     """ time discr """
-    odefunc = cache_operator(A+F, u0)
+    function Ajac(Jv, v, u, p, t;A=A)
+        SciMLOperators.update_coefficients!(A, u, p, t)
+        mul!(Jv, A, v)
+    end
+    odefunc = SplitFunction(A, F; jvp=Ajac)
+    #odefunc = cache_operator(A+F, u0)
 
     tsave = range(tspan...; length=nsave)
-    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
-    @time sol = solve(prob, odealg, saveat=tsave)
+    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-8, abstol=1f-8)
+
+    @time sol = solve(prob, odealg, saveat=tsave, callback=odecb)
 
     sol, space
 end

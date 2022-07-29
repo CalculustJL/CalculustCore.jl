@@ -11,18 +11,24 @@ end
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
 using Plots
 
-N = 128
+N = 1024
 ν = 1e-3
 p = nothing
+
+odecb = begin
+    function affect!(int)
+        println(int.t)
+    end
+
+    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
+end
 
 Random.seed!(0)
 function uIC(space)
     x = points(space)[1]
-    X = truncationOp(space, (1//1,))
+    X = truncationOp(space, (1//8,))
 
     u0 = X * rand(size(x)...)
-
-    u0 = rand(size(x)...)
 end
 
 function solve_burgers(N, ν, p;
@@ -68,7 +74,7 @@ function solve_burgers(N, ν, p;
 
     tsave = range(tspan...; length=nsave)
     prob = ODEProblem(odefunc, u0, tspan, p; reltol=1e-8, abstol=1e-8)
-    @time sol = solve(prob, odealg, saveat=tsave)
+    @time sol = solve(prob, odealg, saveat=tsave, callback=odecb)
 
     sol, space
 end
