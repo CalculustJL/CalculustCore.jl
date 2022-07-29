@@ -418,7 +418,7 @@ function interpOp(space1::FourierSpace{T1,1}, space2::FourierSpace{T2,1}) where{
 
     N1 = length(space1)
     N2 = length(space2)
-    λ = T1(N1 / N2) # TODO - verify
+    λ = T1(N2 / N1) # TODO - verify
 
     λ * F1 \ J * F2
 end
