@@ -29,7 +29,9 @@ end
 
 odecb = begin
     function affect!(int)
-        println(int.t)
+        println(
+                "[$(int.iter)] \t Time $(round(int.t; digits=8))s"
+               )
     end
 
     DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
@@ -55,8 +57,6 @@ function solve_burgers1D(N, ν, p;
     space = make_transform(space, u0; p=p)
 
     """ operators """
-    A = diffusionOp(ν, space, discr)
-
     function burgers!(v, u, p, t)
         copyto!(v, u)
     end
@@ -65,53 +65,43 @@ function solve_burgers1D(N, ν, p;
         lmul!(false, f)
     end
 
+    A = diffusionOp(ν, space, discr)
     C = advectionOp((zero(u0),), space, discr; vel_update_funcs=(burgers!,))
-    F = -C + forcingOp(zero(u0), space, discr; f_update_func=forcing!)
-
-    A = cache_operator(A, u0)
-    F = cache_operator(F, u0)
+    F = forcingOp(zero(u0), space, discr; f_update_func=forcing!)
+    odefunc = cache_operator(A-C+F, u0) |> ODEFunction
 
     """ time discr """
-    function Ajac(Jv, v, u, p, t;A=A)
-        SciMLOperators.update_coefficients!(A, u, p, t)
-        mul!(Jv, A, v)
-    end
-    odefunc = SplitFunction(A, F; jvp=Ajac)
-    #odefunc = cache_operator(A+F, u0)
-
     tsave = range(tspan...; length=nsave)
-    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-8, abstol=1f-8)
-
+    prob = ODEProblem(odefunc, u0, tspan, p; reltol=1f-6, abstol=1f-6)
     @time sol = solve(prob, odealg, saveat=tsave, callback=odecb)
 
     sol, space
 end
 
-function datagen_burgers1D(N, ν, p, N_target, filename; kwargs...)
+function datagen_burgers1D(N, ν, p, N_target, name; kwargs...)
 
     sol, space = solve_burgers1D(N, ν, p; kwargs...)
 
-    ## save
-    sp_coarse = FourierSpace(N_target)
-    sp_dense  = cpu(space)
+    u_dense  = sol |> Array
+    sp_dense = make_transform(space, u_dense) |> cpu
 
-    u_dense  = Array(sol) |> cpu
+    sp_coarse = begin
+        sz = (N_target, size(u_dense)[2:end]...)
+        u  = similar(u_dense, sz)
 
-    J = begin
-        szc  = (N_target, size(u_dense)[2:end]...)
-        u_c  = similar(u_dense, szc)
-        sp_c = make_transform(sp_coarse, u_c)
-        sp_d = make_transform(sp_dense, u_dense)
-    
-        interpOp(sp_c, sp_d)
+        make_transform(FourierSpace(N_target), u)
     end
+
+    J = interpOp(sp_coarse, sp_dense)
 
     u_coarse = J * u_dense
     t = sol.t |> cpu
 
-    jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
+    filename = joinpath(@__DIR__, name * ".jld2")
 
-    return
+    #datadir = mkdir()
+
+    jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
 end
 
 #########################
@@ -122,7 +112,5 @@ p = nothing
 N_target = 128
 
 name = "burgers_nu1em3_n1024"
-filename = joinpath(@__DIR__, name * ".jld2")
-
-datagen_burgers1D(N, ν, p, N_target, filename)
+datagen_burgers1D(N, ν, p, N_target, name)
 #

@@ -8,35 +8,38 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, LinearSolve, LinearAlgebra, Random
+using OrdinaryDiffEq, LinearAlgebra, Random
 using Plots
 
 N = 1024
 ν = 1e-3
 p = nothing
 
+Random.seed!(0)
+function uIC(space)
+    x = points(space)[1]
+    X = truncationOp(space, (1/8,))
+
+    u0 = X * rand(size(x)...)
+end
+
 odecb = begin
     function affect!(int)
-        println(int.t)
+        println(
+                "[$(int.iter)] \t Time $(round(int.t; digits=8))s"
+               )
     end
 
     DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
 end
 
-Random.seed!(0)
-function uIC(space)
-    x = points(space)[1]
-    X = truncationOp(space, (1//8,))
-
-    u0 = X * rand(size(x)...)
-end
-
-function solve_burgers(N, ν, p;
-                       uIC=uIC,
-                       tspan=(0.0, 10.0),
-                       nsave=100,
-                       odealg=SSPRK43(),
-                      )
+function solve_burgers1D(N, ν, p;
+                         uIC=uIC,
+                         tspan=(0.0, 10.0),
+                         nsims=1,
+                         nsave=100,
+                         odealg=SSPRK43(),
+                        )
 
     """ space discr """
     space = FourierSpace(N)
@@ -45,33 +48,25 @@ function solve_burgers(N, ν, p;
     (x,) = points(space)
 
     """ IC """
-    u0 = uIC(space)
+    u0 = [uIC(space) for i=1:nsims]
+    u0 = hcat(u0...)
+    space = make_transform(space, u0; p=p)
 
     """ operators """
-    A = diffusionOp(ν, space, discr)
-
     function burgers!(v, u, p, t)
-        copy!(v, u)
+        copyto!(v, u)
     end
 
     function forcing!(f, u, p, t)
         lmul!(false, f)
-#       f .= 1e-2*rand(length(f))
     end
 
-    C = advectionOp((zero(x),), space, discr; vel_update_funcs=(burgers!,))
-    F = -C + forcingOp(zero(x), space, discr; f_update_func=forcing!)
-
-    A = cache_operator(A, x)
-    F = cache_operator(F, x)
+    A = diffusionOp(ν, space, discr)
+    C = advectionOp((zero(u0),), space, discr; vel_update_funcs=(burgers!,))
+    F = forcingOp(zero(u0), space, discr; f_update_func=forcing!)
+    odefunc = cache_operator(A-C+F, u0) |> ODEFunction
 
     """ time discr """
-    function Ajac(Jv, v, u, p, t;A=A)
-        SciMLOperators.update_coefficients!(A, u, p, t)
-        mul!(Jv, A, v)
-    end
-    odefunc = SplitFunction(A, F; jvp=Ajac)
-
     tsave = range(tspan...; length=nsave)
     prob = ODEProblem(odefunc, u0, tspan, p; reltol=1e-8, abstol=1e-8)
     @time sol = solve(prob, odealg, saveat=tsave, callback=odecb)
@@ -79,33 +74,8 @@ function solve_burgers(N, ν, p;
     sol, space
 end
 
-function plot_sol(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
-    plt = plot()
-    for i=1:length(sol)
-        plot!(plt, x, sol.u[i], legend=false)
-    end
-    plt
-end
-
-function anim8(sol::ODESolution, space::FourierSpace)
-    x = points(space)[1]
-    ylims = begin
-        u = sol.u[1]
-        mi = minimum(u)
-        ma = maximum(u)
-        buf = (ma-mi)/5
-        (mi-buf, ma+buf)
-    end
-    anim = @animate for i=1:length(sol)
-        plt = plot(x, sol.u[i], legend=false, ylims=ylims)
-    end
-end
-
-sol, space = solve_burgers(N, ν, p)
-#plt = plot_sol(sol, space)
-anim = anim8(sol, space)
-gif(anim, "examples/fourier1d/a.gif", fps= 20)
-
-#
+sol, space = solve_burgers1D(N, ν, p)
+space = cpu(space)
+pred = Array(sol)
 nothing
+#

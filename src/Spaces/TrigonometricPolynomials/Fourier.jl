@@ -41,17 +41,21 @@ function (::Type{T})(space::FourierSpace) where{T<:Number}
     dom     = T(domain(space))
 
     grid  = Tuple(T.(x) for x in points(space))
-    freqs = Tuple(T.(x̂) for x̂ in modes(space))
+    freqs = Tuple(T.(k) for k in modes(space))
 
     mass_mat = T.(mass_matrix(space))
-    ftransform = nothing
+    ftransform = transformOp(space)
 
     space = FourierSpace(
                          npoints, nfreqs, dom, grid, freqs,
-                         mass_mat, ftransform,
+                         mass_mat, nothing,
                         )
 
-    make_transform(space) # TODO -pass kwargs here
+    iip = ftransform.traits.isinplace
+    p   = nothing # TODO
+    u0  = T.(ftransform.cache[1])
+
+    make_transform(space, u0; isinplace=iip, p=p)
 end
 
 function adapt_structure(to, space::FourierSpace)
@@ -62,17 +66,21 @@ function adapt_structure(to, space::FourierSpace)
     x = first(grid)
     T = eltype(x)
 
-    npoints = size(space)
-    nfreqs  = mode_size(space)
-    dom     = T(domain(space))
-    ftransform = nothing
+    npoints = adapt_structure(to, size(space))
+    nfreqs  = adapt_structure(to, mode_size(space))
+    dom     = adapt_structure(to, T(domain(space)))
+    ftransform = transformOp(space)
 
     space = FourierSpace(
                          npoints, nfreqs, dom, grid, freqs,
-                         mass_mat, ftransform,
+                         mass_mat, nothing,
                         )
 
-    make_transform(space) # TODO -pass kwargs here
+    iip = adapt_structure(to, ftransform.traits.isinplace)
+    p   = adapt_structure(to, ftransform.p)
+    u0  = adapt_structure(to, ftransform.cache[1])
+
+    make_transform(space, u0; isinplace=iip, p=p)
 end
 
 function FourierSpace(n::Integer;
@@ -243,7 +251,7 @@ function form_transform(
     function bwd(v, u, p, t)
         U = reshape(u, sout)
         V = reshape(v, sin)
-        ldiv!(V, ftr, U) # TODO - confirm that fftlib caches inv(plan)
+        ldiv!(V, ftr, U)
 
         v
     end
@@ -400,7 +408,7 @@ function advectionOp(vels::NTuple{D},
     C
 end
 
-function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
+function interpOp(space1::FourierSpace{T1,1}, space2::FourierSpace{T2,1}) where{T1,T2}
     F1   = transformOp(space1)
     F2   = transformOp(space2)
     sp1h = transform(space1)
@@ -408,7 +416,11 @@ function interpOp(space1::FourierSpace{<:Any,1}, space2::FourierSpace{<:Any,1})
 
     J = interpOp(sp1h, sp2h)
 
-    F1 \ J * F2
+    N1 = length(space1)
+    N2 = length(space2)
+    λ = T1(N1 / N2) # TODO - verify
+
+    λ * F1 \ J * F2
 end
 
 ###
@@ -521,11 +533,12 @@ function interpOp(space1::TransformedSpace{<:Any,D,<:FourierSpace},
                   space2::TransformedSpace{<:Any,D,<:FourierSpace},
                  ) where{D}
 
-    M = size(space1)[1] # output
-    N = size(space2)[1] # input
+    Ms = size(space1) # output
+    Ns = size(space2) # input
 
-    J = sparse(I, (M,N)) |> MatrixOperator
+    sz = Tuple(zip(Ms,Ns))
+    Js = Tuple(sparse(I, sz[i]) for i=1:D)
 
-    J
+    ⊗(Js...)
 end
 #
