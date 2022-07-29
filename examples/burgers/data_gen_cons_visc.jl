@@ -9,7 +9,7 @@ let
 end
 
 using OrdinaryDiffEq, LinearAlgebra
-using CUDA, Random, JLD2
+using CUDA, Random, JLD2, Plots
 
 Random.seed!(0)
 CUDA.allowscalar(false)
@@ -78,6 +78,34 @@ function solve_burgers1D(N, ν, p;
     sol, space
 end
 
+function process(datafile; fps=20)
+    data = jldopen(datafile)
+
+    sp_coarse = data["sp_coarse"]
+    sp_dense  = data["sp_dense"]
+    u_coarse  = data["u_coarse"]
+    u_dense   = data["u_dense"]
+    t = data["t"]
+
+    datadir   = dirname(datafile)
+    densedir  = mkpath(joinpath(datadir, "dense"))
+    coarsedir = mkpath(joinpath(datadir, "coarse"))
+
+    for i=1:10
+        namec = joinpath(coarsedir, "trajectory" * "$i")
+        uc = @view u_coarse[:,i,:]
+        animc = animate(uc, sp_coarse, t)
+        gif(animc, namec * ".gif"; fps=fps)
+
+        named = joinpath(densedir, "trajectory" * "$i")
+        ud = @view u_dense[:,i,:]
+        animd = animate(ud, sp_dense, t)
+        gif(animd, named * ".gif"; fps=fps)
+    end
+
+    nothing
+end
+
 function datagen_burgers1D(N, ν, p, N_target, name; kwargs...)
 
     sol, space = solve_burgers1D(N, ν, p; kwargs...)
@@ -97,11 +125,12 @@ function datagen_burgers1D(N, ν, p, N_target, name; kwargs...)
     u_coarse = J * u_dense
     t = sol.t |> cpu
 
-    filename = joinpath(@__DIR__, name * ".jld2")
+    datadir = joinpath(@__DIR__, name) |> mkpath
+    datafile = joinpath(datadir, name * ".jld2")
 
-    #datadir = mkdir()
+    jldsave(datafile; sp_coarse, sp_dense, u_coarse, u_dense, t)
 
-    jldsave(filename; sp_coarse, sp_dense, u_coarse, u_dense, t)
+    datafile
 end
 
 #########################
@@ -112,5 +141,6 @@ p = nothing
 N_target = 128
 
 name = "burgers_nu1em3_n1024"
-datagen_burgers1D(N, ν, p, N_target, name)
+datafile = datagen_burgers1D(N, ν, p, N_target, name)
+process(datafile)
 #

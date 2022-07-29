@@ -68,7 +68,10 @@ function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any,2}; a=30, b=30
     plt
 end
 
-function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,1}; kwargs...)
+function Plots.animate(u::AbstractMatrix,
+                       space::AbstractSpace{<:Any,1},
+                       t::AbstractVector=collect(1:size(u,2));
+                       kwargs...)
     ylims = begin
         mi = minimum(u)
         ma = maximum(u)
@@ -76,7 +79,8 @@ function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,1}; kwargs.
         (mi-buf, ma+buf)
     end
     anim = @animate for i=1:size(u, 2)
-        plt = plot(u[:,i], space; ylims=ylims, kwargs...)
+        titlestr = "time = $(round(t[i], digits=8))"
+        plt = plot(u[:,i], space; ylims=ylims, title=titlestr, kwargs...)
     end
 end
 
