@@ -91,7 +91,7 @@ function process(datafile; fps=20)
     densedir  = mkpath(joinpath(datadir, "dense"))
     coarsedir = mkpath(joinpath(datadir, "coarse"))
 
-    for i=1:10
+    for i=1:size(u_coarse, 2)
         namec = joinpath(coarsedir, "trajectory" * "$i")
         uc = @view u_coarse[:,i,:]
         animc = animate(uc, sp_coarse, t)
@@ -106,7 +106,7 @@ function process(datafile; fps=20)
     nothing
 end
 
-function datagen_burgers1D(N, ν, p, N_target, name; kwargs...)
+function datagen_burgers1D(N, ν, p, N_target, filename; kwargs...)
 
     sol, space = solve_burgers1D(N, ν, p; kwargs...)
 
@@ -125,8 +125,8 @@ function datagen_burgers1D(N, ν, p, N_target, name; kwargs...)
     u_coarse = J * u_dense
     t = sol.t |> cpu
 
-    datadir = joinpath(@__DIR__, name) |> mkpath
-    datafile = joinpath(datadir, name * ".jld2")
+    datadir = joinpath(@__DIR__, filename) |> mkpath
+    datafile = joinpath(datadir, filename * ".jld2")
 
     jldsave(datafile; sp_coarse, sp_dense, u_coarse, u_dense, t)
 
@@ -140,7 +140,7 @@ p = nothing
 
 N_target = 128
 
-name = "burgers_nu1em3_n1024"
-datafile = datagen_burgers1D(N, ν, p, N_target, name)
+filename = "burgers_nu1em3_n1024"
+datafile = datagen_burgers1D(N, ν, p, N_target, filename)
 process(datafile)
 #

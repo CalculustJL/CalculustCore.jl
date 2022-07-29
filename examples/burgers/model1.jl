@@ -39,13 +39,33 @@ function ut_from_data(filename)
     u, t
 end
 
+function optcb(p, l, pred;
+                doplot=false,
+                space=space,
+                steptime=nothing,
+                iter=nothing,
+                niter=nothing,
+               )
+
+    steptime = steptime isa Nothing ? 0.0 : steptime
+    iter = iter isa Nothing ? 0 : iter
+    niter = niter isa Nothing ? 0 : niter
+
+    println(
+            "[$iter/$niter] \t Time $(round(steptime; digits=2))s \t Loss: " *
+            "$(round(l; digits=8)) \t "
+           )
+
+    return false
+end
+
 """ space discr """
-function setup_burgers1d(N, ν, filename;
-                         p=nothing,
-                         model=nothing,
-                         odealg=SSPRK43(),
-                         ode_cb=nothing,
-                        )
+function setup_model1(N, ν, filename;
+                      p=nothing,
+                      model=nothing,
+                      odealg=SSPRK43(),
+                      odecb=nothing,
+                     )
 
     model = model isa Nothing ? (u, p, t, space) -> zero(u) : model
 
@@ -119,7 +139,7 @@ function setup_burgers1d(N, ν, filename;
     end
 
     tspan = (t_data[1], t_data[end])
-    prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-6, abstol=1f-6)
+    prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
     function predict(p; callback=ode_cb)
