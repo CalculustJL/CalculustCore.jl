@@ -28,8 +28,8 @@ Manifest.toml
 *.jld2
 
 # Figures
-*gif
-*png
+*.gif
+*.png
 
 # Editor generatoed file
 .*.swp
