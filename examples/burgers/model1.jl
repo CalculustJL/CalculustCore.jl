@@ -156,12 +156,13 @@ function setup_model1(N, ν, filename;
               sensealg=sense,
               callback=nothing,
               saveat=t_data,
-             ) |> CuArray
+             )
     end
 
     function loss(p)
-        pred = predict(p)
-        vx = pred[:vx,:]
+        sol = predict(p)
+        vxs = Tuple(sol.u[i].vx for i=1:length(sol))
+        vx = hcat(vxs...) # one more reshape
         loss = sum(abs2.(vx_data .- pred)) / n_data
 
         loss, pred
@@ -209,11 +210,11 @@ model, ps, st = begin
              η_forcing = nn_η_forcing,
             )
 
-    ps = ComponentArray(
-                        η_init=p_η_init,
-                        η_forcing=p_η_forcing,
-                        α=α,
-                        β=β,
+    ps = ComponentArray(;
+                        η_init=ComponentArray(p_η_init),
+                        η_forcing=ComponentArray(p_η_forcing),
+                        #α=α,
+                        #β=β,
                        ) |> gpu
 
     st = (;
