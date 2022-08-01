@@ -14,7 +14,10 @@ using SciMLSensitivity, Zygote
 CUDA.allowscalar(false)
 
 function dudt(u, p, t)
-    zero(u)
+    dvx = 0 * u.vx
+    dvy = 0 * u.vy
+
+    ComponentArray(vcat(u.vx |> vec, u.vy |> vec), getaxes(u))
 end
 
 N  = 128

@@ -95,17 +95,17 @@ function setup_model0(N, ν, datafile;
     """ time discr """
     function dudt(u, p, t)
         Zygote.ignore() do
-            SciMLBase.update_coefficients!(Dt, u, p, t)
+            SciMLOperators.update_coefficients!(Dt, u, p, t)
         end
 
-        du1 = Dt * u
-        du2 = 1f-2*model(u, p, t, space)
+        du  = Dt * u
+        du += 1f-2 * model(u, p, t, space)
 
-        du1 + du2
+        du
     end
 
     tspan = (t_data[1], t_data[end])
-    prob = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
+    prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
     function predict(p; callback=odecb)
@@ -120,7 +120,7 @@ function setup_model0(N, ν, datafile;
 
     function loss(p)
         pred = predict(p)
-        loss = sum(abs2.(u_data .- pred)) / n_data
+        loss = sum(abs2.(pred .- u_data))
 
         loss, pred
     end
@@ -166,7 +166,7 @@ model, ps, st = begin
     ps = ComponentArray(ps) |> gpu
     st = st |> gpu
 
-    function model(u, p, t, space)
+    model = function(u, p, t, space)
         nn(u, p, st)[1]
     end
 
@@ -184,7 +184,7 @@ optf = p -> loss(p)[1]
 Zygote.gradient(optf, ps)
 @time Zygote.gradient(optf, ps)
 
-ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
+ps = train(loss, ps; alg=ADAM(1f-5), maxiters=100)
 
 model = jldsave(savefile; ps)
 #

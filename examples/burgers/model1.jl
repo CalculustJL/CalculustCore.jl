@@ -21,11 +21,11 @@ Random.seed!(rng, 0)
 """
 1D Burgers + Closure equation
 
-∂t(vx) = -vx * ∂x(vx) + ν∂xx(vx) + ∇⋅η
-∂t(η) = -α*u∂x(η) + β*ν∂xx(η) + NN1(vx)
+∂t(vx) = -vx * ∂x(vx) + ν∂xx(vx) + ∂x(η)
+∂t(η ) = -u∂x(η) + ν∂xx(η) + NN_η_forcing(vx)
 
-u(t=0) = u0 (from data)
-η(t=0) = NN0(vx0)
+u(t=0) = vx0 (from data)
+η(t=0) = NN_η_init(vx0)
 """
 
 """ data """
@@ -63,7 +63,6 @@ function setup_model1(N, ν, filename;
                       p=nothing,
                       model=nothing,
                       odealg=SSPRK43(),
-                      odecb=nothing,
                      )
 
     model = model isa Nothing ? (u, p, t, space) -> zero(u) : model
@@ -82,12 +81,7 @@ function setup_model1(N, ν, filename;
     n_data = length(vx_data)
 
     """ initial conditions """
-    u0 = ComponentArray(;
-                        vx=vx0,
-                        η=zero(vx0),
-                       ) |> gpu
-
-    ax = getaxes(u0)
+    u0 = ComponentArray(;vx=vx0, η=zero(vx0)) |> gpu
 
     """ operators """
     space = make_transform(space, u0.vx; isinplace=false, p=u0)
@@ -103,7 +97,8 @@ function setup_model1(N, ν, filename;
         end
 
         function forcing!(f, u, p, t)
-            mul!(f, Dx, p.η)
+            ηx = Dx * p.η
+            copy!(f, ηx)
         end
 
         C = advectionOp((zero(u0.vx),), space, discr; vel_update_funcs=(burgers!,))
@@ -116,7 +111,7 @@ function setup_model1(N, ν, filename;
         A = diffusionOp(ν, space, discr)
 
         function vel!(v, u, p, t)
-            copy!(v, p.u.vx)
+            copy!(v, p.vx)
         end
 
         C = advectionOp((zero(u0.η),), space, discr; vel_update_funcs=(vel!,))
@@ -126,17 +121,17 @@ function setup_model1(N, ν, filename;
 
     """ time discr """
     function dudt(u, p, t)
-#       Zygote.ignore() do
-#           SciMLBase.update_coefficients!(Ddt_vx, u.vx, u, t)
-#           SciMLBase.update_coefficients!(Ddt_η , u.η , u, t)
-#       end
+        Zygote.ignore() do
+            SciMLOperators.update_coefficients!(Ddt_vx, u.vx, u, t)
+            SciMLOperators.update_coefficients!(Ddt_η , u.η , u, t)
+        end
 
-#       dvx = Ddt_vx * u.vx
-#       dη  = Ddt_η  * u.η
+        dvx = Ddt_vx * u.vx
+        dη  = Ddt_η  * u.η
 
-#       du = ComponentArray(vcat(dvx, dη), ax)
+        dη += 1f-3 * model.η_forcing(u.vx, p.η_forcing, st.η_forcing)[1]
 
-        zero(u)
+        ComponentArray(vcat(dvx |> vec, dη |> vec), getaxes(u))
     end
 
     tspan = (t_data[1], t_data[end])
@@ -144,19 +139,21 @@ function setup_model1(N, ν, filename;
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
     function predict(p; callback=nothing)
-#       prob = remake(prob,
-#                     u0=ComponentArray(;
-#                                       vx=,
-#                                       η=,
-#                                      )
-#                    )
-        sol = solve(prob,
-                    odealg,
-                    p=p,
-                    sensealg=sense,
-                    #callback=callback,
-                    saveat=t_data,
-                   )
+
+        η0 = 1f-3 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
+
+        prob = remake(
+                      prob,
+                      u0=ComponentArray(vcat(u0.vx |> vec, η0 |> vec), getaxes(u0))
+                     )
+
+        sol  = solve(prob,
+                     odealg,
+                     p=p,
+                     sensealg=sense,
+                     callback=callback,
+                     saveat=t_data,
+                    )
 
         vxs = Tuple(sol.u[i].vx for i=1:length(sol))
         vx = cat(vxs...;dims=3)
@@ -169,7 +166,7 @@ function setup_model1(N, ν, filename;
 
     function loss(p)
         vx, _ = predict(p)
-        loss = sum(abs2.(vx_data .- vx)) / n_data
+        loss = sum(abs2.(vx .- vx_data))
 
         loss, vx
     end
@@ -177,7 +174,7 @@ function setup_model1(N, ν, filename;
     predict, loss, space
 end
 
-ode_cb = begin
+odecb = begin
     function affect!(int)
         println(int.t)
     end
@@ -211,7 +208,7 @@ model, ps, st = begin
     α = rand(Float32)
     β = rand(Float32)
 
-    model = (
+    model = (;
              η_init = nn_η_init,
              η_forcing = nn_η_forcing,
             )
@@ -235,11 +232,11 @@ end
 predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 
 # dummy calls
-println("fwd"); @time optcb(ps, loss(ps)...;doplot=false)
-println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
+optf = p -> loss(p)[1]
+predict(ps; callback=odecb)
+#println("fwd"); @time optf(ps) |> display
+#println("bwd"); @time Zygote.gradient(optf, ps) |> display
 
-#optf = p -> loss(p)[1]
-#optf(ps)
 #Zygote.gradient(optf, ps)
 ##@time Zygote.gradient(optf, ps)
 
