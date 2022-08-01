@@ -78,7 +78,10 @@ function setup_model1(N, ν, filename;
     vx0 = @views vx_data[:,:,1]
 
     vx_data = gpu(vx_data)
-    n_data = length(vx_data)
+
+    _, K, Nt = size(vx_data) # [N, K, Nt]
+    Nd       = length(vx_data)
+    NK = N*K
 
     """ initial conditions """
     u0 = ComponentArray(;vx=vx0, η=zero(vx0)) |> gpu
@@ -138,7 +141,7 @@ function setup_model1(N, ν, filename;
     prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
-    function predict(p; callback=nothing)
+    predict = function(p; callback=nothing)
 
         η0 = 1f-4 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
 
@@ -155,16 +158,18 @@ function setup_model1(N, ν, filename;
                      saveat=t_data,
                     )
 
-        vxs = Tuple(sol.u[i].vx for i=1:length(sol))
-        vx = cat(vxs...;dims=3)
+        pred = sol |> CuArray
 
-        ηs = Tuple(sol.u[i].η for i=1:length(sol))
-        η = cat(ηs...;dims=3)
+        vx = @views pred[1   : NK, :]
+        η  = @views pred[NK+1:2NK, :]
+
+        vx = reshape(vx, (N,K,Nt))
+        η  = reshape(η , (N,K,Nt))
 
         vx, η
     end
 
-    function loss(p)
+    loss = function(p)
         vx, _ = predict(p)
         loss = sum(abs2.(vx .- vx_data))
 
@@ -234,7 +239,7 @@ predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 # dummy calls
 optf = p -> loss(p)[1]
 println("fwd"); @time optf(ps) |> display
-#println("bwd"); @time Zygote.gradient(optf, ps) |> display
+println("bwd"); @time Zygote.gradient(optf, ps) |> display
 
 #Zygote.gradient(optf, ps)
 ##@time Zygote.gradient(optf, ps)

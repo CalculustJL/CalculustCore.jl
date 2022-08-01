@@ -108,7 +108,7 @@ function setup_model0(N, ν, datafile;
     prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
-    function predict(p; callback=odecb)
+    predict = function(p; callback=odecb)
         solve(prob,
               odealg,
               p=p,
@@ -118,7 +118,7 @@ function setup_model0(N, ν, datafile;
              ) |> CuArray
     end
 
-    function loss(p)
+    loss = function(p)
         pred = predict(p)
         loss = sum(abs2.(pred .- u_data))
 
