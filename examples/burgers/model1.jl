@@ -26,7 +26,6 @@ Random.seed!(rng, 0)
 
 u(t=0) = u0 (from data)
 η(t=0) = NN0(vx0)
-
 """
 
 """ data """
@@ -40,12 +39,12 @@ function ut_from_data(filename)
 end
 
 function optcb(p, l, pred;
-                doplot=false,
-                space=space,
-                steptime=nothing,
-                iter=nothing,
-                niter=nothing,
-               )
+               doplot=false,
+               space=space,
+               steptime=nothing,
+               iter=nothing,
+               niter=nothing,
+              )
 
     steptime = steptime isa Nothing ? 0.0 : steptime
     iter = iter isa Nothing ? 0 : iter
@@ -76,15 +75,19 @@ function setup_model1(N, ν, filename;
     (x,) = points(space)
 
     """ get data """
-    vx_data, t_data = ut_from_data(filename)
-    vx0 = vx_data[:,:,1]
-    n_data = length(vx0)
+    vx_data, t_data = ut_from_data(datafile)
+    vx0 = @views vx_data[:,:,1]
+
+    vx_data = gpu(vx_data)
+    n_data = length(vx_data)
 
     """ initial conditions """
     u0 = ComponentArray(;
                         vx=vx0,
                         η=zero(vx0),
                        ) |> gpu
+
+    ax = getaxes(u0)
 
     """ operators """
     space = make_transform(space, u0.vx; isinplace=false, p=u0)
@@ -124,17 +127,15 @@ function setup_model1(N, ν, filename;
     """ time discr """
     function dudt(u, p, t)
 #       Zygote.ignore() do
-#           SciMLBase.update_coefficients!(Dt_vx, u.vx, u, t)
-#           SciMLBase.update_coefficients!(Dt_η , u.η , u, t)
+#           SciMLBase.update_coefficients!(Ddt_vx, u.vx, u, t)
+#           SciMLBase.update_coefficients!(Ddt_η , u.η , u, t)
 #       end
 
 #       dvx = Ddt_vx * u.vx
 #       dη  = Ddt_η  * u.η
 
-#       ComponentArray(;
-#                      vx=dvx,
-#                      η=dη,
-#                     )
+#       du = ComponentArray(vcat(dvx, dη), ax)
+
         zero(u)
     end
 
@@ -142,30 +143,35 @@ function setup_model1(N, ν, filename;
     prob  = ODEProblem(dudt, u0, tspan, p; reltol=1f-4, abstol=1f-4)
     sense = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 
-    function predict(p; callback=ode_cb)
+    function predict(p; callback=nothing)
 #       prob = remake(prob,
 #                     u0=ComponentArray(;
 #                                       vx=,
 #                                       η=,
 #                                      )
 #                    )
-        solve(
-              prob,
-              odealg,
-              p=p,
-              sensealg=sense,
-              callback=nothing,
-              saveat=t_data,
-             )
+        sol = solve(prob,
+                    odealg,
+                    p=p,
+                    sensealg=sense,
+                    #callback=callback,
+                    saveat=t_data,
+                   )
+
+        vxs = Tuple(sol.u[i].vx for i=1:length(sol))
+        vx = cat(vxs...;dims=3)
+
+        ηs = Tuple(sol.u[i].η for i=1:length(sol))
+        η = cat(ηs...;dims=3)
+
+        vx, η
     end
 
     function loss(p)
-        sol = predict(p)
-        vxs = Tuple(sol.u[i].vx for i=1:length(sol))
-        vx = hcat(vxs...) # one more reshape
-        loss = sum(abs2.(vx_data .- pred)) / n_data
+        vx, _ = predict(p)
+        loss = sum(abs2.(vx_data .- vx)) / n_data
 
-        loss, pred
+        loss, vx
     end
 
     predict, loss, space
@@ -232,11 +238,12 @@ predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 println("fwd"); @time optcb(ps, loss(ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-optf = p -> loss(p)[1]
-Zygote.gradient(optf, ps)
-@time Zygote.gradient(optf, ps)
+#optf = p -> loss(p)[1]
+#optf(ps)
+#Zygote.gradient(optf, ps)
+##@time Zygote.gradient(optf, ps)
 
-ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
+#ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
 
-model = jldsave(savefile; ps)
+#model = jldsave(savefile; ps)
 #
