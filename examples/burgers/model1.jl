@@ -22,7 +22,7 @@ Random.seed!(rng, 0)
 1D Burgers + Closure equation
 
 ∂t(vx) = -vx * ∂x(vx) + ν∂xx(vx) + ∂x(η)
-∂t(η ) = -u∂x(η) + ν∂xx(η) + NN_η_forcing(vx)
+∂t(η ) = -u  * ∂x(η ) + ν∂xx(η ) + NN_η_forcing(vx)
 
 u(t=0) = vx0 (from data)
 η(t=0) = NN_η_init(vx0)
