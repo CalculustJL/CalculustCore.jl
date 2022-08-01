@@ -93,30 +93,22 @@ function setup_model1(N, ν, filename;
     Dx = cache_operator(Dx, u0.η)
 
     Ddt_vx = begin
-        A = diffusionOp(ν, space, discr)
-
         function burgers!(v, u, p, t)
             copyto!(v, p.vx)
         end
 
-        function forcing!(f, u, p, t)
-            ηx = Dx * p.η
-            copy!(f, ηx)
-        end
-
+        A = diffusionOp(ν, space, discr)
         C = advectionOp((zero(u0.vx),), space, discr; vel_update_funcs=(burgers!,))
-        F = forcingOp(zero(u0.vx), space, discr; f_update_func=forcing!)
 
-        cache_operator(A-C+F, u0.vx)
+        cache_operator(A-C, u0.vx)
     end
 
     Ddt_η = begin
-        A = diffusionOp(ν, space, discr)
-
         function vel!(v, u, p, t)
             copy!(v, p.vx)
         end
 
+        A = diffusionOp(ν, space, discr)
         C = advectionOp((zero(u0.η),), space, discr; vel_update_funcs=(vel!,))
 
         cache_operator(A-C, u0.η)
@@ -129,10 +121,13 @@ function setup_model1(N, ν, filename;
             SciMLOperators.update_coefficients!(Ddt_η , u.η , u, t)
         end
 
-        dvx = Ddt_vx * u.vx
+        dvx = Ddt_vx * u.vx + Dx * u.η
         dη  = Ddt_η  * u.η
 
         dη += 1f-4 * model.η_forcing(u.vx, p.η_forcing, st.η_forcing)[1]
+        #dvx += 1f-2 * model.η_forcing(u.vx, p.η_forcing, st.η_forcing)[1]
+
+        # ERROR - gradient zero because zygote not picking up on eqn coupling. make an MWE
 
         ComponentArray(vcat(dvx |> vec, dη |> vec), getaxes(u))
     end
@@ -160,8 +155,13 @@ function setup_model1(N, ν, filename;
 
         pred = sol |> CuArray
 
+        #Zygote.hook(Δ -> println("Δpred norm: ", norm(Δ, Inf)), pred)
+
         vx = @views pred[1   : NK, :]
         η  = @views pred[NK+1:2NK, :]
+
+        #Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
+        #Zygote.hook(Δ -> println("Δη  norm: ", norm(Δ, Inf)), η )
 
         vx = reshape(vx, (N,K,Nt))
         η  = reshape(η , (N,K,Nt))
@@ -171,6 +171,10 @@ function setup_model1(N, ν, filename;
 
     loss = function(p)
         vx, _ = predict(p)
+
+        #Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
+        #vx = Zygote.@showgrad(vx)
+
         loss = sum(abs2.(vx .- vx_data))
 
         loss, vx

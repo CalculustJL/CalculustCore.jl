@@ -34,16 +34,23 @@ predict = function(p)
     sol  = solve(prob, odealg, p=p, sensealg=sense, saveat=tsave)
     pred = sol |> CuArray
 
+    pred = Zygote.@showgrad(pred)
+
     NK = N*K
     vx = @views pred[1   : NK, :] # size [N,K,Nt]
     vy = @views pred[NK+1:2NK, :]
+
+    vx = Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
+    vx = Zygote.hook(Δ -> println("Δvy norm: ", norm(Δ, Inf)), vy)
+    vx = Zygote.@showgrad(vx)
+    vy = Zygote.@showgrad(vy)
 
     vx, vy
 end
 
 loss = function(p)
     vx, vy = predict(p)
-    loss = sum(abs2.(vx.- 1f0))
+    loss = sum(abs2.(vx.- 0f5))
 
     loss, vx
 end
