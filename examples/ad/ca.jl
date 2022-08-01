@@ -13,7 +13,6 @@ using Lux, Random, SciMLSensitivity, Zygote
 
 CUDA.allowscalar(false)
 
-
 function dudt(u, p, t)
     zero(u)
 end
@@ -32,10 +31,10 @@ function predict(p)
     sol = solve(prob, odealg, p=p, sensealg=sense, saveat=tsave)
 
     vxs = Tuple(sol.u[i].vx for i=1:length(sol))
-    vx = cat(vxs...;dims=3)
+    vx  = cat(vxs...;dims=3)
 
     vys = Tuple(sol.u[i].vy for i=1:length(sol))
-    vy = cat(vys...;dims=3)
+    vy  = cat(vys...;dims=3)
 
     vx, vy
 end
