@@ -22,7 +22,7 @@ Random.seed!(rng, 0)
 1D Burgers + Closure equation
 
 ∂t(vx) = -vx * ∂x(vx) + ν∂xx(vx) + ∂x(η)
-∂t(η ) = -u  * ∂x(η ) + ν∂xx(η ) + NN_η_forcing(vx)
+∂t(η ) = -u  * ∂x(η ) + ν∂xx(η ) + NN_η_forc(vx)
 
 u(t=0) = vx0 (from data)
 η(t=0) = NN_η_init(vx0)
@@ -80,7 +80,7 @@ function setup_model1(N, ν, filename;
     vx_data = gpu(vx_data)
 
     _, K, Nt = size(vx_data) # [N, K, Nt]
-    Nd       = length(vx_data)
+    Nd = length(vx_data)
     NK = N*K
 
     """ initial conditions """
@@ -88,9 +88,6 @@ function setup_model1(N, ν, filename;
 
     """ operators """
     space = make_transform(space, u0.vx; isinplace=false, p=u0)
-
-    Dx = gradientOp(space, discr)[1]
-    Dx = cache_operator(Dx, u0.η)
 
     Ddt_vx = begin
         function burgers!(v, u, p, t)
@@ -114,6 +111,13 @@ function setup_model1(N, ν, filename;
         cache_operator(A-C, u0.η)
     end
 
+    Dx = gradientOp(space)[1]
+    Dx = cache_operator(Dx, u0.η) ## ERROR This is killing the gradient
+    F = cache_operator(transformOp(space), u0.η)
+
+    Dx = IdentityOperator(space)
+    Dx =  F \ F
+
     """ time discr """
     function dudt(u, p, t)
         Zygote.ignore() do
@@ -121,13 +125,22 @@ function setup_model1(N, ν, filename;
             SciMLOperators.update_coefficients!(Ddt_η , u.η , u, t)
         end
 
-        dvx = Ddt_vx * u.vx + Dx * u.η
-        dη  = Ddt_η  * u.η
+        vx = u.vx
+        η  = u.η
 
-        dη += 1f-4 * model.η_forcing(u.vx, p.η_forcing, st.η_forcing)[1]
-        #dvx += 1f-2 * model.η_forcing(u.vx, p.η_forcing, st.η_forcing)[1]
+        #vx = Zygote.hook(Δ -> (println("||Δvx||∞ ", norm(Δ, Inf)); Δ), vx)
+        #η  = Zygote.hook(Δ -> (println("||Δη ||∞ ", norm(Δ, Inf)); Δ), η )
 
-        # ERROR - gradient zero because zygote not picking up on eqn coupling. make an MWE
+        #vx = Zygote.hook(Δ -> (println("Δvx isa ", typeof(Δ)); Δ), vx)
+        #η  = Zygote.hook(Δ -> (println("Δη  isa ", typeof(Δ)); Δ), η )
+
+        dvx = Ddt_vx * vx + Dx * η # ERROR: Id*u.η works but Dx * u.η returns zero grad
+        dη  = Ddt_η  * η
+
+        dη += 1f-4 * model.η_forc(u.vx, p.η_forc, st.η_forc)[1]
+
+        #dvx = Zygote.hook(Δ -> (println("||Δdvx||∞ ", norm(Δ, Inf)); Δ), dvx)
+        #dη  = Zygote.hook(Δ -> (println("||Δdη ||∞ ", norm(Δ, Inf)); Δ), dη )
 
         ComponentArray(vcat(dvx |> vec, dη |> vec), getaxes(u))
     end
@@ -140,9 +153,12 @@ function setup_model1(N, ν, filename;
 
         η0 = 1f-4 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
 
+        ## Zygote
+        #η0 = Zygote.hook(Δ -> (println("||Δη0||∞ ", norm(Δ, Inf)); Δ), η0)
+
         prob = remake(
                       prob,
-                      u0=ComponentArray(vcat(u0.vx |> vec, η0 |> vec), getaxes(u0))
+                      u0=ComponentArray(vcat(u0.vx |> vec, η0 |> vec), getaxes(u0)),
                      )
 
         sol  = solve(prob,
@@ -155,16 +171,20 @@ function setup_model1(N, ν, filename;
 
         pred = sol |> CuArray
 
-        #Zygote.hook(Δ -> println("Δpred norm: ", norm(Δ, Inf)), pred)
+        ## Zygote
+        #pred = Zygote.hook(Δ -> (println("||Δpred||∞ ", norm(Δ, Inf)); Δ), pred)
+        #pred = Zygote.hook(Δ -> (println("Δpred isa ", typeof(Δ)); Δ), pred)
 
         vx = @views pred[1   : NK, :]
         η  = @views pred[NK+1:2NK, :]
 
-        #Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
-        #Zygote.hook(Δ -> println("Δη  norm: ", norm(Δ, Inf)), η )
-
         vx = reshape(vx, (N,K,Nt))
         η  = reshape(η , (N,K,Nt))
+
+        ## Zygote
+        #vx = Zygote.hook(Δ -> (println("||Δvx||∞ ", norm(Δ, Inf)); Δ), vx)
+        #vx = Zygote.hook(Δ -> (println("Δvx isa ", typeof(Δ)); Δ), vx)
+        #η  = Zygote.hook(Δ -> (println("Δη  isa ", typeof(Δ)); Δ), η )
 
         vx, η
     end
@@ -173,14 +193,13 @@ function setup_model1(N, ν, filename;
         vx, _ = predict(p)
 
         #Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
-        #vx = Zygote.@showgrad(vx)
 
         loss = sum(abs2.(vx .- vx_data))
 
         loss, vx
     end
 
-    predict, loss, space
+    predict, loss, space, Dx, u0
 end
 
 odecb = begin
@@ -207,46 +226,44 @@ model, ps, st = begin
 
     p_η_init, st_η_init = Lux.setup(rng, nn_η_init)
 
-    nn_η_forcing = Lux.Chain(
-                             Lux.Dense(N,N, tanh),
-                             Lux.Dense(N,N),
-                            )
+    nn_η_forc = Lux.Chain(
+                          Lux.Dense(N,N, tanh),
+                          Lux.Dense(N,N),
+                         )
 
-    p_η_forcing, st_η_forcing = Lux.setup(rng, nn_η_forcing)
+    p_η_forc, st_η_forc = Lux.setup(rng, nn_η_forc)
 
-    α = rand(Float32)
-    β = rand(Float32)
+    α = rand(Float32, 1)
+    β = rand(Float32, 1)
 
     model = (;
              η_init = nn_η_init,
-             η_forcing = nn_η_forcing,
+             η_forc = nn_η_forc,
             )
 
     ps = ComponentArray(;
                         η_init=ComponentArray(p_η_init),
-                        η_forcing=ComponentArray(p_η_forcing),
-                        #α=α,
-                        #β=β,
+                        η_forc=ComponentArray(p_η_forc),
+                        α=α,
+                        β=β,
                        ) |> gpu
 
     st = (;
           η_init = st_η_init,
-          η_forcing = st_η_forcing,
+          η_forc = st_η_forc,
          )
 
     model, ps, st
 end
 ##############################################
 
-predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
+predict, loss, space, Dx, u0 = setup_model1(N, ν, datafile; p=ps, model=model);
 
 # dummy calls
 optf = p -> loss(p)[1]
 println("fwd"); @time optf(ps) |> display
-println("bwd"); @time Zygote.gradient(optf, ps) |> display
-
-#Zygote.gradient(optf, ps)
-##@time Zygote.gradient(optf, ps)
+println("bwd"); @time gr=Zygote.gradient(optf, ps)[1]
+@show norm(gr, Inf)
 
 #ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
 

@@ -8,21 +8,23 @@ let
     nothing
 end
 
-using OrdinaryDiffEq, CUDA, LinearAlgebra, ComponentArrays
-using SciMLSensitivity, Zygote, Lux
-
-CUDA.allowscalar(false)
-
-dudt = function(u, p, t)
-    zero(u)
-end
+using OrdinaryDiffEq, LinearAlgebra
+using SciMLSensitivity, Zygote
+using Plots
 
 N  = 2
-K  = 3
 Nt = 4
 
-u0 = ComponentArray(; vx=ones(N,K), vy=zeros(N,K)) |> gpu
-ps = ones(1)
+u0 = [1f0, 1f0]
+ps = [-1f0]
+
+A  = [-1f0 1f0
+       0f0 0f0]
+
+dudt = function(u, p, t)
+
+    A * u + [0, p[1]]
+end
 
 tspan  = (0f0, 1f0)
 tsave  = range(tspan...; length=Nt)
@@ -31,23 +33,14 @@ sense  = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 odealg = Tsit5()
 
 predict = function(p)
-    sol  = solve(prob, odealg, p=p, sensealg=sense, saveat=tsave)
-    pred = sol |> CuArray
-
-    pred = Zygote.hook(Δ -> println("Δpred: ", Δ), pred)
-
-    NK = N*K
-    vx = @views pred[1   : NK, :] # size [N,K,Nt]
-    vy = @views pred[NK+1:2NK, :]
-
-    vx = Zygote.hook(Δ -> println("Δvx: ", Δ), vx)
-    vy = Zygote.hook(Δ -> println("Δvy: ", Δ), vy)
-
-    vx, vy
+    solve(prob, odealg, p=p, sensealg=sense, saveat=tsave)
 end
 
 loss = function(p)
-    vx, vy = predict(p)
+    pred = predict(p) |> Array
+    vx = @views pred[1, :]
+    vy = @views pred[2, :]
+
     loss = sum(abs2.(vx.- 0f5))
 
     loss, vx

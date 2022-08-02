@@ -13,16 +13,19 @@ using SciMLSensitivity, Zygote, Lux
 
 CUDA.allowscalar(false)
 
-dudt = function(u, p, t)
-    zero(u)
-end
-
 N  = 2
 K  = 3
 Nt = 4
 
-u0 = ComponentArray(; vx=ones(N,K), vy=zeros(N,K)) |> gpu
-ps = ones(1)
+u0 = ComponentArray(; vx=ones(Float32, N, K), vy=ones(Float32, N, K)) #|> gpu
+ps = [1f0]
+
+dudt = function(u, p, t)
+    dvx = -1f0 * u.vx + 1f0 * u.vy
+    dvy = p[1] * u.vy
+
+    ComponentArray(vcat(dvx |> vec, dvy |> vec), getaxes(u))
+end
 
 tspan  = (0f0, 1f0)
 tsave  = range(tspan...; length=Nt)
@@ -31,17 +34,13 @@ sense  = InterpolatingAdjoint(autojacvec=ZygoteVJP(allow_nothing=true))
 odealg = Tsit5()
 
 predict = function(p)
-    sol  = solve(prob, odealg, p=p, sensealg=sense, saveat=tsave)
-    pred = sol |> CuArray
+    pred  = solve(prob, odealg, p=p, sensealg=sense, saveat=tsave) |> Array #CuArray
 
-    pred = Zygote.hook(Δ -> println("Δpred: ", Δ), pred)
+    vx = @views pred[1    : N*K, :] # size [N,K,Nt]
+    vy = @views pred[N*K+1:2N*K, :]
 
-    NK = N*K
-    vx = @views pred[1   : NK, :] # size [N,K,Nt]
-    vy = @views pred[NK+1:2NK, :]
-
-    vx = Zygote.hook(Δ -> println("Δvx: ", Δ), vx)
-    vy = Zygote.hook(Δ -> println("Δvy: ", Δ), vy)
+    vx = reshape(vx, (N,K,Nt))
+    vy = reshape(vy, (N,K,Nt))
 
     vx, vy
 end
