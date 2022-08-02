@@ -112,11 +112,7 @@ function setup_model1(N, ν, filename;
     end
 
     Dx = gradientOp(space)[1]
-    Dx = cache_operator(Dx, u0.η) ## ERROR This is killing the gradient
-    F = cache_operator(transformOp(space), u0.η)
-
-    #Dx = IdentityOperator(space)
-    #Dx =  F \ F
+    Dx = cache_operator(Dx, u0.η)
 
     """ time discr """
     function dudt(u, p, t)
@@ -128,19 +124,10 @@ function setup_model1(N, ν, filename;
         vx = u.vx
         η  = u.η
 
-        #vx = Zygote.hook(Δ -> (println("||Δvx||∞ ", norm(Δ, Inf)); Δ), vx)
-        #η  = Zygote.hook(Δ -> (println("||Δη ||∞ ", norm(Δ, Inf)); Δ), η )
-
-        #vx = Zygote.hook(Δ -> (println("Δvx isa ", typeof(Δ)); Δ), vx)
-        #η  = Zygote.hook(Δ -> (println("Δη  isa ", typeof(Δ)); Δ), η )
-
-        dvx = Ddt_vx * vx + Dx * η # ERROR: Id*u.η works but Dx * u.η returns zero grad
+        dvx = Ddt_vx * vx + Dx * η
         dη  = Ddt_η  * η
 
-        dη += 1f-4 * model.η_forc(u.vx, p.η_forc, st.η_forc)[1]
-
-        #dvx = Zygote.hook(Δ -> (println("||Δdvx||∞ ", norm(Δ, Inf)); Δ), dvx)
-        #dη  = Zygote.hook(Δ -> (println("||Δdη ||∞ ", norm(Δ, Inf)); Δ), dη )
+        dη += 1f-3 * model.η_forc(u.vx, p.η_forc, st.η_forc)[1]
 
         ComponentArray(vcat(dvx |> vec, dη |> vec), getaxes(u))
     end
@@ -151,10 +138,7 @@ function setup_model1(N, ν, filename;
 
     predict = function(p; callback=nothing)
 
-        η0 = 1f-4 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
-
-        ## Zygote
-        #η0 = Zygote.hook(Δ -> (println("||Δη0||∞ ", norm(Δ, Inf)); Δ), η0)
+        η0 = 1f-3 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
 
         prob = remake(
                       prob,
@@ -171,35 +155,23 @@ function setup_model1(N, ν, filename;
 
         pred = sol |> CuArray
 
-        ## Zygote
-        #pred = Zygote.hook(Δ -> (println("||Δpred||∞ ", norm(Δ, Inf)); Δ), pred)
-        #pred = Zygote.hook(Δ -> (println("Δpred isa ", typeof(Δ)); Δ), pred)
-
         vx = @views pred[1   : NK, :]
         η  = @views pred[NK+1:2NK, :]
 
         vx = reshape(vx, (N,K,Nt))
         η  = reshape(η , (N,K,Nt))
 
-        ## Zygote
-        #vx = Zygote.hook(Δ -> (println("||Δvx||∞ ", norm(Δ, Inf)); Δ), vx)
-        #vx = Zygote.hook(Δ -> (println("Δvx isa ", typeof(Δ)); Δ), vx)
-        #η  = Zygote.hook(Δ -> (println("Δη  isa ", typeof(Δ)); Δ), η )
-
         vx, η
     end
 
     loss = function(p)
         vx, _ = predict(p)
-
-        #Zygote.hook(Δ -> println("Δvx norm: ", norm(Δ, Inf)), vx)
-
         loss = sum(abs2.(vx .- vx_data))
 
         loss, vx
     end
 
-    predict, loss, space, Dx, u0
+    predict, loss, space
 end
 
 odecb = begin
@@ -257,7 +229,7 @@ model, ps, st = begin
 end
 ##############################################
 
-predict, loss, space, Dx, u0 = setup_model1(N, ν, datafile; p=ps, model=model);
+predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 
 # dummy calls
 optf = p -> loss(p)[1]
