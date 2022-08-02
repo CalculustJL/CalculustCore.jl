@@ -115,8 +115,8 @@ function setup_model1(N, ν, filename;
     Dx = cache_operator(Dx, u0.η) ## ERROR This is killing the gradient
     F = cache_operator(transformOp(space), u0.η)
 
-    Dx = IdentityOperator(space)
-    Dx =  F \ F
+    #Dx = IdentityOperator(space)
+    #Dx =  F \ F
 
     """ time discr """
     function dudt(u, p, t)
