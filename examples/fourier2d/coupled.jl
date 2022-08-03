@@ -24,8 +24,8 @@ ny = 32
 ν = 5e-1
 p = nothing
 
-#odealg = Tsit5()
-odealg = SSPRK43()
+odealg = Tsit5()
+#odealg = SSPRK43()
 
 """ spatial discr """
 space = FourierSpace(nx, ny)
@@ -45,11 +45,11 @@ ps = ComponentArray(vel=u0)
 space = make_transform(space, u0.vx; p=ps)
 
 # GPU
-#CUDA.allowscalar(false)
-#space = space |> gpu
-#x, y = points(space)
-#u0 = u0 |> gpu
-#ps = ps |> gpu
+CUDA.allowscalar(false)
+space = space |> gpu
+x, y = points(space)
+u0 = u0 |> gpu
+ps = ps |> gpu
 
 """ spce ops """
 Ax = diffusionOp(ν, space, discr)

@@ -127,7 +127,7 @@ function setup_model1(N, ν, filename;
         dvx = Ddt_vx * vx + Dx * η
         dη  = Ddt_η  * η
 
-        dη += 1f-3 * model.η_forc(u.vx, p.η_forc, st.η_forc)[1]
+        dη += 1f-4 * model.η_forc(u.vx, p.η_forc, st.η_forc)[1]
 
         ComponentArray(vcat(dvx |> vec, dη |> vec), getaxes(u))
     end
@@ -138,7 +138,7 @@ function setup_model1(N, ν, filename;
 
     predict = function(p; callback=nothing)
 
-        η0 = 1f-3 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
+        η0 = 1f-4 * model.η_init(u0.vx, p.η_init, st.η_init)[1]
 
         prob = remake(
                       prob,
@@ -231,13 +231,16 @@ end
 
 predict, loss, space = setup_model1(N, ν, datafile; p=ps, model=model);
 
+#file = jldopen(savefile; ps)
+
 # dummy calls
 optf = p -> loss(p)[1]
 println("fwd"); @time optf(ps) |> display
 println("bwd"); @time gr=Zygote.gradient(optf, ps)[1]
 @show norm(gr, Inf)
 
-#ps = train(loss, ps; alg=ADAM(1f-3), maxiters=1000)
+ps = train(loss, ps; alg=ADAM(1f-2), maxiters=100)
 
-#model = jldsave(savefile; ps)
+#ps = cpu(ps)
+#jldsave(savefile; ps)
 #
