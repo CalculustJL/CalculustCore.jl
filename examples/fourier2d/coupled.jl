@@ -20,7 +20,7 @@ using ComponentArrays, CUDA
 
 T = Float32
 N = nx = ny = 64
-ν = 1e-2 |> T
+ν = 1e-3 |> T
 p = nothing
 
 odealg = Tsit5()
@@ -33,7 +33,7 @@ x, y = points(space)
 
 """ IC """
 u0 = begin
-    X = truncationOp(space, (12//nx, 12//nx))
+    X = truncationOp(space, (8//nx, 8//nx))
     vx0 = X * rand(T, size(x)...)
     vy0 = X * rand(T, size(x)...)
 
@@ -85,7 +85,7 @@ end
 
 """ time discr """
 tspan = (0f0, 10f0)
-tsave = range(tspan...; length=10)
+tsave = range(tspan...; length=100)
 prob = ODEProblem(ddt, u0, tspan, p)
 
 function affect!(int)
@@ -102,9 +102,9 @@ vy = @views pred[:vy, :]
 
 anim = animate(vx, space, sol.t)
 filename = joinpath(dirname(@__FILE__), "burgers_x" * ".gif")
-gif(anim, filename, fps=5)
+gif(anim, filename, fps=20)
 
 anim = animate(vy, space, sol.t)
 filename = joinpath(dirname(@__FILE__), "burgers_y" * ".gif")
-gif(anim, filename, fps=5)
+gif(anim, filename, fps=20)
 #
