@@ -16,16 +16,15 @@ let
 end
 
 using OrdinaryDiffEq, Plots
-using ComponentArrays, UnPack
-using CUDA
+using ComponentArrays, CUDA
 
-nx = 32
-ny = 32
-ν = 5e-1
+nx = 64
+ny = 64
+ν = 1e-2
 p = nothing
 
 odealg = Tsit5()
-#odealg = SSPRK43()
+odealg = SSPRK43()
 
 """ spatial discr """
 space = FourierSpace(nx, ny)
@@ -33,8 +32,8 @@ discr = Collocation()
 x, y = points(space)
 
 """ IC """
-X = truncationOp(space, (1//5, 1//5))
 u0 = begin
+    X = truncationOp(space, (1//5, 1//5))
     vx0 = X * rand(size(x)...)
     vy0 = X * rand(size(x)...)
 
@@ -45,11 +44,11 @@ ps = ComponentArray(vel=u0)
 space = make_transform(space, u0.vx; p=ps)
 
 # GPU
-CUDA.allowscalar(false)
-space = space |> gpu
-x, y = points(space)
-u0 = u0 |> gpu
-ps = ps |> gpu
+#CUDA.allowscalar(false)
+#space = space |> gpu
+#x, y = points(space)
+#u0 = u0 |> gpu
+#ps = ps |> gpu
 
 """ spce ops """
 Ax = diffusionOp(ν, space, discr)
