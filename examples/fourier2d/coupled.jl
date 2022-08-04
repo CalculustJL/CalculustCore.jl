@@ -19,7 +19,7 @@ using OrdinaryDiffEq, Plots
 using ComponentArrays, CUDA
 
 T = Float32
-N = nx = ny = 64
+N = nx = ny = 256
 ν = 1e-3 |> T
 p = nothing
 
