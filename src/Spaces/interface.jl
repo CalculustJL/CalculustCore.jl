@@ -84,14 +84,18 @@ function Plots.animate(u::AbstractMatrix,
     end
 end
 
-function Plots.animate(u::AbstractMatrix, space::AbstractSpace{<:Any,2}; kwargs...)
+function Plots.animate(u::AbstractMatrix,
+                       space::AbstractSpace{<:Any,2},
+                       t::AbstractVector=collect(1:size(u,2));
+                       kwargs...)
     clim = begin
         mi = minimum(u)
         ma = maximum(u)
         (mi, ma)
     end
     anim = @animate for i=1:size(u, 2)
-        plt = plot(u[:,i], space; clim=clim, kwargs...)
+        titlestr = "time = $(round(t[i], digits=8))"
+        plt = plot(u[:,i], space; clim=clim, title=titlestr, kwargs...)
     end
 end
 

@@ -18,24 +18,24 @@ end
 using OrdinaryDiffEq, Plots
 using ComponentArrays, CUDA
 
-nx = 64
-ny = 64
-ν = 1e-2
+T = Float32
+N = nx = ny = 64
+ν = 1e-2 |> T
 p = nothing
 
 odealg = Tsit5()
 odealg = SSPRK43()
 
 """ spatial discr """
-space = FourierSpace(nx, ny)
+space = FourierSpace(nx, ny) |> T
 discr = Collocation()
 x, y = points(space)
 
 """ IC """
 u0 = begin
-    X = truncationOp(space, (1//5, 1//5))
-    vx0 = X * rand(size(x)...)
-    vy0 = X * rand(size(x)...)
+    X = truncationOp(space, (12//nx, 12//nx))
+    vx0 = X * rand(T, size(x)...)
+    vy0 = X * rand(T, size(x)...)
 
     ComponentArray(vx=vx0, vy=vy0)
 end
@@ -84,7 +84,7 @@ function ddt(du, u, p, t)
 end
 
 """ time discr """
-tspan = (0.0, 10.0)
+tspan = (0f0, 10f0)
 tsave = range(tspan...; length=10)
 prob = ODEProblem(ddt, u0, tspan, p)
 
@@ -100,11 +100,11 @@ pred = Array(sol)
 vx = @views pred[:vx, :]
 vy = @views pred[:vy, :]
 
-anim = animate(vx, space)
+anim = animate(vx, space, sol.t)
 filename = joinpath(dirname(@__FILE__), "burgers_x" * ".gif")
 gif(anim, filename, fps=5)
 
-anim = animate(vy, space)
+anim = animate(vy, space, sol.t)
 filename = joinpath(dirname(@__FILE__), "burgers_y" * ".gif")
 gif(anim, filename, fps=5)
 #
