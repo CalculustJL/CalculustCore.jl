@@ -12,7 +12,7 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots, Test
 
 N = 128
-ν = 1e-2
+ν = 1e-3
 p = nothing
 
 """ space discr """
@@ -25,7 +25,7 @@ discr = Collocation()
 F  = transformOp(space)
 
 """ operators """
-v = 1.0;
+v = 0.0;
 vel = @. x*0 + v
 vels = (F * vel,)
 
@@ -35,8 +35,10 @@ F̂ = NullOperator(tspace)
 Dt = cache_operator(Â-Ĉ+F̂, im*k)
 
 """ IC """
+X = truncationOp(space, (32//N,))
+uu = rand(N)
 function uIC(x)
-    @. sin(2x)
+    X * uu
 end
 u0 = uIC(x)
 û0 = F * u0
