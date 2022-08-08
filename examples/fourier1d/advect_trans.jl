@@ -12,7 +12,6 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots, Test
 
 N = 128
-ν = 0e0
 p = nothing
 
 """ space discr """
@@ -25,15 +24,12 @@ discr = Collocation()
 F  = transformOp(space)
 
 """ operators """
-Â = diffusionOp(ν, tspace, discr)
-
 v = 1.0;
 vel = @. x*0 + v
+vels = (F * vel,)
 
-Ĉ = advectionOp((F * vel,), tspace, discr)
+Ĉ = advectionOp(vels, tspace, discr)
 F̂ = -Ĉ
-
-Â = cache_operator(Â, im*k)
 F̂ = cache_operator(F̂, im*k)
 
 """ IC """
@@ -41,14 +37,14 @@ function uIC(x)
     @. sin(1x)
 end
 u0 = uIC(x)
+û0 = F * u0
 
 """ time discr """
-tspan = (0.0, 10.0)
-#tsave = (0, π/4, π/2, 3π/4, 2π,)
-tsave = 0:2:8 * pi
+tsave = 0:4 * pi
+tspan = (tsave[begin], tsave[end])
 odealg = Tsit5()
-prob = SplitODEProblem(Â, F̂, û0, tspan, p)
-@time sol = solve(prob, odealg, saveat=tsave, abstol=1e-8, reltol=1e-8)
+prob = ODEProblem(F̂, û0, tspan, p)
+@time sol = solve(prob, odealg, saveat=tsave, abstol=1e-10, reltol=1e-10)
 
 """ analysis """
 pred = (F,) .\ sol.u

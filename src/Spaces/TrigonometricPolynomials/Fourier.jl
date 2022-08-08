@@ -493,11 +493,11 @@ function biharmonicOp(space::TransformedSpace{<:Any,D,<:FourierSpace}) where{D}
 end
 
 function advectionOp(vels::NTuple{D},
-                     tspace::TransformedSpace{<:Any,D,<:FourierSpace},
+                     tspace::TransformedSpace{T,D,<:FourierSpace},
                      discr::AbstractDiscretization;
                      vel_update_funcs=nothing,
                      truncation_fracs=nothing,
-                    ) where{D}
+                    ) where{T,D}
 
     space = transform(tspace)
 
@@ -505,16 +505,19 @@ function advectionOp(vels::NTuple{D},
     Xh = truncationOp(tspace, truncation_fracs)
     M  = massOp(space, discr)
 
-    truncate_vel = cache_operator(F \ Xh, vels[1])
-    vel_update_funcs = ComposedUpdateFunction.((truncate_vel,), vel_update_funcs)
-    VV = _pair_update_funcs((F,) .\ vels, vel_update_funcs) # phys
+    VV = begin
+        trunc = cache_operator(F \ Xh, vels[1])
+        vel_funcs = ComposedUpdateFunction.((trunc,), vel_update_funcs, deepcopy(vels))
 
-    MM  = Diagonal([M  for i=1:D]) # phys
-    FF  = Diagonal([F  for i=1:D])
+        _pair_update_funcs((F,) .\ vels, vel_funcs)
+    end
+
+    MM  = Diagonal([M  for i=1:D])
     XXh = Diagonal([Xh for i=1:D])
+    FFi = Diagonal([inv(F)  for i=1:D])
     DDh = gradientOp(tspace, discr)
 
-    F * (VV' * MM * (FF \ XXh * DDh))
+    F * (VV' * MM * FFi * XXh * DDh)
 end
 
 # interpolation
