@@ -1,10 +1,4 @@
 #
-# TODO - local system <-> global system
-# global system for computation
-# local system for plotting
-# local_numbering(space::FourierSpace)
-# global_numbering(space::FourierSpace)
-
 """
 Fourier spectral space
 """
