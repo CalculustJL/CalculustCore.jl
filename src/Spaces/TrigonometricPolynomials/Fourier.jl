@@ -51,11 +51,10 @@ function (::Type{T})(space::FourierSpace) where{T<:Number}
                          mass_mat, nothing,
                         )
 
-    iip = ftransform.traits.isinplace
     p   = nothing # TODO
     u0  = T.(ftransform.cache[1])
 
-    make_transform(space, u0; isinplace=iip, p=p)
+    make_transform(space, u0; p=p)
 end
 
 function adapt_structure(to, space::FourierSpace)
@@ -76,11 +75,10 @@ function adapt_structure(to, space::FourierSpace)
                          mass_mat, nothing,
                         )
 
-    iip = adapt_structure(to, ftransform.traits.isinplace)
     p   = adapt_structure(to, ftransform.p)
     u0  = adapt_structure(to, ftransform.cache[1])
 
-    make_transform(space, u0; isinplace=iip, p=p)
+    make_transform(space, u0; p=p)
 end
 
 function FourierSpace(n::Integer;
@@ -197,7 +195,6 @@ modes(space::FourierSpace) = space.freqs
 function form_transform(
                         space::FourierSpace{<:Any,D},
                         u::Union{Nothing,AbstractVecOrMat}=nothing;
-                        isinplace::Union{Bool,Nothing}=nothing,
                         p=nothing,
                         t::Union{Real,Nothing}=nothing,
                        ) where{D}
@@ -236,8 +233,6 @@ function form_transform(
     M = length(V) ÷ K
     soutput = u isa AbstractMatrix ? (M, K) : (M,)
     v    = reshape(V, soutput)
-
-    isinplace = isinplace isa Nothing ? true : isinplace
 
     # in-place
     function fwd(v, u, p, t)
@@ -281,7 +276,8 @@ function form_transform(
 
     FunctionOperator(
                      fwd;
-                     isinplace=isinplace,
+                     isinplace=true,
+                     outofplace=true,
                      T=ComplexT,
                      size=(M,N),
 

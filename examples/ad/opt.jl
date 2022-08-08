@@ -21,7 +21,7 @@ odealg = SSPRK43()
 
 """ space discr """
 space  = FourierSpace(N)
-space  = make_transform(space; isinplace=false)
+space  = make_transform(space)
 discr  = Collocation()
 
 (x,) = points(space)

@@ -245,7 +245,6 @@ args:
     - u::AbstractVecOrMat
 
 kwargs:
-    - isinplace - defaults to true
     - p: parameters
     - t: time
 

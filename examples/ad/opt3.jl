@@ -30,7 +30,7 @@ ps = ComponentArray(ps)
 
 """ space discr """
 space  = FourierSpace(N) |> Float32
-space  = make_transform(space; p=ps, isinplace=false)
+space  = make_transform(space; p=ps)
 discr  = Collocation()
 
 (x,) = points(space)

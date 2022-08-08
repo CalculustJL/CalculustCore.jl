@@ -87,7 +87,7 @@ function setup_model1(N, ν, filename;
     u0 = ComponentArray(;vx=vx0, η=zero(vx0)) |> gpu
 
     """ operators """
-    space = make_transform(space, u0.vx; isinplace=false, p=u0)
+    space = make_transform(space, u0.vx, p=u0)
 
     Ddt_vx = begin
         function burgers!(v, u, p, t)

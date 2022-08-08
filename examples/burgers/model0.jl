@@ -77,7 +77,7 @@ function setup_model0(N, ν, datafile;
     n_data = length(u_data)
 
     """ operators """
-    space = make_transform(space, u0; isinplace=false, p=p)
+    space = make_transform(space, u0, p=p)
 
     function burgers!(v, u, p, t)
         copyto!(v, u)
@@ -180,11 +180,11 @@ predict, loss, space = setup_model0(N, ν, datafile; p=ps, model=model);
 println("fwd"); @time optcb(ps, loss(ps)...;doplot=false)
 println("bwd"); @time Zygote.gradient(p -> loss(p)[1], ps) |> display
 
-optf = p -> loss(p)[1]
-Zygote.gradient(optf, ps)
-@time Zygote.gradient(optf, ps)
-
-ps = train(loss, ps; alg=ADAM(1f-5), maxiters=100)
-
-model = jldsave(savefile; ps)
+#optf = p -> loss(p)[1]
+#Zygote.gradient(optf, ps)
+#@time Zygote.gradient(optf, ps)
+#
+#ps = train(loss, ps; alg=ADAM(1f-5), maxiters=100)
+#
+#model = jldsave(savefile; ps)
 #

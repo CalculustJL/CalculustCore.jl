@@ -16,7 +16,7 @@ u0 = rand(N)
 ps = rand(N)
 
 space = FourierSpace(N)
-space = make_transform(space, u0; isinplace=false)
+space = make_transform(space, u0)
 
 F  = transformOp(space)
 Dx = gradientOp(space)[1]
