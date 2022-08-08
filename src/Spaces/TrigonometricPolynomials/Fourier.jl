@@ -499,33 +499,22 @@ function advectionOp(vels::NTuple{D},
                      truncation_fracs=nothing,
                     ) where{D}
 
-    @error "this method has problems. fix later"
-    VV = _pair_update_funcs(vels, vel_update_funcs)
-
-    DDh = gradientOp(tspace, discr)
-
-    # physical space
     space = transform(tspace)
 
     F  = transformOp(space)
-    M  = massOp(space, discr)
     Xh = truncationOp(tspace, truncation_fracs)
+    M  = massOp(space, discr)
 
-#   C = if M isa IdentityOperator
-#   else
-#   end
+    truncate_vel = cache_operator(F \ Xh, vels[1])
+    vel_update_funcs = ComposedUpdateFunction.((truncate_vel,), vel_update_funcs)
+    VV = _pair_update_funcs((F,) .\ vels, vel_update_funcs) # phys
 
-    MM  = Diagonal([M  for i=1:D])
+    MM  = Diagonal([M  for i=1:D]) # phys
     FF  = Diagonal([F  for i=1:D])
     XXh = Diagonal([Xh for i=1:D])
+    DDh = gradientOp(tspace, discr)
 
-    VV_phys = FF \ XXh * VV
-    DD_phys = FF \ XXh * DDh
-
-    # problem: V * (Dh * û0) == 0 <-- problem
-
-    VV_phys' * MM * DD_phys # <- this is zero
-#   transpose(VV) * XXh * FF * MM * DD_phys
+    F * (VV' * MM * (FF \ XXh * DDh))
 end
 
 # interpolation

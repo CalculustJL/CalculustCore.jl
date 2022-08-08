@@ -22,41 +22,44 @@ discr = Collocation()
 
 (x,) = points(space)
 (k,) = modes(space)
-ftr  = transformOp(space)
-itr  = transformOp(tspace)
+F  = transformOp(space)
 
 """ operators """
 Â = diffusionOp(ν, tspace, discr)
 
-v = 1.0; vel = @. x*0 + v
-Ĉ = advectionOp((ftr * vel,), tspace, discr)
+v = 1.0;
+vel = @. x*0 + v
+
+Ĉ = advectionOp((F * vel,), tspace, discr)
 F̂ = -Ĉ
 
 Â = cache_operator(Â, im*k)
 F̂ = cache_operator(F̂, im*k)
 
 """ IC """
-X  = truncationOp(space, (1//2,))
-u0 = X * rand(size(x)...)
-û0 = ftr * u0
+function uIC(x)
+    @. sin(1x)
+end
+u0 = uIC(x)
 
 """ time discr """
 tspan = (0.0, 10.0)
-tsave = (0, π/4, π/2, 3π/4, 2π,)
-odealg = Rodas5(autodiff=false)
+#tsave = (0, π/4, π/2, 3π/4, 2π,)
+tsave = 0:2:8 * pi
+odealg = Tsit5()
 prob = SplitODEProblem(Â, F̂, û0, tspan, p)
-@time sol = solve(prob, odealg, saveat=tsave)
+@time sol = solve(prob, odealg, saveat=tsave, abstol=1e-8, reltol=1e-8)
 
 """ analysis """
-pred = itr.(sol.u, nothing, 0)
+pred = (F,) .\ sol.u
 pred = hcat(pred...)
 
-#utrue(x,v,t) = uIC(@. x - v*t)
-#utr = utrue(x,v,sol.t[1])
-#for i=2:length(sol.u)
-#    ut = utrue(x,v,sol.t[i])
-#    global utr = hcat(utr, ut)
-#end
+utrue(x,v,t) = uIC(@. x - v*t)
+utr = utrue(x,v,sol.t[1])
+for i=2:length(sol.u)
+    ut = utrue(x,v,sol.t[i])
+    global utr = hcat(utr, ut)
+end
 
 plt = plot()
 for i=1:length(sol.u)
@@ -64,7 +67,7 @@ for i=1:length(sol.u)
 end
 display(plt)
 
-#err = norm(pred .- utr,Inf)
-#display(err)
-#@test err < 1e-4
+err = norm(pred .- utr,Inf)
+display(err)
+@test err < 1e-8
 #
