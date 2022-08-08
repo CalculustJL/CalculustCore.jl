@@ -40,7 +40,7 @@ u0 = uIC(x)
 û0 = F * u0
 
 """ time discr """
-tsave = 0:4 * pi
+tsave = 0: pi/4: 4pi
 tspan = (tsave[begin], tsave[end])
 odealg = Tsit5()
 prob = ODEProblem(F̂, û0, tspan, p)
