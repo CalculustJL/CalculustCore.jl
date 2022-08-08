@@ -77,5 +77,7 @@ end
 sol, space = solve_burgers1D(N, ν, p)
 space = cpu(space)
 pred = Array(sol)
-nothing
+
+anim = animate(pred, space, sol.t)
+gif(anim, joinpath(dirname(@__FILE__), "burgers.gif"), fps=20)
 #

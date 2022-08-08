@@ -12,8 +12,18 @@ using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots, Test
 
 N = 1024
-ν = 1e-2
+ν = 1e-3
 p = nothing
+
+odecb = begin
+    function affect!(int)
+        println(
+                "[$(int.iter)] \t Time $(round(int.t; digits=8))s"
+               )
+    end
+
+    DiscreteCallback((u,t,int) -> true, affect!, save_positions=(false,false))
+end
 
 """ space discr """
 space  = FourierSpace(N)
@@ -51,15 +61,15 @@ Dt = cache_operator(Â-Ĉ+F̂, û0)
 """ time discr """
 tspan = (0.0, 10.0)
 tsave = range(tspan...; length=100)
-odealg = Rodas5(autodiff=false)
+odealg = SSPRK43()
 prob = ODEProblem(Dt, û0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave)
+@time sol = solve(prob, odealg, saveat=tsave, callback=odecb)
 
 """ analysis """
 pred = [F,] .\ sol.u
 pred = hcat(pred...)
 
-anim = animate(pred, space)
-gif(anim, "burg_trans.gif", fps=20)
+anim = animate(pred, space, sol.t)
+gif(anim, joinpath(dirname(@__FILE__), "burg_trans.gif"), fps=20)
 #
