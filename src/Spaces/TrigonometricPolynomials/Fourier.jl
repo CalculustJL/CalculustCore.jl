@@ -207,7 +207,7 @@ function form_transform(
 
     sinput = size(u)
     sspace = size(space)
-    N   = length(space)
+    N = length(space)
 
     @assert size(u, 1) == N "size mismatch. input array must have length
     $(length(space)) in its first dimension"

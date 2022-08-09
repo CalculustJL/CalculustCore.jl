@@ -27,6 +27,13 @@ function deform(space::TransformedSpace)
     transform(def)
 end
 
+function form_transform(space::TransformedSpace u::AbstractArray; kwargs...)
+    F = transformOp(space)
+    phys = form_transform(space, F * û; kwargs...)
+
+    transform(phys)
+end
+
 #function Domains.⊗(space::TransformedSpace, space::AbstractSpace)
 #end
 
