@@ -11,55 +11,50 @@ end
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using Plots, Test
 
-N = 128
+nx = 32
+ny = 32
 ν = 1e-2
 p = nothing
 
 """ space discr """
-space  = FourierSpace(N)
+space  = FourierSpace(nx, ny)
 tspace = transform(space)
 discr  = Collocation()
 
-(x,) = points(space)
+x, y = points(space)
 (k,) = points(tspace)
-iftr = transformOp(tspace)
-ftr  = transformOp(space)
+F    = transformOp(space)
 
 α = 5
-u0 = @. sin(α*x)
-û0 = ftr * u0
+β = 3
+u0 = @. sin(α*x) * sin(β*y)
+û0 = F * u0
 
 Â = diffusionOp(ν, tspace, discr)
 F̂ = SciMLOperators.NullOperator(tspace)
 
-Â = cache_operator(Â, k)
-F̂ = cache_operator(F̂, k)
+odefunc = cache_operator(Â + F̂, k)
 
 """ time discr """
 tspan = (0.0, 10.0)
 tsave = range(tspan...; length=10)
-odealg = Rodas5(autodiff=false)
-prob = SplitODEProblem(Â, F̂, û0, tspan, p)
+odealg = Tsit5()
+prob = ODEProblem(odefunc, û0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave)
+@time sol = solve(prob, odealg, saveat=tsave, abstol=1e-8, reltol=1e-8)
 
 """ analysis """
-pred = iftr.(sol.u, nothing, 0)
+pred = [F,] .\ sol.u
 pred = hcat(pred...)
 
-utrue(t) = @. u0 * (exp(-ν*α^2*t))
+utrue(t) = @. u0 * (exp(-ν*(α^2+β^2)*t))
 ut = utrue(sol.t[1])
 for i=2:length(sol.t)
     utt = utrue(sol.t[i])
     global ut = hcat(ut, utt)
 end
 
-plt = plot()
-for i=1:length(sol.u)
-    plot!(plt, x, pred[:,i], legend=false)
-end
-display(plt)
-
 err = norm(pred .- ut, Inf)
-@test err < 1e-6
+println("frobenius norm of error across time", err)
+@test err < 1e-7
 #

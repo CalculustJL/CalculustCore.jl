@@ -193,10 +193,12 @@ function form_transform(
                         t::Union{Real,Nothing}=nothing,
                        ) where{D}
 
-    # sinput : (N,K) - input size
+    # size dictionary
+    #
+    # sinput : (N,K) - input size to SciMLOperator
     # soutput: (M,K) - output size
     #
-    # sin : (n1,...,nd) - input size to FFT st n1*...*nd=N
+    # sin : (n1,...,nd) - input  size to FFT st n1*...*nd=N
     # sout: (m1,...,md) - output size to FFT st m1*...*md=M
 
     u = u isa Nothing ? points(space) |> first : u
@@ -226,7 +228,7 @@ function form_transform(
     # output prototype
     M = length(V) ÷ K
     soutput = u isa AbstractMatrix ? (M, K) : (M,)
-    v    = reshape(V, soutput)
+    v = reshape(V, soutput)
 
     # in-place
     function fwd(v, u, p, t)
@@ -260,19 +262,11 @@ function form_transform(
         reshape(V, sinput)
     end
 
-    ComplexT = if T isa Type{Float16}
-        ComplexF16
-    elseif T isa Type{Float32}
-        ComplexF32
-    else
-        ComplexF64
-    end
-
     FunctionOperator(
                      fwd;
                      isinplace=true,
                      outofplace=true,
-                     T=ComplexT,
+                     T=Complex{T},
                      size=(M,N),
 
                      input_prototype=u,
