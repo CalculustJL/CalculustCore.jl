@@ -19,7 +19,7 @@ using OrdinaryDiffEq, Plots
 using ComponentArrays, CUDA
 
 T = Float32
-nx = ny = 128
+nx = ny = 256
 N = nx * ny
 ν = 1e-3 |> T
 p = nothing
@@ -102,10 +102,10 @@ tspan = (0.0, 10.0) .|> T
 tsave = range(tspan...; length=100)
 prob  = ODEProblem(ddt, u0, tspan, p)
 
-@time sol = solve(prob, odealg, saveat=tsave, abstol=1f-2, reltol=1f-2, callback=odecb)
+#@time sol = solve(prob, odealg, saveat=tsave, abstol=1f-2, reltol=1f-2, callback=odecb)
 @time sol = solve(prob, odealg, saveat=tsave, abstol=tol, reltol=tol, callback=odecb)
-@time sol = solve(prob, odealg, saveat=tsave, abstol=tol, reltol=tol)
-@time sol = solve(prob, odealg, saveat=tsave, abstol=tol, reltol=tol)
+#@time sol = solve(prob, odealg, saveat=tsave, abstol=tol, reltol=tol)
+#@time sol = solve(prob, odealg, saveat=tsave, abstol=tol, reltol=tol)
 
 pred = Array(sol)
 vx = @views pred[:vx, :]

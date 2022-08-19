@@ -1,4 +1,11 @@
 #
+"""
+Solve the 2D Burgers equation
+
+∂t(vx) = -(vx*∂x(vx) + vy*∂y(vx)) + ν*Δvx
+∂t(vy) = -(vx*∂x(vy) + vy*∂y(vy)) + ν*Δvy
+"""
+
 using PDEInterfaces
 let
     # add dependencies to env stack
@@ -10,7 +17,6 @@ end
 
 using OrdinaryDiffEq, LinearSolve, LinearAlgebra
 using ComponentArrays
-using Plots, Test
 
 T = Float32
 nx = ny = 128
