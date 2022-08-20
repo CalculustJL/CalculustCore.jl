@@ -16,25 +16,34 @@ Finally, `AbstractPDEInterfaces.jl` is fully compatible with the `SciML.ai` ecos
 
 `AbstractPDEInterfacess.jl` contains separate abstract interaces for multidimensional domains, vector-calculus operators, and function spaces. It is general enough that anybody can plug in their discretizations (ie define an inner-product operator, and gradient operator) and start solving boundary value problems, or time-evolution problems.
 
-### AbstractDomain interface
-- `deform`
+Once you plug in your discretizations, you can do a lot of cool things like apply any random deformations to the space. AbstractPDEInterfacess.jl translate all your vector calculus operators correctly. That means the same code could solve convection diffusion on a square as well as an annulus with no extra work and basically conserved accuracy.
+
+### `AbstractDomain` interface
+concrete types, Boundary tags
+- `deform` - all the mapping stuff
 - `\otimes`
 
-### AbstractSpace interface
+concrete types
+- `IntervalDomain`
+- `BoxDomain`
+
+### `AbstractSpace` interface
+define these methods (grad, mass, common functions)
 - `deform`
 - `\otimes`
 - `transform`
 
-### AbstractDiscretization interface
+### `AbstractDiscretization` interface
 - `GalerkinProjection`
 - `Collocation`
 
-### BoundaryValueProblem interface
+### Operator interface - `SciMLOperators.jl`
 
-Once you plug in your discretizations, you can do a lot of cool things like apply any random deformations to the space. AbstractPDEInterfacess.jl translate all your vector calculus operators correctly. That means the same code could solve convection diffusion on a square as well as an annulus with no extra work and basically conserved accuracy.
+### `BoundaryValueProblem` interface
+Usually a rank-deficient systems
 
-Goals:
-- [ ] Abstract Domain interface
+## Roadmap
+- [ ] `AbstractDomain` interface
   - [ ] Move concrete types to a separate package
   - [X] Logically rectangular domains
   - [X] Deform domain
@@ -45,11 +54,11 @@ Goals:
   - [ ] signed distance geometries
   - [ ] Time-varying domains
   - [ ] Is it possibe to just use `DomainSets.jl` and add some metadata info?
-- [ ] Abstract Field interface `<: AbstractVector`
-  - [X] Spectral polynomial
-  - [ ] Transformation based spectral (fourier, some chebychev, etc)
+- [ ] `AbstractField <: AbstractVector` interface - special array types
+  - [X] Spectral polynomial (nothing special needed)
+  - [X] transform-based spectral (fourier, cheby) (nothing special needed)
   - [ ] Box/ full spectral elements -> create `SpectralElementSpaces.jl`
-- [ ] Operator interface
+- [ ] Operator interface - moved to `SciMLOperators.jl`
   - [X] linear algebra operations
   - [X] lazy composition
   - [X] can use array reductions
