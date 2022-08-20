@@ -16,16 +16,20 @@ Finally, after describing your problem, it should spit out the right BoundaryVal
 
 `AbstractPDEInterfacess.jl` contains separate abstract interaces for multidimensional domains, vector-calculus operators, and function spaces. It is general enough that anybody can plug in their discretizations (ie define an inner-product operator, and gradient operator) and start solving boundary value problems, or time-evolution problems.
 
-### `AbstractDomain` interface
-`deform`, `\otimes`
+### AbstractDomain interface
+- `deform`
+- `\otimes`
 
-### `AbstractSpace` interface
-`deform`, `transform`, `\otimes`
+### AbstractSpace interface
+- `deform`
+- `\otimes`
+- `transform`
 
-### `AbstractDiscretization` interface
-`GalerkinProjection`, `Collocation`
+### AbstractDiscretization interface
+- `GalerkinProjection`
+- `Collocation`
 
-### `BoundaryValueProblem` interface
+### BoundaryValueProblem interface
 
 Once you plug in your discretizations, you can do a lot of cool things like apply any random deformations to the space. AbstractPDEInterfacess.jl translate all your vector calculus operators correctly. That means the same code could solve convection diffusion on a square as well as an annulus with no extra work and basically conserved accuracy.
 
@@ -76,4 +80,3 @@ Goals:
     - [X] play nice with `OrdinaryDiffEq`
     - [ ] for implicit time-steppers, solve a BVP at every time step. impose boundary condition on the operator (wait for `SciMLOperators`, `OrdinaryDiffEq` integration)
     - [ ] automatically spit out an ODEProblem
-
