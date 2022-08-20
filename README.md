@@ -44,7 +44,7 @@ Usually a rank-deficient systems
 
 ## Roadmap
 - [ ] `AbstractDomain` interface
-  - [ ] Move concrete types to a separate package
+  - [ ] Move concrete types to a separate package - `PDEDomains.jl`
   - [X] Logically rectangular domains
   - [X] Deform domain
   - [X] Boundary tags
