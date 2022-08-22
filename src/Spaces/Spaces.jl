@@ -24,13 +24,14 @@ import SparseArrays: sparse
 
 using ..Domains
 
-# overload
+# interface
 import Base: eltype, length, size
 import Base: summary, display, show
 
-import SciMLOperators: IdentityOperator, NullOperator, ⊗
 import ..Domains: dims, deform
+import SciMLOperators: IdentityOperator, NullOperator, ⊗
 
+# plot recipies
 import Plots: plot, plot!, @animate, animate
 
 """ Function space in D-Dimensional space """
