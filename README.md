@@ -57,7 +57,7 @@ Usually a rank-deficient systems
 - [ ] `AbstractField <: AbstractVector` interface - special array types
   - [X] Spectral polynomial (nothing special needed)
   - [X] transform-based spectral (fourier, cheby) (nothing special needed)
-  - [ ] Box/ full spectral elements -> create `SpectralElementSpaces.jl`
+  - [ ] Box/ full spectral elements
 - [ ] Operator interface - moved to `SciMLOperators.jl`
   - [X] linear algebra operations
   - [X] lazy composition
@@ -66,11 +66,16 @@ Usually a rank-deficient systems
   - [ ] Gather-Scatter operator using `NNlib`
   - [ ] General interpolation operator on element-meshes
 - [ ] Spaces
-  - [X] Deform space
-  - [X] orthogonal polynomials
-  - [X] option to solve in transformed space
-  - [ ] Spectral with transforms (Fourier, Cosine, Sin, Ultraspherical, Jacobi)
-  - [ ] Box, full spectral elements - create SpectralElementSpaces.jl
+  - [X] Deformed spaces
+  - [ ] Tensor product spaces
+  - [X] transformed space
+  - [X] orthogonal polynomials - `NodalPolynomialSpaces.jl`
+  - [ ] Spectral with transforms
+    - [X] Fourier - `FourierSpaces.jl`
+    - [ ] Cosine/ Sine spaces 
+    - [ ] Ultraspherical polynomials
+    - [ ] Jacobi polynomials
+  - [ ] Box, full spectral elements - create `SpectralElementSpaces.jl`
 - [X] Create a distinction between `Space`, and `Discretization`
   - [X] Space is how to represent functions
   - [X] Discretization is how you form operators
