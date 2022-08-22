@@ -13,26 +13,31 @@ struct TensorProductSpace{
     outer::O
 end
 
-function domain(space::TensorProductSpace)
-    domain(outer) ⊗ domain(inner)
-end
+## TODO - add short circuits in downstream packages
 
-function points(space::TensorProductSpace)
-end
-
-function quadratures(space::TensorProductSpace)
-    (quadratures(inner)..., quadratures(outer)...)
-end
-
-function mass_matrix(space::TensorProductSpace)
-    DiagonalOperator(space.mass_matrix)
-end
-
-function local_numbering(space::TensorProductSpace)
-end
-
-function boundary_nodes()
-end
+#function domain(space::TensorProductSpace)
+#    domain(outer) ⊗ domain(inner)
+#end
+#
+#function points(space::TensorProductSpace)
+#end
+#
+#function modes(space::TensorProductSpace)
+#end
+#
+#function quadratures(space::TensorProductSpace)
+#    (quadratures(inner)..., quadratures(outer)...)
+#end
+#
+#function mass_matrix(space::TensorProductSpace)
+#    DiagonalOperator(space.mass_matrix)
+#end
+#
+#function local_numbering(space::TensorProductSpace)
+#end
+#
+#function boundary_nodes()
+#end
 
 # vector calculus
 
@@ -40,6 +45,8 @@ function gradientOp(space::TensorProductSpace)
     @unpack inner, outer = space
     Di = gradientOp(inner)
     Do = gradientOp(outer)
+
+    @error "method not implemented"
 
     # make tensor product
 
@@ -51,5 +58,6 @@ end
 
 function massOp(space::TensorProductSpace)
     # multiply mass matrices
+    @error "method not implemented"
 end
 #
