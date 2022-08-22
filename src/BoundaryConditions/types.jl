@@ -76,6 +76,7 @@ end
 
 struct BoundaryCondition{T,Tbcs,Tamasks,Tmask,Tamask,
                          Tspace<:AbstractSpace{T},
+                         Tdiscr<:AbstractDiscretization,
                         } <: AbstractBoundaryCondition{T}
     """Dict(Domain_bdry_tag => BCType)"""
     bc_dict::Tbcs
@@ -87,15 +88,20 @@ struct BoundaryCondition{T,Tbcs,Tamasks,Tmask,Tamask,
     amask_dir::Tamask
     """Function space"""
     space::Tspace
+    """ Discretization """
+    discr::Tdiscr
 end
 
-function BoundaryCondition(bc_dict::Dict, space::AbstractSpace{<:Number,D}) where{D}
+function BoundaryCondition(bc_dict::Dict,
+                           space::AbstractSpace{<:Number,D},
+                           discr::AbstractDiscretization) where{D}
+
     dom       = domain(space)
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(space, dom, indices)
     mask_dir  = dirichlet_mask(space, dom, indices, bc_dict)
     amask_dir = IdentityOperator{length(space)}() - mask_dir
 
-    BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space)
+    BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space, discr)
 end
 #

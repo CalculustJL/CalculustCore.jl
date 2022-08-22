@@ -19,7 +19,7 @@ using ..Domains
 using ..Domains: AbstractDomain
 
 using ..Spaces
-using ..Spaces: AbstractSpace
+using ..Spaces: AbstractSpace, AbstractDiscretization
 
 # overload
 import SciMLBase: solve, init;

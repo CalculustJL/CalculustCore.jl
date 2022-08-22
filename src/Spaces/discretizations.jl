@@ -8,7 +8,7 @@ _transp(a, ::Galerkin) = adjoint(a)
 function laplaceOp(space::AbstractSpace, discr::Galerkin)
     D = dims(space)
 
-    M  = massOp(space, space)
+    M  = massOp(space, discr)
     MM = Diagonal([M for i=1:D])
 
     DD = gradientOp(space, discr)

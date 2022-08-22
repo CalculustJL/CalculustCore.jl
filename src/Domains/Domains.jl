@@ -41,7 +41,7 @@ export
        BoxDomain,
 
        # conveniences
-       GaussLobattoLegendreDomain, ChebychevDomain, FourierDomain, AnnulusDomain,
+       GaussLobattoLegendreDomain, ChebyshevDomain, FourierDomain, AnnulusDomain,
 
        deform
 

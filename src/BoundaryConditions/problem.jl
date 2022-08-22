@@ -7,6 +7,7 @@ struct BVPDEProblem{
                     uType,
                     Tbcs,
                     Tspace<:AbstractSpace{T},
+                    Tdiscr<:AbstractDiscretization,
                     P,
                     K,
                    } <: AbstractBVPDEProblem
@@ -20,6 +21,8 @@ struct BVPDEProblem{
     bc_dict::Tbcs
     """Function space"""
     space::Tspace
+    """Discretization"""
+    discr::Tdiscr
     """Parameters"""
     p::P
     """Keyword arguments"""
@@ -30,6 +33,7 @@ struct BVPDEProblem{
          f,
          bc_dict::Dict,
          space::AbstractSpace{T},
+         discr::AbstractDiscretization,
          p = SciMLBase.NullParameters();
          u0 = nothing,
          kwargs...
@@ -42,10 +46,11 @@ struct BVPDEProblem{
             typeof(u0),
             typeof(bc_dict),
             typeof(space),
+            typeof(discr),
             typeof(p),
             typeof(kwargs)
            }(
-             op, f, u0, bc_dict, space, p, kwargs
+             op, f, u0, bc_dict, space, discr, p, kwargs
             )
     end
 end
@@ -79,7 +84,7 @@ function Base.show(io::IO, mime::MIME"text/plain", A::BVPDEProblem)
     show(io, mime, A.space)
 end
 
-struct BVPDECache{Top,Tu,Tbc,Tsp,Talg} <: AbstractBVPDECache
+struct BVPDECache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBVPDECache
     """Neumann Operator"""
     op::Top
     """Right-hand-side forcing vector"""
@@ -90,7 +95,9 @@ struct BVPDECache{Top,Tu,Tbc,Tsp,Talg} <: AbstractBVPDECache
     bc::Tbc
     """Function space"""
     space::Tsp
-    """ Algorithm """
+    """Discretization"""
+    discr::Tdi
+    """Algorithm"""
     alg::Talg
 end
 
@@ -156,9 +163,9 @@ function makeLHS(op::AbstractSciMLOperator, bc::AbstractBoundaryCondition)
 end
 
 function makeRHS(f, bc::AbstractBoundaryCondition)
-    @unpack bc_dict, antimasks, mask_dir, space = bc
+    @unpack bc_dict, antimasks, mask_dir, space, discr = bc
 
-    M = massOp(space)
+    M = massOp(space, discr)
     b = M * f
 
     dirichlet = zero(b)
@@ -211,14 +218,14 @@ function SciMLBase.init(prob::AbstractBVPDEProblem,
                         verbose=false,
                         kwargs...
                        )
-    @unpack op, f, u0, bc_dict, space = prob
+    @unpack op, f, u0, bc_dict, space, discr = prob
 
     alg = alg isa Nothing ? LinearBVPDEAlg() : alg
 
     u  = u0 isa Nothing ? zero(f) : u0
-    bc = BoundaryCondition(bc_dict, space)
+    bc = BoundaryCondition(bc_dict, space, discr)
 
-    BVPDECache(op, f, u, bc, space, alg)
+    BVPDECache(op, f, u, bc, space, discr, alg)
 end
 
 function SciMLBase.solve(prob::BVPDEProblem, args...; kwargs...)

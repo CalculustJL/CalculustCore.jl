@@ -51,9 +51,9 @@ function GaussLobattoLegendreDomain(D; periodic_dirs=())
     domain
 end
 
-function ChebychevDomain(D; periodic_dirs=())
+function ChebyshevDomain(D; periodic_dirs=())
     domain = BoxDomain()
-    endpts = (-π/2, π/2)
+    endpts = (-true, true)
     for i=1:D
         interval = IntervalDomain(endpts...;
                                   periodic = i ∈ periodic_dirs,

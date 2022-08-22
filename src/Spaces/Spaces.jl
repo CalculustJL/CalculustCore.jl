@@ -41,7 +41,12 @@ abstract type AbstractSpace{T,D} end
 abstract type AbstractDiscretization end
 
 include("utils.jl")
+
+# interface
 include("interface.jl")
+include("plots.jl")
+
+# operators
 include("vectorcalculus.jl")
 include("discretizations.jl")
 include("gatherscatter.jl")
@@ -55,13 +60,14 @@ include("deform.jl")
 export
        ### from ..Domains
        dims,
-       domain,
        deform,
 
        ### Interface
        points,
        modes,
-       basis,
+       #basis,
+       domain,
+       mass_matrix,
        local_numbering,
        global_numbering,
        boundary_nodes,
