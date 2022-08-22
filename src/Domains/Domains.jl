@@ -12,10 +12,11 @@ abstract type AbstractDomain{T,D} end
 # Interface
 include("interface.jl")
 
+#include("tensor.jl") # TODO - like annulus ⊗ interval. for extruding
+
 # Concrete Types
 include("interval.jl")
 include("box.jl")
-#include("tensor.jl") # TODO - like annulus ⊗ interval. for extruding
 #include("meshed.jl") # TODO
 
 include("deform.jl")
@@ -33,17 +34,13 @@ export
        bounding_box,
 
        ⊗,
-       ∈,
-       in,
+       deform,
 
        # concrete types
        IntervalDomain,
        BoxDomain,
 
-       # conveniences
-       GaussLobattoLegendreDomain, ChebyshevDomain, FourierDomain, AnnulusDomain,
-
-       deform
+       GaussLobattoLegendreDomain, ChebyshevDomain, FourierDomain, AnnulusDomain
 
 end
 #

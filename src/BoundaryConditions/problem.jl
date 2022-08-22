@@ -159,7 +159,7 @@ function makeLHS(op::AbstractSciMLOperator, bc::AbstractBoundaryCondition)
     what are the consequences?
     """
 
-    lhs = mask_dir * op + amask_dir
+    mask_dir * op + amask_dir
 end
 
 function makeRHS(f, bc::AbstractBoundaryCondition)
@@ -191,7 +191,7 @@ function makeRHS(f, bc::AbstractBoundaryCondition)
         end
     end
 
-    b = (mask_dir * b) + dirichlet - neumann + robin
+    (mask_dir * b) + dirichlet - neumann + robin
 end
 
 function SciMLBase.solve(cache::BVPDECache; kwargs...)

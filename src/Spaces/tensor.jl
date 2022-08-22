@@ -21,6 +21,7 @@ function points(space::TensorProductSpace)
 end
 
 function quadratures(space::TensorProductSpace)
+    (quadratures(inner)..., quadratures(outer)...)
 end
 
 function mass_matrix(space::TensorProductSpace)
