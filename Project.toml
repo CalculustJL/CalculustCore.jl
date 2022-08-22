@@ -1,4 +1,4 @@
-name = "PDEInterfaces"
+name = "AbstractPDEInterfaces"
 uuid = "db474457-f03d-4fd7-b196-5f323c96c803"
 authors = ["Vedant Puri <vedantpuri@gmail.com>"]
 version = "0.1.0"

@@ -1,6 +1,4 @@
 #
-include("NDgrid.jl")
-
 _transp(a, ::AbstractDiscretization) = transpose(a)
 
 function _pair_update_funcs(vecs, funcs)
@@ -44,12 +42,4 @@ function (A::ComposedUpdateFunction)(v, u, p, t)
     f1(v, cache, p, t)
 end
 
-###
-# GPU
-###
-
-import Lux: cpu, gpu, LuxCPUAdaptor, LuxCUDAAdaptor
-
-_fft_lib(u::AbstractArray) = FFTW
-_fft_lib(u::CUDA.CuArray) = CUDA.CUFFT
 #

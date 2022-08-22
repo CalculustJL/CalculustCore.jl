@@ -13,13 +13,8 @@ using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC
 using UnPack: @unpack
 using Setfield: @set!
 using NNlib: gather, gather!, scatter, scatter!
+using Lux: cpu, gpu
 import SparseArrays: sparse
-import CUDA
-import Adapt
-import Lux
-
-import FastGaussQuadrature: gausslobatto, gausslegendre, gausschebyshev
-import FFTW
 
 using ..Domains
 using ..Domains: AbstractDomain
@@ -27,7 +22,6 @@ using ..Domains: AbstractDomain
 # overload
 import Base: eltype, length, size
 import Base: summary, display, show
-import Adapt: adapt_storage, adapt_structure
 
 import SciMLOperators: IdentityOperator, NullOperator, ⊗
 import ..Domains: dims, deform
@@ -46,15 +40,18 @@ include("vectorcalculus.jl")
 include("discretizations.jl")
 include("gatherscatter.jl")
 
+include("NDgrid.jl") # TODO - use https://github.com/JuliaArrays/LazyGrids.jl instead
+
 #include("tensor.jl")
 include("transform.jl")
 include("deform.jl")
 
-# Concrete Spaces
-include("LagrangePolynomials/LagrangePolynomialSpace.jl")
-include("TrigonometricPolynomials/Fourier.jl")
-
 export
+       ### from ..Domains
+       dims,
+       domain,
+       deform,
+
        ### Interface
        points,
        modes,
@@ -63,28 +60,27 @@ export
        global_numbering,
        boundary_nodes,
 
+       ndgrid,
+
        transform,
        make_transform,
 
-       # from ..Domains
-       dims,
-       domain,
-       deform,
-
-       # from Lux
+       ### from Lux
        cpu,
        gpu,
-
-       # from SciMLOperators
-       IdentityOperator,
-       NullOperator,
-       ⊗,
 
        ### Discretizations
        Collocation,
        Galerkin,
 
        ### Operators
+
+       # from SciMLOperators
+       IdentityOperator,
+       NullOperator,
+       ⊗,
+
+       ### operators
 
        # vector calculus
        massOp,
@@ -100,22 +96,8 @@ export
        # interpolation
        interpOp,
 
-       # transform
        transformOp,
-       truncationOp,
-
-       ### Spaces
-
-       # Lagrange polynomial spaces
-       LagrangePolynomialSpace,
-       GaussLobattoLegendreSpace,
-       GaussLegendreSpace,
-       GaussChebychevSpace,
-
-       # Trigonometric polynomial spaces
-#      SineSpace,
-#      CosineSpace,
-       FourierSpace
+       truncationOp
 
 end
 #
