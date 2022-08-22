@@ -7,17 +7,22 @@ using Reexport
 using LinearAlgebra
 using Plots: Plots
 
+# operator algebra
 @reexport using SciMLOperators
 using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC
 
+# caching
 using UnPack: @unpack
 using Setfield: @set!
-using NNlib: gather, gather!, scatter, scatter!
+
+# GPU
 using Lux: cpu, gpu
+
+# gather-scatter
+using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
 
 using ..Domains
-using ..Domains: AbstractDomain
 
 # overload
 import Base: eltype, length, size
@@ -40,7 +45,7 @@ include("vectorcalculus.jl")
 include("discretizations.jl")
 include("gatherscatter.jl")
 
-include("NDgrid.jl") # TODO - use https://github.com/JuliaArrays/LazyGrids.jl instead
+include("NDgrid.jl") # TODO - use LazyGrids.jl instead
 
 #include("tensor.jl")
 include("transform.jl")
@@ -65,6 +70,9 @@ export
        transform,
        make_transform,
 
+       # from SciMLOperators
+       ⊗,
+
        ### from Lux
        cpu,
        gpu,
@@ -74,15 +82,9 @@ export
        Galerkin,
 
        ### Operators
-
-       # from SciMLOperators
        IdentityOperator,
        NullOperator,
-       ⊗,
 
-       ### operators
-
-       # vector calculus
        massOp,
        gradientOp,
        hessianOp,
@@ -93,7 +95,6 @@ export
        divergenceOp,
        forcingOp,
 
-       # interpolation
        interpOp,
 
        transformOp,
