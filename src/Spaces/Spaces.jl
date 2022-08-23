@@ -65,6 +65,7 @@ export
        ### Interface
        points,
        modes,
+       mode_size,
        #basis,
        domain,
        mass_matrix,
