@@ -1,47 +1,14 @@
 #
-
-###
-# BC implementation
-###
-
-function boundary_antimasks(space::AbstractSpace, dom::AbstractDomain, indices)
-    loc_num = local_numbering(space)
-
-    antimasks = []
-    for i=1:num_boundaries(dom)
-        M = similar(loc_num, Bool) * false |> vec
-        idx = indices[i]
-        set_val!(M, true, idx)
-        push!(antimasks, M)
-    end
-
-    DiagonalOperator.(antimasks)
-end
-
-function dirichlet_mask(space::AbstractSpace, dom::AbstractDomain, indices, bc_dict)
-    tags = boundary_tags(dom)
-    x    = points(space) |> first
-    M    = similar(x, Bool) * false .+ true |> vec
-
-    for i=1:num_boundaries(dom)
-        tag = boundary_tag(dom, i)
-        bc  = bc_dict[tag]
-
-        if bc isa DirichletBC
-            idx = indices[i]
-            set_val!(M, false, idx)
-        end
-    end
-
-    DiagonalOperator(M)
-end
-
-struct BoundaryCondition{T,Tbcs,Tamasks,Tmask,Tamask,
+struct BoundaryCondition{T,
+                         Tdict,
+                         Tamasks,
+                         Tmask,
+                         Tamask,
                          Tspace<:AbstractSpace{T},
                          Tdiscr<:AbstractDiscretization,
                         } <: AbstractBoundaryCondition{T}
     """Dict(Domain_bdry_tag => BCType)"""
-    bc_dict::Tbcs
+    bc_dict::Tdict
     """Vector(boundary_antimasks); antimask = id - mask"""
     antimasks::Tamasks
     """Diagonal Mask operator hiding Dirichlet boundaries"""

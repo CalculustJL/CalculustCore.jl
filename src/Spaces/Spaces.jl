@@ -22,14 +22,11 @@ using Lux: cpu, gpu
 using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
 
-using ..Domains
+@reexport using ..Domains
 
 # interface
 import Base: eltype, length, size
 import Base: summary, display, show
-
-import ..Domains: dims, deform
-import SciMLOperators: IdentityOperator, NullOperator, ⊗
 
 # plot recipies
 import Plots: plot, plot!, @animate, animate

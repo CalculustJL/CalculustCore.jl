@@ -125,7 +125,7 @@ struct BoundaryValueSolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{
     end
 end
 
-function build_bv_solution(alg, u, resid, cache; retcode=:Default, iters=0)
+function build_bv_solution(alg, u, resid, cache; retcode=:Default, iters=nothing)
     BoundaryValueSolution(u, resid, alg, retcode, iters, cache)
 end
 
@@ -144,54 +144,6 @@ end
 #TODO integrate NonlinearSolve.jl with LinearSolve.jl first
 Base.@kwdef struct NonlinearBoundaryValueAlg{Tnl} <: AbstractBoundaryValueAlgorithm
     nlalg::Tnl = nothing
-end
-
-function makeLHS(op::AbstractSciMLOperator, bc::AbstractBoundaryCondition)
-    @unpack mask_dir, amask_dir = bc
-
-    #TODO
-    """
-    how to empty dirichlet row? -
-        https://github.com/vpuri3/PDEInterfaces.jl/issues/1
-
-    is having the construct u := u_inhom + u_hom the only way?
-    then would have to interpolate u_inhom into interior.
-    what are the consequences?
-    """
-
-    mask_dir * op + amask_dir
-end
-
-function makeRHS(f, bc::AbstractBoundaryCondition)
-    @unpack bc_dict, antimasks, mask_dir, space, discr = bc
-
-    M = massOp(space, discr)
-    b = M * f
-
-    dirichlet = zero(b)
-    neumann   = zero(b)
-    robin     = zero(b)
-
-    pts = points(space)
-    dom = domain(space)
-
-    for i=1:num_boundaries(dom)
-        tag   = boundary_tag(dom, i)
-        bc    = bc_dict[tag]
-        amask = antimasks[i]
-
-        if bc isa DirichletBC
-            dirichlet += amask * bc.f(pts...)
-        elseif bc isa NeumannBC
-            neumann += amask * bc.f(pts...)
-        elseif bc isa RobinBC
-            # TODO
-        elseif bc isa PeriodicBC
-            continue
-        end
-    end
-
-    (mask_dir * b) + dirichlet - neumann + robin
 end
 
 function SciMLBase.solve(cache::BoundaryValueCache; kwargs...)
@@ -232,7 +184,9 @@ function SciMLBase.solve(prob::BoundaryValueProblem, args...; kwargs...)
     solve(init(prob, nothing, args...; kwargs...))
 end
 
-function SciMLBase.solve(prob::BoundaryValueProblem, alg::Union{AbstractBoundaryValueAlgorithm,Nothing}, args...; kwargs...)
+function SciMLBase.solve(prob::BoundaryValueProblem,
+                         alg::Union{AbstractBoundaryValueAlgorithm,Nothing}, args...;
+                         kwargs...)
     solve(init(prob, alg, args...; kwargs...); kwargs...)
 end
 #

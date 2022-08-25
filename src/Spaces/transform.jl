@@ -20,7 +20,7 @@ domain(space::TransformedSpace) = domain(space.space)
 points(space::TransformedSpace) = modes(space.space)
 modes(space::TransformedSpace) = points(space.space)
 
-function deform(space::TransformedSpace)
+function Domains.deform(space::TransformedSpace)
     phys = transform(space)
     def  = deform(space)
 

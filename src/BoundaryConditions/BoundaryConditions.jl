@@ -35,6 +35,7 @@ include("utils.jl")
 include("conditions.jl")
 
 include("types.jl")
+include("make_lhs_rhs.jl")
 include("problem.jl")
 
 export 
