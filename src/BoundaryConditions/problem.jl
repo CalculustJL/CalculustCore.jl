@@ -1,5 +1,5 @@
 #
-struct BVPDEProblem{
+struct BoundaryValueProblem{
                     isinplace,
                     T,
                     F,
@@ -10,7 +10,7 @@ struct BVPDEProblem{
                     Tdiscr<:AbstractDiscretization,
                     P,
                     K,
-                   } <: AbstractBVPDEProblem
+                   } <: AbstractBoundaryValueProblem
     """Neumann Operator"""
     op::F
     """Right-hand-side forcing vector"""
@@ -28,7 +28,7 @@ struct BVPDEProblem{
     """Keyword arguments"""
     kwargs::K
 
-    SciMLBase.@add_kwonly function BVPDEProblem(
+    SciMLBase.@add_kwonly function BoundaryValueProblem(
          op::AbstractSciMLOperator,
          f,
          bc_dict::Dict,
@@ -55,7 +55,7 @@ struct BVPDEProblem{
     end
 end
 
-function Base.summary(io::IO, prob::BVPDEProblem)
+function Base.summary(io::IO, prob::BoundaryValueProblem)
     type_color, no_color = SciMLBase.get_colorizers(io)
     print(io,
           type_color, nameof(typeof(prob)),
@@ -69,7 +69,7 @@ function Base.summary(io::IO, prob::BVPDEProblem)
          )
 end
 
-function Base.show(io::IO, mime::MIME"text/plain", A::BVPDEProblem)
+function Base.show(io::IO, mime::MIME"text/plain", A::BoundaryValueProblem)
     summary(io, A)
     println(io)
     println(io, "u0: ")
@@ -84,7 +84,7 @@ function Base.show(io::IO, mime::MIME"text/plain", A::BVPDEProblem)
     show(io, mime, A.space)
 end
 
-struct BVPDECache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBVPDECache
+struct BoundaryValueCache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBoundaryValueCache
     """Neumann Operator"""
     op::Top
     """Right-hand-side forcing vector"""
@@ -101,7 +101,7 @@ struct BVPDECache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBVPDECache
     alg::Talg
 end
 
-struct BVPDESolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
+struct BoundaryValueSolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
     u::uType
     resid::R
     alg::A
@@ -109,7 +109,7 @@ struct BVPDESolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
     iters::Int
     cache::C
 
-    function BVPDESolution(u, resid, alg, retcode, iters, cache)
+    function BoundaryValueSolution(u, resid, alg, retcode, iters, cache)
         @unpack space = cache
 
         new{
@@ -125,24 +125,24 @@ struct BVPDESolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
     end
 end
 
-function build_bvpde_solution(alg, u, resid, cache; retcode=:Default, iters=0)
-    BVPDESolution(u, resid, alg, retcode, iters, cache)
+function build_bv_solution(alg, u, resid, cache; retcode=:Default, iters=0)
+    BoundaryValueSolution(u, resid, alg, retcode, iters, cache)
 end
 
-function Plots.plot(sol::BVPDESolution{<:Number,1})
+function Plots.plot(sol::BoundaryValueSolution{<:Number,1})
     plot(sol.u, sol.cache.space)
 end
 
-function Plots.plot(sol::BVPDESolution{<:Number,2}; a=45, b=60)
+function Plots.plot(sol::BoundaryValueSolution{<:Number,2}; a=45, b=60)
     plot(sol.u, sol.cache.space)
 end
 
-Base.@kwdef struct LinearBVPDEAlg{Tl} <: AbstractBVPDEAlgorithm
+Base.@kwdef struct LinearBoundaryValueAlg{Tl} <: AbstractBoundaryValueAlgorithm
     linalg::Tl = nothing
 end
 
 #TODO integrate NonlinearSolve.jl with LinearSolve.jl first
-Base.@kwdef struct NonlinearBVPDEAlg{Tnl} <: AbstractBVPDEAlgorithm
+Base.@kwdef struct NonlinearBoundaryValueAlg{Tnl} <: AbstractBoundaryValueAlgorithm
     nlalg::Tnl = nothing
 end
 
@@ -194,7 +194,7 @@ function makeRHS(f, bc::AbstractBoundaryCondition)
     (mask_dir * b) + dirichlet - neumann + robin
 end
 
-function SciMLBase.solve(cache::BVPDECache; kwargs...)
+function SciMLBase.solve(cache::BoundaryValueCache; kwargs...)
     @unpack op, f, u, bc, space, alg = cache
     @unpack linalg = alg
 
@@ -207,11 +207,11 @@ function SciMLBase.solve(cache::BVPDECache; kwargs...)
 
     resid = norm(lhsOp * linsol.u - rhs, Inf)
 
-    build_bvpde_solution(alg, u, resid, cache; iters=linsol.iters)
+    build_bv_solution(alg, u, resid, cache; iters=linsol.iters)
 end
 
-function SciMLBase.init(prob::AbstractBVPDEProblem,
-                        alg::AbstractBVPDEAlgorithm = nothing;
+function SciMLBase.init(prob::AbstractBoundaryValueProblem,
+                        alg::AbstractBoundaryValueAlgorithm = nothing;
                         abstol=default_tol(eltype(prob.op)),
                         reltol=default_tol(eltype(prob.op)),
                         maxiters=length(prob.f),
@@ -220,19 +220,19 @@ function SciMLBase.init(prob::AbstractBVPDEProblem,
                        )
     @unpack op, f, u0, bc_dict, space, discr = prob
 
-    alg = alg isa Nothing ? LinearBVPDEAlg() : alg
+    alg = alg isa Nothing ? LinearBoundaryValueAlg() : alg
 
     u  = u0 isa Nothing ? zero(f) : u0
     bc = BoundaryCondition(bc_dict, space, discr)
 
-    BVPDECache(op, f, u, bc, space, discr, alg)
+    BoundaryValueCache(op, f, u, bc, space, discr, alg)
 end
 
-function SciMLBase.solve(prob::BVPDEProblem, args...; kwargs...)
+function SciMLBase.solve(prob::BoundaryValueProblem, args...; kwargs...)
     solve(init(prob, nothing, args...; kwargs...))
 end
 
-function SciMLBase.solve(prob::BVPDEProblem, alg::Union{AbstractBVPDEAlgorithm,Nothing}, args...; kwargs...)
+function SciMLBase.solve(prob::BoundaryValueProblem, alg::Union{AbstractBoundaryValueAlgorithm,Nothing}, args...; kwargs...)
     solve(init(prob, alg, args...; kwargs...); kwargs...)
 end
 #

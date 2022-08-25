@@ -1,7 +1,7 @@
 """
 Boundary Condition Interface
 """
-module BoundaryConditions
+module BoundaryConditions # change to BoundaryValueProblems
 
 #using Reexport
 #@reexport using SciMLBase
@@ -27,11 +27,12 @@ import Plots: plot, plot!
 
 abstract type AbstractBoundaryCondition{T} end
 
-abstract type AbstractBVPDEProblem <: SciMLBase.DEProblem end
-abstract type AbstractBVPDECache <: SciMLBase.DECache end
-abstract type AbstractBVPDEAlgorithm <: SciMLBase.DEAlgorithm end
+abstract type AbstractBoundaryValueProblem <: SciMLBase.DEProblem end
+abstract type AbstractBoundaryValueCache <: SciMLBase.DECache end
+abstract type AbstractBoundaryValueAlgorithm <: SciMLBase.DEAlgorithm end
 
 include("utils.jl")
+include("conditions.jl")
 
 include("types.jl")
 include("problem.jl")
@@ -41,10 +42,10 @@ export
        DirichletBC, NeumannBC, RobinBC, PeriodicBC,
 
        # boundary vale problem
-       BVPDEProblem,
+       BoundaryValueProblem,
 
        # boundary value algorithms
-       LinearBVPDEAlg, NonlinearBVPDEAlg
+       LinearBoundaryValueAlg, NonlinearBoundaryValueAlg
 
 end
 #
