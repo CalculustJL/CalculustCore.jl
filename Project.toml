@@ -1,7 +1,7 @@
 name = "AbstractPDEInterfaces"
 uuid = "db474457-f03d-4fd7-b196-5f323c96c803"
 authors = ["Vedant Puri <vedantpuri@gmail.com>"]
-version = "0.1.3"
+version = "0.1.2"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
