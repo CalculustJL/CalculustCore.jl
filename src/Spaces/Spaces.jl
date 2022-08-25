@@ -9,7 +9,8 @@ using Plots: Plots
 
 # operator algebra
 @reexport using SciMLOperators
-using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC
+using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC,
+                      IdentityOperator, NullOperator
 
 # caching
 using UnPack: @unpack
