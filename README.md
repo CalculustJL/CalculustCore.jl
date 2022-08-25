@@ -73,12 +73,14 @@ Usually a rank-deficient systems
   - [ ] Spectral with transforms
     - [X] Fourier - `FourierSpaces.jl`
     - [ ] Cosine/ Sine spaces 
-    - [ ] Ultraspherical polynomials
-    - [ ] Jacobi polynomials
   - [ ] Box, full spectral elements - create `SpectralElementSpaces.jl`
 - [X] Create a distinction between `Space`, and `Discretization`
   - [X] Space is how to represent functions
   - [X] Discretization is how you form operators
+  - [ ] Rename "discretization" to "scheme" or "solve_scheme" or something. Because discretization is ambiguous. is it referring to spatial discretization? or time discretization? In this package we are using it as a "scheme" to form differential operators on a "discretized" space.
+  - [ ] Rename `Galerkin` -> `GalerkinProjection` for clarity
+  - [ ] Flux handling in discontinuous galerkin/ finite volume
+  - [ ] all the shennanigans in stabalized finite elements
 - [ ] Boundary Condition interface (apply "this" boundary condition based on "that" domain boundary)
   - [X] Dirichlet
   - [X] Neumann
