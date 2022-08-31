@@ -20,7 +20,7 @@ end
 """
 get number of points
 """
-Base.size
+Base.size(space::AbstractSpace{<:Any,D}, d) where{D} = size(space)[d] #TODO dims check
 
 """
 length of vector in space
@@ -212,11 +212,11 @@ function make_transform(space::AbstractSpace,
     u = if u isa Union{AbstractVecOrMat,Nothing}
         u
     else # ND Array
-        N = length(space)
-        s = size(u)
-        K = prod(s[2:end])
+        N  = length(space)
+        NK = length(u)
+        K  = NK ÷ N
 
-        @assert s[1] == N "Dimension mismatch"
+        @assert sz[1] == N "Dimension mismatch"
         reshape(u, (N, K))
     end
 
