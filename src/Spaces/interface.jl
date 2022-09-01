@@ -192,7 +192,9 @@ ret:
     - ftransform Forward transform wrapped
     `SciMLOperators.FunctionOperator`
 """
-function form_transform end
+function form_transform(space)
+    space
+end
 
 """
 Set transform operator for space acting on vectors like u
