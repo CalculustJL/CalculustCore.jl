@@ -192,7 +192,7 @@ ret:
     - ftransform Forward transform wrapped
     `SciMLOperators.FunctionOperator`
 """
-function form_transform(space)
+function form_transform(space, args...; kwargs...)
     space
 end
 
