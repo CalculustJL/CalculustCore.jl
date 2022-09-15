@@ -42,6 +42,10 @@ define these methods (grad, mass, common functions)
 ### `BoundaryValueProblem` interface
 Usually a rank-deficient systems
 
+## Associated Packages
+- [FourierSpaces.jl](https://github.com/vpuri3/FourierSpaces.jl)
+- [NodalPolynomialSpaces.jl](https://github.com/vpuri3/NodalPolynomialSpaces.jl)
+
 ## Roadmap
 - [ ] `AbstractDomain` interface
   - [ ] Move concrete types to a separate package - `PDEDomains.jl`
