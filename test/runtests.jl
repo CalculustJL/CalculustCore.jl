@@ -1,16 +1,19 @@
 #
 using Test, SafeTestsets
 
-@testset "PDEInterfaces.jl" begin
+@testset "AbstractPDEInterfaces.jl" begin
 
-@safetestset "Spaces" begin
-#   @safetestset "Lagrange Polynomials" begin include("lagrangepoly.jl") end
-    @safetestset "Fourier" begin include("fourier.jl") end
+@safetestset "Domain" begin
+    #@safetestset "name" begin include("file.jl") end
 end
 
-#@safetestset "Boundary Value Problem" begin
-#    @safetestset "BVP" begin include("bvp.jl") end
-#end
+@safetestset "Spaces" begin
+    #@safetestset "name" begin include("file.jl") end
+end
 
-@time @safetestset "Examples" begin include("examples.jl") end
+@safetestset "Boundary Value Problem" begin
+    #@safetestset "name" begin include("file.jl") end
+end
+
+#@time @safetestset "Examples" begin include("examples.jl") end
 end

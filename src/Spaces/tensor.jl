@@ -33,7 +33,7 @@ end
 #    DiagonalOperator(space.mass_matrix)
 #end
 #
-#function local_numbering(space::TensorProductSpace)
+#function global_numbering(space::TensorProductSpace)
 #end
 #
 #function boundary_nodes()

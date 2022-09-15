@@ -22,11 +22,11 @@ function dirichlet_mask(space::AbstractSpace, dom::AbstractDomain, indices, bc_d
 end
 
 function boundary_antimasks(space::AbstractSpace, dom::AbstractDomain, indices)
-    loc_num = local_numbering(space)
+    glo_num = global_numbering(space)
 
     antimasks = []
     for i=1:num_boundaries(dom)
-        M = similar(loc_num, Bool) * false |> vec
+        M = similar(glo_num, Bool) * false |> vec
         idx = indices[i]
         set_val!(M, true, idx)
         push!(antimasks, M)

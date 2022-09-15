@@ -80,7 +80,7 @@ args:
 ret:
     AbstractArray of size size(space)
 """
-function local_numbering end
+function global_numbering end
 
 """
 args:

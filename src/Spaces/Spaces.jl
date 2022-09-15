@@ -67,7 +67,6 @@ export
        #basis,
        domain,
        mass_matrix,
-       local_numbering,
        global_numbering,
        boundary_nodes,
 

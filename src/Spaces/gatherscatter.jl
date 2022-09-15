@@ -8,7 +8,7 @@ Q*Q'*u where Q: local -> global operator
 
 TODO write GatherScatterOp that calls NNlib.gather, scatter
 """
-function DSS(u,loc_num,glo_num)
+function DSS(u, glo_num)
 
     Qu   = NNlib.scatter(+,u,l2g) # Q
     QQtu = NNlib.gather(Qu,g2l)   # Q'
@@ -19,7 +19,6 @@ end
 function gatherScatterOp(space::AbstractSpace)
 
     N = length(space)
-    loc_num = local_numbering(space)
     glo_num = global_numbering(space)
 
     # DSS
