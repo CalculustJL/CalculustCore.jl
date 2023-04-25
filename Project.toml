@@ -1,7 +1,7 @@
 name = "AbstractPDEInterfaces"
 uuid = "db474457-f03d-4fd7-b196-5f323c96c803"
 authors = ["Vedant Puri <vedantpuri@gmail.com>"]
-version = "0.1.7"
+version = "0.2"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -23,7 +23,7 @@ NNlib = "0.8.9"
 Plots = "1.31.7"
 Reexport = "1.2.2"
 SciMLBase = "1.50.1"
-SciMLOperators = "0.1.13"
+SciMLOperators = "0.2"
 Setfield = "1.1.0"
 UnPack = "1.0.2"
 julia = "1.6"
