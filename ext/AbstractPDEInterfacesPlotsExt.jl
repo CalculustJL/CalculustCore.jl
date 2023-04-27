@@ -2,10 +2,10 @@ module AbstractPDEInterfacesPlotsExt
 
 if isdefined(Base, :get_extension)
     using Plots
-    using AbstractPDEInterfaces: AbstractSpace, BoundaryValueSolution
+    using AbstractPDEInterfaces
 else
     using ..Plots
-    using ..AbstractPDEInterfaces: AbstractSpace, BoundaryValueSolution
+    using ..AbstractPDEInterfaces
 end
 
 ## AbstractPDEInterfaces.Spaces
@@ -14,14 +14,14 @@ end
 plot of function over space
 args:
     - u scalar field
-    - space AbstractSpace
+    - space Spaces.AbstractSpace
 """
-function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any, 1}; kwargs...)
+function Plots.plot(u::AbstractVector, space::Spaces.AbstractSpace{<:Any, 1}; kwargs...)
     (x,) = points(space)
     plt = plot(x, u; kwargs...)
 end
 
-function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any, 2}; a = 30, b = 30,
+function Plots.plot(u::AbstractVector, space::Spaces.AbstractSpace{<:Any, 2}; a = 30, b = 30,
                     kwargs...)
     npts = size(space)
     (x, y) = points(space)
@@ -39,7 +39,7 @@ function Plots.plot(u::AbstractVector, space::AbstractSpace{<:Any, 2}; a = 30, b
 end
 
 function Plots.animate(u::AbstractMatrix,
-                       space::AbstractSpace{<:Any, 1},
+                       space::Spaces.AbstractSpace{<:Any, 1},
                        t::AbstractVector = collect(1:size(u, 2));
                        kwargs...)
     ylims = begin
@@ -55,7 +55,7 @@ function Plots.animate(u::AbstractMatrix,
 end
 
 function Plots.animate(u::AbstractMatrix,
-                       space::AbstractSpace{<:Any, 2},
+                       space::Spaces.AbstractSpace{<:Any, 2},
                        t::AbstractVector = collect(1:size(u, 2));
                        kwargs...)
     clim = begin
@@ -71,11 +71,11 @@ end
 
 ## AbstractPDEInterfaces.BoundaryConditions
 
-function Plots.plot(sol::BoundaryValueSolution{<:Number, 1})
+function Plots.plot(sol::BoundaryConditions.:BoundaryValueSolution{<:Number, 1})
     plot(sol.u, sol.cache.space)
 end
 
-function Plots.plot(sol::BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
+function Plots.plot(sol::BoundaryConditions.BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
     plot(sol.u, sol.cache.space)
 end
 
