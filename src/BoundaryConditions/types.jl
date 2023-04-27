@@ -29,7 +29,7 @@ function BoundaryCondition(bc_dict::Dict,
     indices   = boundary_nodes(space)
     antimasks = boundary_antimasks(space, dom, indices)
     mask_dir  = dirichlet_mask(space, dom, indices, bc_dict)
-    amask_dir = IdentityOperator{length(space)}() - mask_dir
+    amask_dir = IdentityOperator(length(space)) - mask_dir
 
     BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space, discr)
 end

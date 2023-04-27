@@ -58,7 +58,7 @@ _transp(a, ::Collocation) = reshape(a, (1, length(a),),)
 
 function massOp(space::AbstractSpace, discr::Collocation)
     N = length(space)
-    IdentityOperator{N}()
+    IdentityOperator(N)
 end
 
 function laplaceOp(space::AbstractSpace, discr::Collocation)

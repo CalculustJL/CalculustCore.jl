@@ -10,7 +10,6 @@ compute
 
 dXdR = [xr xs], dRdX = [rx ry], J = det(dXdR), Jinv = det(dRdX)
        [yr ys]         [sx sy]
-
 """
 struct DeformedSpace{T,D,
                      Tspace<:AbstractSpace{T,D},
@@ -28,7 +27,7 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
                         mapping = nothing, isseparable = false
                        ) where{D}
     if mappping === nothing
-        J    = IdentityOp{D}()
+        J    = IdentityOperator(D)
         Jmat = Diagonal([J for i=1:D])
         @warn "mapping === nothing"
 #       return space

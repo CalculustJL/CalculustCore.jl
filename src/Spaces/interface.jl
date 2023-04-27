@@ -9,12 +9,12 @@ Domains.dims(::AbstractArray{<:Any,D}) where{D} = D
 
 function SciMLOperators.IdentityOperator(space::AbstractSpace)
     N = length(space)
-    SciMLOperators.IdentityOperator{N}()
+    SciMLOperators.IdentityOperator(N)
 end
 
 function SciMLOperators.NullOperator(space::AbstractSpace)
     N = length(space)
-    SciMLOperators.NullOperator{N}()
+    SciMLOperators.NullOperator(N)
 end
 
 """

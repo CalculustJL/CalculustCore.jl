@@ -61,7 +61,7 @@ function GatherScatter(space::AbstractSpace)
     npoints = get_numpoints(space)
 
     if !prod(periodic...)
-        return IdentityOp{N}()
+        return IdentityOp(N)
     end
 
     Qmats = Qmatrix.(npoints, periodic)
