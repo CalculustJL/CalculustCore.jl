@@ -1,4 +1,15 @@
-#
+module AbstractPDEInterfacesPlotsExt
+
+if isdefined(Base, :get_extension)
+    using Plots
+    using AbstractPDEInterfaces: AbstractSpace, BoundaryValueSolution
+else
+    using ..Plots
+    using ..AbstractPDEInterfaces: AbstractSpace, BoundaryValueSolution
+end
+
+## AbstractPDEInterfaces.Spaces
+
 """
 plot of function over space
 args:
@@ -56,4 +67,16 @@ function Plots.animate(u::AbstractMatrix,
         titlestr = "time = $(round(t[i], digits=8))"
         plt = plot(u[:, i], space; clim = clim, title = titlestr, kwargs...)
     end
+end
+
+## AbstractPDEInterfaces.BoundaryConditions
+
+function Plots.plot(sol::BoundaryValueSolution{<:Number, 1})
+    plot(sol.u, sol.cache.space)
+end
+
+function Plots.plot(sol::BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
+    plot(sol.u, sol.cache.space)
+end
+
 end

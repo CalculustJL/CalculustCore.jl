@@ -5,7 +5,6 @@ module Spaces
 
 using Reexport
 using LinearAlgebra
-using Plots: Plots
 
 # operator algebra
 @reexport using SciMLOperators
@@ -29,9 +28,6 @@ import SparseArrays: sparse
 import Base: eltype, length, size
 import Base: summary, display, show
 
-# plot recipies
-import Plots: plot, plot!, @animate, animate
-
 """ Function space in D-Dimensional space """
 abstract type AbstractSpace{T, D} end
 
@@ -42,7 +38,6 @@ include("utils.jl")
 
 # interface
 include("interface.jl")
-include("plots.jl")
 
 # operators
 include("vectorcalculus.jl")

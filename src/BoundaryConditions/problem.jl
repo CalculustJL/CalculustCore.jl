@@ -121,14 +121,6 @@ function build_bv_solution(alg, u, resid, cache; retcode = :Default, iters = not
     BoundaryValueSolution(u, resid, alg, retcode, iters, cache)
 end
 
-function Plots.plot(sol::BoundaryValueSolution{<:Number, 1})
-    plot(sol.u, sol.cache.space)
-end
-
-function Plots.plot(sol::BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
-    plot(sol.u, sol.cache.space)
-end
-
 Base.@kwdef struct LinearBoundaryValueAlg{Tl} <: AbstractBoundaryValueAlgorithm
     linalg::Tl = nothing
 end

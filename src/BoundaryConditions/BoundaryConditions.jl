@@ -14,7 +14,6 @@ import UnPack: @unpack
 
 using LinearAlgebra
 using LinearSolve
-using Plots
 
 using ..Domains
 using ..Domains: AbstractDomain
@@ -24,7 +23,6 @@ using ..Spaces: AbstractSpace, AbstractDiscretization
 
 # overload
 import SciMLBase: solve, init
-import Plots: plot, plot!
 
 abstract type AbstractBoundaryCondition{T} end
 
