@@ -4,17 +4,17 @@
 ###
 
 """ D-dimensional logically reectangular domain """
-struct BoxDomain{T,D,Ti} <: AbstractDomain{T,D}
+struct BoxDomain{T, D, Ti} <: AbstractDomain{T, D}
     intervals::Ti
 
     function BoxDomain(intervals::IntervalDomain...)
         T = promote_type(eltype.(intervals)...)
         D = length(intervals)
-        new{T,D,typeof(intervals)}(intervals)
+        new{T, D, typeof(intervals)}(intervals)
     end
 end
 
-function (::Type{T})(box::BoxDomain) where{T<:Number}
+function (::Type{T})(box::BoxDomain) where {T <: Number}
     BoxDomain(T.(box.intervals)...)
 end
 
@@ -31,9 +31,9 @@ boundary_tags(box::BoxDomain, dir::Integer) = box.intervals[dir] |> boundary_tag
 boundary_tags(box::BoxDomain) = boundary_tags.(box.intervals)
 
 boundary_tag(box::BoxDomain, dir::Integer, i::Integer) = boundary_tags(box, dir)[i]
-boundary_tag(box::BoxDomain, i) = boundary_tag(box, cld(i,2), 1 + rem(i-1, 2))
+boundary_tag(box::BoxDomain, i) = boundary_tag(box, cld(i, 2), 1 + rem(i - 1, 2))
 
-num_boundaries(box::BoxDomain{<:Number,D}) where{D} = 2D
+num_boundaries(box::BoxDomain{<:Number, D}) where {D} = 2D
 
 ⊗(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
 ⊗(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)
@@ -45,9 +45,9 @@ function domains_match(box1::BoxDomain, box2::BoxDomain)
         @warn "dimension mismatch between $box1, $box2"
         return false
     end
-    
+
     ret = true
-    for i=1:D1
+    for i in 1:D1
         ret ⊗ domains_match(box1.intervals[i], box2.intervals[i])
     end
 

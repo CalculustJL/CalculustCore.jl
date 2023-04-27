@@ -1,6 +1,6 @@
 #
 
-Base.eltype(::AbstractDomain{T}) where{T} = T
+Base.eltype(::AbstractDomain{T}) where {T} = T
 
 #Base.in
 #Base.:∈
@@ -8,7 +8,7 @@ Base.eltype(::AbstractDomain{T}) where{T} = T
 """
 Dimension of domain
 """
-dims(::AbstractDomain{<:Any,D}) where{D} = D
+dims(::AbstractDomain{<:Any, D}) where {D} = D
 
 """
 Length of domain

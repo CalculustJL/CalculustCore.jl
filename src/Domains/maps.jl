@@ -38,40 +38,37 @@ function default_tags(i::Integer)
     (tag1, tag2)
 end
 
-function GaussLobattoLegendreDomain(D; periodic_dirs=())
+function GaussLobattoLegendreDomain(D; periodic_dirs = ())
     domain = BoxDomain()
     endpts = (-true, true)
-    for i=1:D
+    for i in 1:D
         interval = IntervalDomain(endpts...;
                                   periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i),
-                                 )
+                                  boundary_tags = default_tags(i))
         domain = domain ⊗ interval
     end
     domain
 end
 
-function ChebyshevDomain(D; periodic_dirs=())
+function ChebyshevDomain(D; periodic_dirs = ())
     domain = BoxDomain()
     endpts = (-true, true)
-    for i=1:D
+    for i in 1:D
         interval = IntervalDomain(endpts...;
                                   periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i),
-                                 )
+                                  boundary_tags = default_tags(i))
         domain = domain ⊗ interval
     end
     domain
 end
 
-function FourierDomain(D; periodic_dirs=1:D)
+function FourierDomain(D; periodic_dirs = 1:D)
     domain = BoxDomain()
     endpts = (-π, π)
-    for i=1:D
+    for i in 1:D
         interval = IntervalDomain(endpts...;
                                   periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i),
-                                 )
+                                  boundary_tags = default_tags(i))
         domain = domain ⊗ interval
     end
     domain
@@ -85,7 +82,7 @@ end
 
 function AnnulusDomain(rinner, router)
     intR = IntervalDomain(rinner, router, false, (:Inner, :Outer))
-    intθ = IntervalDomain(-π,  π, true , (:Periodic, :Periodic))
+    intθ = IntervalDomain(-π, π, true, (:Periodic, :Periodic))
 
     dom = intR ⊗ intθ
 
