@@ -5,12 +5,12 @@
 
 function dirichlet_mask(space::AbstractSpace, dom::AbstractDomain, indices, bc_dict)
     tags = boundary_tags(dom)
-    x    = points(space) |> first
-    M    = similar(x, Bool) * false .+ true |> vec
+    x = points(space) |> first
+    M = similar(x, Bool) * false .+ true |> vec
 
-    for i=1:num_boundaries(dom)
+    for i in 1:num_boundaries(dom)
         tag = boundary_tag(dom, i)
-        bc  = bc_dict[tag]
+        bc = bc_dict[tag]
 
         if bc isa DirichletBC
             idx = indices[i]
@@ -25,7 +25,7 @@ function boundary_antimasks(space::AbstractSpace, dom::AbstractDomain, indices)
     glo_num = global_numbering(space)
 
     antimasks = []
-    for i=1:num_boundaries(dom)
+    for i in 1:num_boundaries(dom)
         M = similar(glo_num, Bool) * false |> vec
         idx = indices[i]
         set_val!(M, true, idx)
@@ -62,15 +62,15 @@ function makeRHS(f, bc::AbstractBoundaryCondition)
     b = M * f
 
     dirichlet = zero(b)
-    neumann   = zero(b)
-    robin     = zero(b)
+    neumann = zero(b)
+    robin = zero(b)
 
     pts = points(space)
     dom = domain(space)
 
-    for i=1:num_boundaries(dom)
-        tag   = boundary_tag(dom, i)
-        bc    = bc_dict[tag]
+    for i in 1:num_boundaries(dom)
+        tag = boundary_tag(dom, i)
+        bc = bc_dict[tag]
         amask = antimasks[i]
 
         if bc isa DirichletBC

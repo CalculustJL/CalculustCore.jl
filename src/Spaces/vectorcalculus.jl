@@ -17,11 +17,10 @@ ret:
 """
 function massOp end
 
-function massOp(space1::AbstractSpace{<:Any,D},
-                space2::AbstractSpace{<:Any,D},
+function massOp(space1::AbstractSpace{<:Any, D},
+                space2::AbstractSpace{<:Any, D},
                 discr::AbstractDiscretization;
-                J = nothing,
-               ) where{D}
+                J = nothing) where {D}
     @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
@@ -86,8 +85,8 @@ function biharmonicOp end
 """
 Diffusion operator - νΔ
 """
-function diffusionOp(ν::Number, args...; ν_update_func=DEFAULT_UPDATE_FUNC)
-    ν = ScalarOperator(ν; update_func=ν_update_func)
+function diffusionOp(ν::Number, args...; ν_update_func = DEFAULT_UPDATE_FUNC)
+    ν = ScalarOperator(ν; update_func = ν_update_func)
     A = laplaceOp(args...)
 
     ν * A
@@ -97,25 +96,24 @@ end
 Diffusion operator - ∇⋅(ν∇⋅)
 """
 function diffusionOp(ν::AbstractVecOrMat,
-                     space1::AbstractSpace{<:Any,D},
-                     space2::AbstractSpace{<:Any,D},
+                     space1::AbstractSpace{<:Any, D},
+                     space2::AbstractSpace{<:Any, D},
                      discr::AbstractDiscretization;
-                     J = nothing,
-                    ) where{D}
+                     J = nothing) where {D}
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     Jν = J * DiagonalOperator(ν)
 
-    M2  = massOp(space2, discr)
+    M2 = massOp(space2, discr)
     Mν2 = Jv * M2
-    MMν2 = Diagonal([Mν2 for i=1:D])
+    MMν2 = Diagonal([Mν2 for i in 1:D])
 
-    DD  = gradientOp(space, discr)
+    DD = gradientOp(space, discr)
     JDD = J .* DD
     JDDt = _transp(JDD, discr)
 
-    - JDDt * MMν2 * JDD
+    -JDDt * MMν2 * JDD
 end
 
 """
@@ -144,16 +142,14 @@ implemented as
                    [Dx]
 """
 function advectionOp(vels::NTuple{D},
-                     space::AbstractSpace{<:Any,D},
+                     space::AbstractSpace{<:Any, D},
                      discr::AbstractDiscretization;
-                     vel_update_funcs=nothing,
-                    ) where{D}
-
+                     vel_update_funcs = nothing) where {D}
     VV = _pair_update_funcs(vels, vel_update_funcs)
 
     DD = gradientOp(space, discr)
-    M  = massOp(space, discr)
-    MM = Diagonal([M for i=1:D])
+    M = massOp(space, discr)
+    MM = Diagonal([M for i in 1:D])
 
     VV' * MM * DD # TODO - transpose instead of adjoint VVt=_transp(VV, discr)
 end
@@ -166,19 +162,17 @@ so we don't commit any
 "variational crimes"
 """
 function advectionOp(vel::NTuple{D},
-                     space1::AbstractSpace{<:Any,D},
-                     space2::AbstractSpace{<:Any,D};
-                     J = nothing,
-                    ) where{D}
-
+                     space1::AbstractSpace{<:Any, D},
+                     space2::AbstractSpace{<:Any, D};
+                     J = nothing) where {D}
     @error "this method has not been implemented yet"
     J12 = J !== nothing ? J : interpOp(space1, space2)
     #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
 
     VV1 = [DiagonalOperator.(vel)...]
     VV2 = J12 .* VV1
-    M2  = massOp(space2)
-    MM2 = Diagonal([M for i=1:D])
+    M2 = massOp(space2)
+    MM2 = Diagonal([M for i in 1:D])
     DD1 = gradientOp(space1)
 
     VV2' * MM2 * (J12 .* DD1)
@@ -199,11 +193,10 @@ F(u) = u + M*f
 function forcingOp(f::AbstractVecOrMat,
                    space::AbstractSpace,
                    discr::AbstractDiscretization;
-                   f_update_func=DEFAULT_UPDATE_FUNC,
-                  )
+                   f_update_func = DEFAULT_UPDATE_FUNC)
     Z = NullOperator(space)
     M = massOp(space, discr)
 
-    AffineOperator(Z, M, f; update_func=f_update_func)
+    AffineOperator(Z, M, f; update_func = f_update_func)
 end
 #

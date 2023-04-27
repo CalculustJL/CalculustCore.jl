@@ -9,41 +9,31 @@ Q*Q'*u where Q: local -> global operator
 TODO write GatherScatterOp that calls NNlib.gather, scatter
 """
 function DSS(u, glo_num)
-
-    Qu   = NNlib.scatter(+,u,l2g) # Q
-    QQtu = NNlib.gather(Qu,g2l)   # Q'
+    Qu = NNlib.scatter(+, u, l2g) # Q
+    QQtu = NNlib.gather(Qu, g2l)   # Q'
 
     return v
 end
 
 function gatherScatterOp(space::AbstractSpace)
-
     N = length(space)
     glo_num = global_numbering(space)
 
     # DSS
-    op  = (du, u, p, t) -> ()
+    op = (du, u, p, t) -> ()
     opi = (du, u, p, t) -> ()
 
-    FunctionOperator(
-                     op;
-
-                     isinplace=true,
-                     T=Bool,
-                     size=(N,N),
-
-                     op_inverse=opi,
-
-                     issymmetric=true,
-                     ishermitian=true,
-                    )
+    FunctionOperator(op; isinplace = true,
+                     T = Bool,
+                     size = (N, N), op_inverse = opi, issymmetric = true,
+                     ishermitian = true)
 end
 
 function Qmatrix(n::Integer, periodic::Bool)
-    Q = sparse(I,n, n-1)
+    Q = sparse(I, n, n - 1)
 
     if periodic
-        Q[end,1] = 1
+        Q[end, 1] = 1
     end
 
     Q

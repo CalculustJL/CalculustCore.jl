@@ -33,7 +33,7 @@ import Base: summary, display, show
 import Plots: plot, plot!, @animate, animate
 
 """ Function space in D-Dimensional space """
-abstract type AbstractSpace{T,D} end
+abstract type AbstractSpace{T, D} end
 
 """ Spatial Discretizations """
 abstract type AbstractDiscretization end
@@ -56,54 +56,44 @@ include("transform.jl")
 include("deform.jl")
 
 export
-       ### from ..Domains
-       dims,
-       deform,
+      ### from ..Domains
+      dims,
+      deform,
 
-       ### Interface
-       points,
-       modes,
-       mode_size,
-       #basis,
-       domain,
-       mass_matrix,
-       global_numbering,
-       boundary_nodes,
+      ### Interface
+      points,
+      modes,
+      mode_size,
+      #basis,
+      domain,
+      mass_matrix,
+      global_numbering,
+      boundary_nodes, ndgrid, transform,
+      make_transform,
 
-       ndgrid,
+      # from SciMLOperators
+      ⊗,
 
-       transform,
-       make_transform,
+      ### from Lux
+      cpu,
+      gpu,
 
-       # from SciMLOperators
-       ⊗,
+      ### Discretizations
+      Collocation,
+      Galerkin,
 
-       ### from Lux
-       cpu,
-       gpu,
-
-       ### Discretizations
-       Collocation,
-       Galerkin,
-
-       ### Operators
-       IdentityOperator,
-       NullOperator,
-
-       massOp,
-       gradientOp,
-       hessianOp,
-       laplaceOp,
-       biharmonicOp,
-       diffusionOp,
-       advectionOp,
-       divergenceOp,
-       forcingOp,
-
-       interpOp,
-
-       transformOp,
-       truncationOp
+      ### Operators
+      IdentityOperator,
+      NullOperator, massOp,
+      gradientOp,
+      hessianOp,
+      laplaceOp,
+      biharmonicOp,
+      diffusionOp,
+      advectionOp,
+      divergenceOp,
+      forcingOp, interpOp, transformOp,
+      truncationOp
 
 end
 #

@@ -11,9 +11,9 @@ compute
 dXdR = [xr xs], dRdX = [rx ry], J = det(dXdR), Jinv = det(dRdX)
        [yr ys]         [sx sy]
 """
-struct DeformedSpace{T,D,
-                     Tspace<:AbstractSpace{T,D},
-                     Tgrid,Tjacmat,Tjacimat,Tjac,Tjaci} <: AbstractSpace{T,D}
+struct DeformedSpace{T, D,
+                     Tspace <: AbstractSpace{T, D},
+                     Tgrid, Tjacmat, Tjacimat, Tjac, Tjaci} <: AbstractSpace{T, D}
     space::Tspace
     grid::Tgrid # (x1, ..., xD,)
     dXdR::Tjacmat
@@ -23,18 +23,17 @@ struct DeformedSpace{T,D,
     # add DeformedDomain
 end
 
-function Domains.deform(space::AbstractSpace{<:Number,D},
-                        mapping = nothing, isseparable = false
-                       ) where{D}
+function Domains.deform(space::AbstractSpace{<:Number, D},
+                        mapping = nothing, isseparable = false) where {D}
     if mappping === nothing
-        J    = IdentityOperator(D)
-        Jmat = Diagonal([J for i=1:D])
+        J = IdentityOperator(D)
+        Jmat = Diagonal([J for i in 1:D])
         @warn "mapping === nothing"
-#       return space
+        #       return space
         return DeformedSpace(space, grid(space), Jmat, Jmat, J, J)
 
     elseif isseparable # x = x(r), y = y(s)
-        # eliminate cross terms by making dXdR, etc diagonal
+    # eliminate cross terms by making dXdR, etc diagonal
     elseif rescaling # simple rescaling
         # make jac, dXdR, etc scaling operations
     end
@@ -61,10 +60,8 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
     J = if D == 1
         dXdR[1]
     elseif D == 2
-        xr = dXdR[1]
-        yr = dXdR[2]
-        xs = dXdR[3]
-        ys = dXdR[4]
+        xr = dXdR[1]; yr = dXdR[2]
+        xs = dXdR[3]; ys = dXdR[4]
 
         xr * ys - xs * yr
     elseif D == 3
@@ -89,12 +86,12 @@ function Domains.deform(space::AbstractSpace{<:Number,D},
         xs = dXdR[3]
         ys = dXdR[4]
 
-        rx =  (Ji * ys)
+        rx = (Ji * ys)
         ry = -(Ji * xs)
         sx = -(Ji * yr)
-        sy =  (Ji * xr)
+        sy = (Ji * xr)
 
-        dRdX = [rx ry 
+        dRdX = [rx ry
                 sx sy]
     elseif D == 3 # cramer's rule
         inv(dXdR)
@@ -134,7 +131,7 @@ end
 """
 function gradientOp(space::DeformedSpace) # ∇
     gradR = gradientOp(space.space)
-    dRdX  = space.dRdX
+    dRdX = space.dRdX
     gradX = dRdX * gradR
 
     gradX
@@ -165,12 +162,11 @@ where A_l is
   [Ds]    [G12 G22]    [Ds]
 """
 function laplaceOp(space::DeformedSpace, ::Galerkin)
-
-    Dr   = gradientOp(space.space)
-    M    = massOp(space)
+    Dr = gradientOp(space.space)
+    M = massOp(space)
     dRdX = space.dRdX
 
-    MM = Diagonal([M for i=1:D])
+    MM = Diagonal([M for i in 1:D])
     GG = if dRdX isa Diagonal
         dRdX' * MM * dRdX
     else
@@ -186,20 +182,19 @@ end
 # Dealiased operators
 ###
 
-function laplaceOp(space1::DeformedSpace{<:Number,D},
-                   space2::DeformedSpace{<:Number,D},
+function laplaceOp(space1::DeformedSpace{<:Number, D},
+                   space2::DeformedSpace{<:Number, D},
                    discr::AbstractDiscretization;
-                   J = nothing
-                  ) where{D}
+                   J = nothing) where {D}
     J12 = interpolation_operator !== nothing ? J : interpOp(space1, space2)
 
-    Dr1   = gradientOp(space1.space)
-    M2    = massOp(space2)
+    Dr1 = gradientOp(space1.space)
+    M2 = massOp(space2)
     dRdX2 = space2.dRdX
 
     JD = J12 * Dr1
 
-    MM2 = Diagonal([M2 for i=1:D])
+    MM2 = Diagonal([M2 for i in 1:D])
     GG2 = dRdX' * MM2 * dRdX |> Symmetric
 
     laplOp = JD' * GG2 * JD

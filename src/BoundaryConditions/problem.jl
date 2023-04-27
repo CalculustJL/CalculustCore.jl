@@ -1,16 +1,16 @@
 #
 struct BoundaryValueProblem{
-                    isinplace,
-                    T,
-                    F,
-                    fType,
-                    uType,
-                    Tbcs,
-                    Tspace<:AbstractSpace{T},
-                    Tdiscr<:AbstractDiscretization,
-                    P,
-                    K,
-                   } <: AbstractBoundaryValueProblem
+                            isinplace,
+                            T,
+                            F,
+                            fType,
+                            uType,
+                            Tbcs,
+                            Tspace <: AbstractSpace{T},
+                            Tdiscr <: AbstractDiscretization,
+                            P,
+                            K
+                            } <: AbstractBoundaryValueProblem
     """Neumann Operator"""
     op::F
     """Right-hand-side forcing vector"""
@@ -28,17 +28,14 @@ struct BoundaryValueProblem{
     """Keyword arguments"""
     kwargs::K
 
-    SciMLBase.@add_kwonly function BoundaryValueProblem(
-         op::AbstractSciMLOperator,
-         f,
-         bc_dict::Dict,
-         space::AbstractSpace{T},
-         discr::AbstractDiscretization,
-         p = SciMLBase.NullParameters();
-         u0 = nothing,
-         kwargs...
-        ) where{T}
-
+    SciMLBase.@add_kwonly function BoundaryValueProblem(op::AbstractSciMLOperator,
+                                                        f,
+                                                        bc_dict::Dict,
+                                                        space::AbstractSpace{T},
+                                                        discr::AbstractDiscretization,
+                                                        p = SciMLBase.NullParameters();
+                                                        u0 = nothing,
+                                                        kwargs...) where {T}
         new{true,
             eltype(space),
             typeof(op),
@@ -49,9 +46,7 @@ struct BoundaryValueProblem{
             typeof(discr),
             typeof(p),
             typeof(kwargs)
-           }(
-             op, f, u0, bc_dict, space, discr, p, kwargs
-            )
+            }(op, f, u0, bc_dict, space, discr, p, kwargs)
     end
 end
 
@@ -59,14 +54,13 @@ function Base.summary(io::IO, prob::BoundaryValueProblem)
     type_color, no_color = SciMLBase.get_colorizers(io)
     print(io,
           type_color, nameof(typeof(prob)),
-          no_color," with uType ",
-          type_color,typeof(prob.u0),
-          no_color," with AType ",
-          type_color,typeof(prob.op),
-          no_color,". In-place: ",
-          type_color,SciMLBase.isinplace(prob),
-          no_color
-         )
+          no_color, " with uType ",
+          type_color, typeof(prob.u0),
+          no_color, " with AType ",
+          type_color, typeof(prob.op),
+          no_color, ". In-place: ",
+          type_color, SciMLBase.isinplace(prob),
+          no_color)
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", A::BoundaryValueProblem)
@@ -84,7 +78,7 @@ function Base.show(io::IO, mime::MIME"text/plain", A::BoundaryValueProblem)
     show(io, mime, A.space)
 end
 
-struct BoundaryValueCache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBoundaryValueCache
+struct BoundaryValueCache{Top, Tu, Tbc, Tsp, Tdi, Talg} <: AbstractBoundaryValueCache
     """Neumann Operator"""
     op::Top
     """Right-hand-side forcing vector"""
@@ -101,7 +95,7 @@ struct BoundaryValueCache{Top,Tu,Tbc,Tsp,Tdi,Talg} <: AbstractBoundaryValueCache
     alg::Talg
 end
 
-struct BoundaryValueSolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{T,D}
+struct BoundaryValueSolution{T, D, uType, R, A, C} #<: SciMLBase.AbstractDAESolution{T,D}
     u::uType
     resid::R
     alg::A
@@ -118,22 +112,20 @@ struct BoundaryValueSolution{T,D,uType,R,A,C} #<: SciMLBase.AbstractDAESolution{
             typeof(u),
             typeof(resid),
             typeof(alg),
-            typeof(cache),
-           }(
-             u, resid, alg, retcode, iters, cache,
-            )
+            typeof(cache)
+            }(u, resid, alg, retcode, iters, cache)
     end
 end
 
-function build_bv_solution(alg, u, resid, cache; retcode=:Default, iters=nothing)
+function build_bv_solution(alg, u, resid, cache; retcode = :Default, iters = nothing)
     BoundaryValueSolution(u, resid, alg, retcode, iters, cache)
 end
 
-function Plots.plot(sol::BoundaryValueSolution{<:Number,1})
+function Plots.plot(sol::BoundaryValueSolution{<:Number, 1})
     plot(sol.u, sol.cache.space)
 end
 
-function Plots.plot(sol::BoundaryValueSolution{<:Number,2}; a=45, b=60)
+function Plots.plot(sol::BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
     plot(sol.u, sol.cache.space)
 end
 
@@ -152,29 +144,28 @@ function SciMLBase.solve(cache::BoundaryValueCache; kwargs...)
 
     lhsOp = makeLHS(op, bc)
     lhsOp = cache_operator(lhsOp, f)
-    rhs   = makeRHS(f, bc)
+    rhs = makeRHS(f, bc)
 
-    linprob = LinearProblem(lhsOp, rhs; u0=vec(u))
-    linsol  = solve(linprob, linalg; kwargs...)
+    linprob = LinearProblem(lhsOp, rhs; u0 = vec(u))
+    linsol = solve(linprob, linalg; kwargs...)
 
     resid = norm(lhsOp * linsol.u - rhs, Inf)
 
-    build_bv_solution(alg, u, resid, cache; iters=linsol.iters)
+    build_bv_solution(alg, u, resid, cache; iters = linsol.iters)
 end
 
 function SciMLBase.init(prob::AbstractBoundaryValueProblem,
                         alg::AbstractBoundaryValueAlgorithm = nothing;
-                        abstol=default_tol(eltype(prob.op)),
-                        reltol=default_tol(eltype(prob.op)),
-                        maxiters=length(prob.f),
-                        verbose=false,
-                        kwargs...
-                       )
+                        abstol = default_tol(eltype(prob.op)),
+                        reltol = default_tol(eltype(prob.op)),
+                        maxiters = length(prob.f),
+                        verbose = false,
+                        kwargs...)
     @unpack op, f, u0, bc_dict, space, discr = prob
 
     alg = alg isa Nothing ? LinearBoundaryValueAlg() : alg
 
-    u  = u0 isa Nothing ? zero(f) : u0
+    u = u0 isa Nothing ? zero(f) : u0
     bc = BoundaryCondition(bc_dict, space, discr)
 
     BoundaryValueCache(op, f, u, bc, space, discr, alg)
@@ -185,7 +176,7 @@ function SciMLBase.solve(prob::BoundaryValueProblem, args...; kwargs...)
 end
 
 function SciMLBase.solve(prob::BoundaryValueProblem,
-                         alg::Union{AbstractBoundaryValueAlgorithm,Nothing}, args...;
+                         alg::Union{AbstractBoundaryValueAlgorithm, Nothing}, args...;
                          kwargs...)
     solve(init(prob, alg, args...; kwargs...); kwargs...)
 end

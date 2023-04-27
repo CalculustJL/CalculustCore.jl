@@ -1,11 +1,11 @@
 #
-Base.eltype(::AbstractSpace{T}) where{T} = T
+Base.eltype(::AbstractSpace{T}) where {T} = T
 
 """
 Dimension of underlying domain
 """
-Domains.dims(::AbstractSpace{<:Any,D}) where{D} = D
-Domains.dims(::AbstractArray{<:Any,D}) where{D} = D
+Domains.dims(::AbstractSpace{<:Any, D}) where {D} = D
+Domains.dims(::AbstractArray{<:Any, D}) where {D} = D
 
 function SciMLOperators.IdentityOperator(space::AbstractSpace)
     N = length(space)
@@ -20,23 +20,22 @@ end
 """
 get number of points
 """
-Base.size(space::AbstractSpace{<:Any,D}, d) where{D} = size(space)[d] #TODO dims check
+Base.size(space::AbstractSpace{<:Any, D}, d) where {D} = size(space)[d] #TODO dims check
 
 """
 length of vector in space
 """
 Base.length(space::AbstractSpace) = prod(size(space))
 
-function Base.summary(io::IO, space::AbstractSpace{T,D}) where{T,D}
+function Base.summary(io::IO, space::AbstractSpace{T, D}) where {T, D}
     type_color, no_color = SciMLBase.get_colorizers(io)
     print(io,
           type_color, nameof(typeof(space)),
-          no_color," over domain ",
-          type_color,typeof(domain(space)),
-          no_color," with uType ",
-          type_color,typeof(first(grid(space))),
-          no_color
-         )
+          no_color, " over domain ",
+          type_color, typeof(domain(space)),
+          no_color, " with uType ",
+          type_color, typeof(first(grid(space))),
+          no_color)
 end
 
 """
@@ -208,17 +207,16 @@ ret:
     - space::AbstractSpace with transform operator that can act on `u`
 """
 function make_transform(space::AbstractSpace,
-                        u::Union{Nothing,AbstractArray} = nothing;
+                        u::Union{Nothing, AbstractArray} = nothing;
                         kwargs...)
-
-    u = if u isa Union{AbstractVecOrMat,Nothing}
+    u = if u isa Union{AbstractVecOrMat, Nothing}
         u
     else # ND Array
-        N  = length(space)
+        N = length(space)
         NK = length(u)
-        K  = NK ÷ N
+        K = NK ÷ N
 
-        @assert sz[1] == N "Dimension mismatch"
+        @assert sz[1]==N "Dimension mismatch"
         reshape(u, (N, K))
     end
 

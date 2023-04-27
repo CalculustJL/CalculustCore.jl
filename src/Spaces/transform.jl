@@ -4,7 +4,7 @@ Lazy wrapper for transforming
 
     physical space -> modal space
 """
-struct TransformedSpace{T,D,Tsp<:AbstractSpace{T,D}} <: AbstractSpace{T,D}
+struct TransformedSpace{T, D, Tsp <: AbstractSpace{T, D}} <: AbstractSpace{T, D}
     space::Tsp
 end
 
@@ -22,7 +22,7 @@ modes(space::TransformedSpace) = points(space.space)
 
 function Domains.deform(space::TransformedSpace)
     phys = transform(space)
-    def  = deform(space)
+    def = deform(space)
 
     transform(def)
 end

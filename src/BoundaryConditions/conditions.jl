@@ -24,7 +24,7 @@ end
 """
 f1(x)u(x) + f2(x)(n⋅∇)u(x) = f3(x), x ∈ ∂Ω
 """
-struct RobinBC{F1,F2,F3}
+struct RobinBC{F1, F2, F3}
     f1::F1
     f2::F2
     f3::F3

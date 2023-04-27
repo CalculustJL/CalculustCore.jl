@@ -5,10 +5,10 @@ Tensor product of spaces. like extrusion
 """
 struct TensorProductSpace{
                           T,
-                          D1+D2,
-                          I<:AbstractSpace{<:Any, D1},
-                          O<:AbstractSpace{<:Any, D2},
-                         } <: AbstractSpace{T,D1+D2}
+                          D1 + D2,
+                          I <: AbstractSpace{<:Any, D1},
+                          O <: AbstractSpace{<:Any, D2}
+                          } <: AbstractSpace{T, D1 + D2}
     inner::I
     outer::O
 end
@@ -50,10 +50,10 @@ function gradientOp(space::TensorProductSpace)
 
     # make tensor product
 
-#   [
-#    Di
-#    Do
-#   ]
+    #   [
+    #    Di
+    #    Do
+    #   ]
 end
 
 function massOp(space::TensorProductSpace)

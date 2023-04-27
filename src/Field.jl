@@ -16,14 +16,14 @@ import LinearAlgebra: mul!, ldiv!, lmul!, rmul!, norm, dot, axpy!, axpby!
 # TODO: create SpectralElementField and overload inner product by
 #   - overload *(Adjoint{Field}, Field), norm(::Field, 2)
 #
-abstract type AbstractField{T,D} <: DenseVector{T} end
+abstract type AbstractField{T, D} <: DenseVector{T} end
 """ Scalar function field in D-dimensional space over a spectral basis"""
-struct Field{T,D,Tarr <: AbstractArray{T,D}} <: AbstractField{T,D}
+struct Field{T, D, Tarr <: AbstractArray{T, D}} <: AbstractField{T, D}
     array::Tarr
 end
 
 # display
-function Base.summary(io::IO, u::Field{T,D}) where{T,D}
+function Base.summary(io::IO, u::Field{T, D}) where {T, D}
     println(io, "$(D)D scalar field of type $T")
     Base.show(io, typeof(u))
 end
@@ -41,7 +41,7 @@ Base.setindex!(u::Field, v, i::Int) = setindex!(u.array, v, i)
 Base.size(u::Field) = (length(u.array),)
 
 # allocation
-function Base.similar(u::Field, ::Type{T}=eltype(u), dims::Dims=size(u.array)) where{T}
+function Base.similar(u::Field, ::Type{T} = eltype(u), dims::Dims = size(u.array)) where {T}
     Field(similar(u.array, T, dims))
 end
 Base.zero(u::Field, dims::Dims) = zero(u) # ignore dims since <: AbstractVector
@@ -54,9 +54,9 @@ Base.zero(u::Field, dims::Dims) = zero(u) # ignore dims since <: AbstractVector
 # broadcast
 Base.Broadcast.BroadcastStyle(::Type{<:Field}) = Broadcast.ArrayStyle{Field}()
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{Field}},
-                      ::Type{ElType}) where ElType
-  u = find_fld(bc)
-  Field(similar(Array{ElType}, axes(u.array)))
+                      ::Type{ElType}) where {ElType}
+    u = find_fld(bc)
+    Field(similar(Array{ElType}, axes(u.array)))
 end
 
 find_fld(bc::Base.Broadcast.Broadcasted) = find_fld(bc.args)
@@ -66,17 +66,19 @@ find_fld(::Tuple{}) = nothing
 find_fld(a::Field, rest) = a
 find_fld(::Any, rest) = find_fld(rest)
 
-LinearAlgebra.norm(u::Field, p::Real=2) = norm(vec(u.array), p)
+LinearAlgebra.norm(u::Field, p::Real = 2) = norm(vec(u.array), p)
 
-function LinearAlgebra.dot(u::Field{<:Number,D}, v::Field{<:Number,D}) where{D}
-    dot( vec(u.array), vec(v.array))
+function LinearAlgebra.dot(u::Field{<:Number, D}, v::Field{<:Number, D}) where {D}
+    dot(vec(u.array), vec(v.array))
 end
 
-function LinearAlgebra.axpy!(a::Number, x::Field{<:Number,D}, y::Field{<:Number,D}) where{D}
+function LinearAlgebra.axpy!(a::Number, x::Field{<:Number, D},
+                             y::Field{<:Number, D}) where {D}
     axpy!(a, x.array, y.array)
 end
 
-function LinearAlgebra.axpby!(a::Number, x::Field{<:Number,D}, b::Number, y::Field{<:Number,D}) where{D}
+function LinearAlgebra.axpby!(a::Number, x::Field{<:Number, D}, b::Number,
+                              y::Field{<:Number, D}) where {D}
     axpby!(a, x.array, b, y.array)
 end
 
