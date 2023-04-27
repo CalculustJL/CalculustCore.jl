@@ -1,5 +1,7 @@
 module AbstractPDEInterfaces
 
+using DocStringExtensions
+
 include("Domains/Domains.jl")
 include("Spaces/Spaces.jl")
 include("BoundaryConditions/BoundaryConditions.jl")
