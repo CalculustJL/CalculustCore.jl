@@ -1,7 +1,7 @@
 name = "AbstractPDEInterfaces"
 uuid = "db474457-f03d-4fd7-b196-5f323c96c803"
 authors = ["Vedant Puri <vedantpuri@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
