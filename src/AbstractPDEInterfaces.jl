@@ -14,12 +14,21 @@ using Reexport
 #include("semidiscr.jl") # method of lines
 #include("EigenValueProblem.jl")
 
-import Requires
+const USE_CUDA = Ref{Union{Nothing, Bool}}(nothing)
+
+include("adapt.jl")
+export cpu, gpu
 
 @static if !isdefined(Base, :get_extension)
+    import Requires
+
     function __init__()
         Requires.@require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
             include("../ext/AbstractPDEInterfacesPlotsExt.jl")
+        end
+
+        Requires.@require CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba" begin
+            include("../ext/AbstractPDEInterfacesCUDAExt.jl")
         end
     end
 end

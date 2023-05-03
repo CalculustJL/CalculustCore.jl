@@ -3,7 +3,7 @@ Boundary Condition Interface
 """
 module BoundaryConditions # change to BoundaryValueProblems
 
-#using Reexport
+using Reexport
 @reexport using SciMLBase
 using SciMLOperators: AbstractSciMLOperator, IdentityOperator
 

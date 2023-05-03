@@ -4,7 +4,9 @@ authors = ["Vedant Puri <vedantpuri@gmail.com>"]
 version = "0.2.2"
 
 [deps]
+Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
@@ -16,12 +18,15 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [extensions]
+AbstractPDEInterfacesCUDAExt = "CUDA"
 AbstractPDEInterfacesPlotsExt = "Plots"
 
 [compat]
+CUDA = "3.12.0, 4"
 LinearSolve = "1.23.3"
 Plots = "1.31.7"
 Reexport = "1.2.2"

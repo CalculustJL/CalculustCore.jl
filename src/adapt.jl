@@ -1,31 +1,16 @@
-using GPUArraysCore
-
-export cpu, gpu
-
-const USE_CUDA = Ref{Union{Nothing, Bool}}(nothing)
+using Adapt
+using Functors
+using SparseArrays
 
 abstract type DeviceAdaptor end
 struct CPUAdaptor <: DeviceAdaptor end
-struct CUDAAdaptor <: DeviceAdaptor end # use CUDA.Adaptor instead?
-
-# TODO
-# move all CUDA references to package extension
-##########################
-
-USE_CUDA[] = CUDA.functional()
-
-Adapt.adapt_storage(::CUDAAdaptor) = CUDA.cu(x)
-
-##########################
+struct CUDAAdaptor <: DeviceAdaptor end
 
 ## CPU adaptor
 
 Adapt.adapt_storage(::CPUAdaptor, x::AbstractArray) = adapt(Array, x)
-# function Adapt.adapt_storage(::CPUAdaptor, x::Union{AbstractRange, SparseArrays.AbstractSparseArray},)
-#     x
-# end
-function Adapt.adapt_storage(::CPUAdaptor, x::CUDA.CUSPARSE.AbstractCuSparseMatrix,)
-    adapt(Array, x)
+function Adapt.adapt_storage(::CPUAdaptor, x::Union{AbstractRange, SparseArrays.AbstractSparseArray},)
+    x
 end
 
 _isbitsarray(::AbstractArray{<:Number}) = true
