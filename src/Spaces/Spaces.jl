@@ -15,11 +15,8 @@ using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC,
 using UnPack: @unpack
 using Setfield: @set!
 
-# GPU
-using Lux: cpu, gpu
-
 # gather-scatter
-using NNlib: gather, gather!, scatter, scatter!
+# using NNlib: gather, gather!, scatter, scatter!
 import SparseArrays: sparse
 
 @reexport using ..Domains
@@ -68,10 +65,6 @@ export
 
       # from SciMLOperators
       ⊗,
-
-      ### from Lux
-      cpu,
-      gpu,
 
       ### Discretizations
       Collocation,

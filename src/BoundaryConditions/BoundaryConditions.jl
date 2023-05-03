@@ -4,12 +4,9 @@ Boundary Condition Interface
 module BoundaryConditions # change to BoundaryValueProblems
 
 #using Reexport
-#@reexport using SciMLBase
-import SciMLBase: init, solve
-export init, solve
-
-using SciMLOperators
+@reexport using SciMLBase
 using SciMLOperators: AbstractSciMLOperator, IdentityOperator
+
 import UnPack: @unpack
 
 using LinearAlgebra
@@ -20,9 +17,6 @@ using ..Domains: AbstractDomain
 
 using ..Spaces
 using ..Spaces: AbstractSpace, AbstractDiscretization
-
-# overload
-import SciMLBase: solve, init
 
 abstract type AbstractBoundaryCondition{T} end
 
