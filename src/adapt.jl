@@ -1,12 +1,7 @@
-using Adapt
-using Functors
-using SparseArrays
-
+#
 abstract type DeviceAdaptor end
 struct CPUAdaptor <: DeviceAdaptor end
 struct CUDAAdaptor <: DeviceAdaptor end
-
-## CPU adaptor
 
 Adapt.adapt_storage(::CPUAdaptor, x::AbstractArray) = adapt(Array, x)
 function Adapt.adapt_storage(::CPUAdaptor, x::Union{AbstractRange, SparseArrays.AbstractSparseArray},)
@@ -33,18 +28,22 @@ cpu(x) = fmap(x -> adapt(CPUAdaptor(), x), x)
 
 Transfer `x` to GPU
 """
-function gpu end
-
 function gpu(x)
-    if isnothing(USE_CUDA[])
-        @warn "CUDA is not loaded."
+    has_cuda = static_hasmethod(check_use_cuda, typeof(()))
+
+    if !has_cuda
+        @warn "CUDA is not loaded. Defaulting to CPU."
         return x
     end
 
+    check_use_cuda()
     if USE_CUDA[]
+        # return adapt(CUDAAdaptor(), x)
         return fmap(x -> adapt(CUDAAdaptor(), x), x; exclude=_isleaf)
     else
-        @warn "CUDA loaded but not CUDA.functional() = false"
+        @warn "CUDA loaded but not CUDA.functional() = false. Defaulting to CPU."
         return x
     end
 end
+
+function check_use_cuda end
