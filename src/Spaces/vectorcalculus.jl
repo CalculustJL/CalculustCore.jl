@@ -4,9 +4,9 @@
 ###
 
 """
-Mass Operator - ∫
+Mass Operator: ∫⋅dx
 
-Inner Product: <u, v := u' * M * v
+Inner Product: <u, v> := u' * M * v
 
 args:
     space::AbstractSpace
@@ -31,7 +31,7 @@ function massOp(space1::AbstractSpace{<:Any, D},
 end
 
 """
-Gradient Operator - ∇
+Gradient Operator: ∇
 
 args:
     space::AbstractSpace
@@ -43,7 +43,7 @@ function gradientOp end
 gradientOp(space::AbstractSpace, discr::AbstractDiscretization) = gradientOp(space)
 
 """
-Hessian Operator - ∇²
+Hessian Operator: ∇²
 
 args:
     space::AbstractSpace
@@ -61,7 +61,7 @@ function hessianOp(space::AbstractSpace)
 end
 
 """
-Laplace Operator - Δ
+Laplace Operator: -Δ
 
 args:
     space::AbstractSpace{T,D}
@@ -72,7 +72,7 @@ ret:
 function laplaceOp end
 
 """
-Biharmonic Operator - Δ²
+Biharmonic Operator: Δ²
 
 args:
     space::AbstractSpace{T,D}
@@ -83,7 +83,7 @@ ret:
 function biharmonicOp end
 
 """
-Diffusion operator - νΔ
+Diffusion operator: -νΔ
 """
 function diffusionOp(ν::Number, args...; ν_update_func = DEFAULT_UPDATE_FUNC)
     ν = ScalarOperator(ν; update_func = ν_update_func)
@@ -93,7 +93,7 @@ function diffusionOp(ν::Number, args...; ν_update_func = DEFAULT_UPDATE_FUNC)
 end
 
 """
-Diffusion operator - ∇⋅(ν∇⋅)
+Diffusion operator: -∇⋅(ν∇⋅)
 """
 function diffusionOp(ν::AbstractVecOrMat,
                      space1::AbstractSpace{<:Any, D},
@@ -106,18 +106,18 @@ function diffusionOp(ν::AbstractVecOrMat,
     Jν = J * DiagonalOperator(ν)
 
     M2 = massOp(space2, discr)
-    Mν2 = Jv * M2
+    Mν2 = Jν * M2
     MMν2 = Diagonal([Mν2 for i in 1:D])
 
-    DD = gradientOp(space, discr)
+    DD = gradientOp(space1, discr)
     JDD = J .* DD
     JDDt = _transp(JDD, discr)
 
-    -JDDt * MMν2 * JDD
+    JDDt * MMν2 * JDD
 end
 
 """
-Advection Operator - v⃗⋅∇
+Advection Operator: v⃗⋅∇
 
 args:
     vel...::AbstractVector
@@ -179,7 +179,7 @@ function advectionOp(vel::NTuple{D},
 end
 
 """
-Divergence Operator - ∇⋅
+Divergence Operator: ∇⋅
 """
 function divergenceOp end
 

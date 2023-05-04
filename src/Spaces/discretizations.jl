@@ -35,18 +35,18 @@ function laplaceOp(space1::AbstractSpace{<:Any, D},
     DD1 = gradientOp(space1, discr)
     JDD = J12 .* DD1
 
-    -JDD' * MM2 * JDD
+    JDD' * MM2 * JDD
 end
 
-function diffusionOp(ν::AbstractVector, space::AbstractSpace, ::Galerkin)
+function diffusionOp(ν::AbstractVector, space::AbstractSpace, discr::Galerkin)
     D = dims(space)
     ν = DiagonalOperator(ν)
     DD = gradientOp(space)
-    M = massOp(space)
+    M = massOp(space, discr)
     Mν = ν * M
     MMν = Diagonal([Mν for i in 1:D])
 
-    -DD' * MMν * DD
+    DD' * MMν * DD
 end
 
 """
@@ -61,7 +61,7 @@ function massOp(space::AbstractSpace, discr::Collocation)
 end
 
 function laplaceOp(space::AbstractSpace, discr::Collocation)
-    DD2 = hessianOp(space, discr)
+    DD2 = -hessianOp(space, discr)
     sum(DD2)
 end
 
