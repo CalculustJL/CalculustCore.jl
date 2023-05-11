@@ -1,4 +1,4 @@
-# AbstractPDEInterfaces.jl
+# CalculustCore.jl
 
 A common interface for PDE solving
 
@@ -6,17 +6,17 @@ PDEs are messy: weird boundary conditions, moving domains, singular operators, y
 
 Numerical PDE problems drive high-performance computing. The biggest supercomputers on the planet run physics simulations on millions of MPI ranks over years of wall-time. An optimized workflow is the difference between having a solution, or going home emptyhanded, and every ounce of performance has to be squeezed. As such, highly tuned software packages that specialize on a set class of problems dominate the market. With specializations, however, generalizability and interpoeratibility take a hit.
 
-`AbstractPDEInterfaces.jl` is written so that package authors won't need to write a method for `Δ` (Laplacian) every time a new scheme for the gradient `∇` (gradient) comes along. We provides abstractions over components of PDE solvers that reduce the amount of boilerplate code that any new solver would need, and improve interpoeratibility between solvers. Furthermore, a requisite for the developement of Machine Learning based PDE solvers is the ability to mix state of the art discretizations with large neural network models on a AD-compatible, accelerator-friendly test-bench. Julia's multiple-dispatch based programming model allows for abstractly-typed, composable code, that lets packages just plug-and-play. Engineers shouldn't waste their time reinventing the wheel, rather focus on what's new and interesting!
+`CalculustCore.jl` is written so that package authors won't need to write a method for `Δ` (Laplacian) every time a new scheme for the gradient `∇` (gradient) comes along. We provides abstractions over components of PDE solvers that reduce the amount of boilerplate code that any new solver would need, and improve interpoeratibility between solvers. Furthermore, a requisite for the developement of Machine Learning based PDE solvers is the ability to mix state of the art discretizations with large neural network models on a AD-compatible, accelerator-friendly test-bench. Julia's multiple-dispatch based programming model allows for abstractly-typed, composable code, that lets packages just plug-and-play. Engineers shouldn't waste their time reinventing the wheel, rather focus on what's new and interesting!
 
 We believe switching from 'Fourier-spectral collocation method' to 'discontinuous Galerkin finite elements' should be a one-line change for the user. And users should not need to deal with inconsistent syntax between solvers for specifying boundary conditions, and forming vector-calculus operators.
 
-Finally, `AbstractPDEInterfaces.jl` is fully compatible with the `SciML.ai` ecosystem, so after describing your problem, it should spit out the right `BoundaryValuePDEProblem`  or `ODEProblem` that you can solve using the relevant `DiffEq` package.
+Finally, `CalculustCore.jl` is fully compatible with the `SciML.ai` ecosystem, so after describing your problem, it should spit out the right `BoundaryValuePDEProblem`  or `ODEProblem` that you can solve using the relevant `DiffEq` package.
 
 ## Abstract Interfaces
 
-`AbstractPDEInterfacess.jl` contains separate abstract interaces for multidimensional domains, vector-calculus operators, and function spaces. It is general enough that anybody can plug in their discretizations (ie define an inner-product operator, and gradient operator) and start solving boundary value problems, or time-evolution problems.
+`CalculustCore.jl` contains separate abstract interaces for multidimensional domains, vector-calculus operators, and function spaces. It is general enough that anybody can plug in their discretizations (ie define an inner-product operator, and gradient operator) and start solving boundary value problems, or time-evolution problems.
 
-Once you plug in your discretizations, you can do a lot of cool things like apply any random deformations to the space. AbstractPDEInterfacess.jl translate all your vector calculus operators correctly. That means the same code could solve convection diffusion on a square as well as an annulus with no extra work and basically conserved accuracy.
+Once you plug in your discretizations, you can do a lot of cool things like apply any random deformations to the space. CalculustCore.jl translate all your vector calculus operators correctly. That means the same code could solve convection diffusion on a square as well as an annulus with no extra work and basically conserved accuracy.
 
 ### `AbstractDomain` interface
 

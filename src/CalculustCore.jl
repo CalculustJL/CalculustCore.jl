@@ -1,4 +1,4 @@
-module AbstractPDEInterfaces
+module CalculustCore
 
 using DocStringExtensions
 
@@ -31,11 +31,11 @@ end
 @static if !isdefined(Base, :get_extension)
     function __init__()
         Requires.@require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-            include("../ext/AbstractPDEInterfacesPlotsExt.jl")
+            include("../ext/CalculustCorePlotsExt.jl")
         end
 
         Requires.@require CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba" begin
-            include("../ext/AbstractPDEInterfacesCUDAExt.jl")
+            include("../ext/CalculustCoreCUDAExt.jl")
         end
     end
 end

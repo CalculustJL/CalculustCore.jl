@@ -1,18 +1,18 @@
-using AbstractPDEInterfaces
+using CalculustCore
 using Documenter
 
-DocMeta.setdocmeta!(AbstractPDEInterfaces, :DocTestSetup, :(using AbstractPDEInterfaces);
+DocMeta.setdocmeta!(CalculustCore, :DocTestSetup, :(using CalculustCore);
                     recursive = true)
 
 include("pages.jl")
 
-makedocs(sitename = "AbstractPDEInterfaces.jl",
+makedocs(sitename = "CalculustCore.jl",
          authors = "Vedant Puri",
          modules = [
-             AbstractPDEInterfaces,
-             AbstractPDEInterfaces.Domains,
-             AbstractPDEInterfaces.Spaces,
-             AbstractPDEInterfaces.BoundaryConditions,
+             CalculustCore,
+             CalculustCore.Domains,
+             CalculustCore.Spaces,
+             CalculustCore.BoundaryConditions,
          ],
          clean = true,
          doctest = false, # TODO - set to true later
@@ -27,11 +27,11 @@ makedocs(sitename = "AbstractPDEInterfaces.jl",
          ],
          # format = Documenter.HTML(
          #                          # assets = ["assets/favicon.ico"],
-         #                          # canonical = "https://docs.sciml.ai/AbstractPDEInterfaces/stable/"
+         #                          # canonical = "https://docs.calculust.dev/CalculustCore/stable/"
          #                         ),
 
          pages = pages)
 
 deploydocs(;
-           repo = "github.com/vpuri3/AbstractPDEInterfaces.jl",
+           repo = "github.com/vpuri3/CalculustCore.jl",
            push_preview = true)

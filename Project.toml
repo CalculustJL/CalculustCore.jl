@@ -1,7 +1,7 @@
-name = "AbstractPDEInterfaces"
+name = "CalculustCore"
 uuid = "db474457-f03d-4fd7-b196-5f323c96c803"
 authors = ["Vedant Puri <vedantpuri@gmail.com>"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
@@ -35,8 +35,8 @@ UnPack = "1.0.2"
 julia = "1.6"
 
 [extensions]
-AbstractPDEInterfacesCUDAExt = "CUDA"
-AbstractPDEInterfacesPlotsExt = "Plots"
+CalculustCoreCUDAExt = "CUDA"
+CalculustCorePlotsExt = "Plots"
 
 [extras]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"

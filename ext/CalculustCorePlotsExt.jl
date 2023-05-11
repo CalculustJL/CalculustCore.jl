@@ -1,14 +1,14 @@
-module AbstractPDEInterfacesPlotsExt
+module CalculustCorePlotsExt
 
 if isdefined(Base, :get_extension)
     using Plots
-    using AbstractPDEInterfaces
+    using CalculustCore
 else
     using ..Plots
-    using ..AbstractPDEInterfaces
+    using ..CalculustCore
 end
 
-## AbstractPDEInterfaces.Spaces
+## CalculustCore.Spaces
 
 """
 plot of function over space
@@ -69,7 +69,7 @@ function Plots.animate(u::AbstractMatrix,
     end
 end
 
-## AbstractPDEInterfaces.BoundaryConditions
+## CalculustCore.BoundaryConditions
 
 function Plots.plot(sol::BoundaryConditions.:BoundaryValueSolution{<:Number, 1})
     plot(sol.u, sol.cache.space)

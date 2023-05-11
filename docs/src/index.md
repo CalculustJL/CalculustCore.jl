@@ -1,3 +1,3 @@
-# AbstractPDEInterfaces.jl
+# CalculustCore.jl
 
-A common interface for PDE solving.
+A sudden urge to solve differential equations.

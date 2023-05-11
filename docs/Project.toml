@@ -1,3 +1,3 @@
 [deps]
-AbstractPDEInterfaces = "db474457-f03d-4fd7-b196-5f323c96c803"
+CalculustCore = "db474457-f03d-4fd7-b196-5f323c96c803"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
