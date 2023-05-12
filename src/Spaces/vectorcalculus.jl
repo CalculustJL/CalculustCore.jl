@@ -193,10 +193,13 @@ F(u) = u + M*f
 function forcingOp(f::AbstractVecOrMat,
                    space::AbstractSpace,
                    discr::AbstractDiscretization;
-                   f_update_func = DEFAULT_UPDATE_FUNC)
+                   f_update_func = DEFAULT_UPDATE_FUNC,
+                   f_update_func! = DEFAULT_UPDATE_FUNC,
+                  )
     Z = NullOperator(space)
     M = massOp(space, discr)
 
-    AffineOperator(Z, M, f; update_func = f_update_func)
+    AffineOperator(Z, M, f; update_func = f_update_func,
+                   update_func! = f_update_func!)
 end
 #
