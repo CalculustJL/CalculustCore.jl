@@ -15,12 +15,12 @@ function CalculustCore.check_use_cuda()
 end
 
 ## CUDA Adaptor
-function Adapt.adapt_storage(::CalculustCore.CUDAAdaptor, x)
+function Adapt.adapt_storage(::CalculustCore.CalculustCUDAAdaptor, x)
     cu(x)
 end
 
 ## CPU Adaptor
-function Adapt.adapt_storage(::CalculustCore.CPUAdaptor, x::CUDA.CUSPARSE.AbstractCuSparseMatrix,)
+function Adapt.adapt_storage(::CalculustCore.CalculustCPUAdaptor, x::CUDA.CUSPARSE.AbstractCuSparseMatrix,)
     adapt(Array, x)
 end
 

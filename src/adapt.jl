@@ -1,10 +1,10 @@
 #
 abstract type DeviceAdaptor end
-struct CPUAdaptor <: DeviceAdaptor end
-struct CUDAAdaptor <: DeviceAdaptor end
+struct CalculustCPUAdaptor <: DeviceAdaptor end
+struct CalculustCUDAAdaptor <: DeviceAdaptor end
 
-Adapt.adapt_storage(::CPUAdaptor, x::AbstractArray) = adapt(Array, x)
-function Adapt.adapt_storage(::CPUAdaptor, x::Union{AbstractRange, SparseArrays.AbstractSparseArray},)
+Adapt.adapt_storage(::CalculustCPUAdaptor, x::AbstractArray) = adapt(Array, x)
+function Adapt.adapt_storage(::CalculustCPUAdaptor, x::Union{AbstractRange, SparseArrays.AbstractSparseArray},)
     x
 end
 
@@ -21,7 +21,7 @@ Transfer `x` to CPU
 """
 function cpu end
 
-cpu(x) = fmap(x -> adapt(CPUAdaptor(), x), x)
+cpu(x) = fmap(x -> adapt(CalculustCPUAdaptor(), x), x)
 
 """
     gpu(x)
@@ -38,8 +38,8 @@ function gpu(x)
 
     check_use_cuda()
     if USE_CUDA[]
-        # return adapt(CUDAAdaptor(), x)
-        return fmap(x -> adapt(CUDAAdaptor(), x), x; exclude=_isleaf)
+        # return adapt(CalculustCUDAAdaptor(), x)
+        return fmap(x -> adapt(CalculustCUDAAdaptor(), x), x; exclude=_isleaf)
     else
         @warn "CUDA loaded but not CUDA.functional() = false. Defaulting to CPU."
         return x
