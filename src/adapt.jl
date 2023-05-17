@@ -39,7 +39,7 @@ function gpu(x)
     check_use_cuda()
     if USE_CUDA[]
         # return adapt(CalculustCUDAAdaptor(), x)
-        return fmap(x -> adapt(CalculustCUDAAdaptor(), x), x; exclude=_isleaf)
+        return fmap(x -> adapt(CalculustCUDAAdaptor(), x), x; exclude = _isleaf)
     else
         @warn "CUDA loaded but not CUDA.functional() = false. Defaulting to CPU."
         return x

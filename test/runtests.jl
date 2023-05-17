@@ -3,7 +3,7 @@ using Test, SafeTestsets
 
 @testset "CalculustCore.jl" begin
     @safetestset "Domain" begin
-        #@safetestset "name" begin include("file.jl") end
+        @safetestset "name" begin include("domains.jl") end
     end
 
     @safetestset "Spaces" begin

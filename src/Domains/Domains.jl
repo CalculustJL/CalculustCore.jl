@@ -3,16 +3,18 @@ Domain Interface
 """
 module Domains
 
+using DocStringExtensions
+using Setfield
+
 import Base: eltype, ∈, in
 import SciMLOperators: ⊗
+import LinearAlgebra: ×
 
 """ D-Dimensional Domain """
-abstract type AbstractDomain{T, D} end
+abstract type AbstractDomain{T<:Number, D} end
 
 # Interface
 include("interface.jl")
-
-#include("tensor.jl") # TODO - like annulus ⊗ interval. for extruding
 
 # Concrete Types
 include("interval.jl")
@@ -26,19 +28,19 @@ export
 
       # interface
       dims,
-      lengths,
+      expanse,
       isperiodic,
-      endpoints,
-      boundary_tags,
+      boundaries,
+      domain_tag,
       boundary_tag,
       num_boundaries,
-      bounding_box, ⊗,
+      bounding_box,
+      ×, ⊗,
       deform,
 
       # concrete types
+      PointDomain,
       IntervalDomain,
-      BoxDomain,
-      GaussLobattoLegendreDomain,
       ChebyshevDomain,
       FourierDomain,
       AnnulusDomain

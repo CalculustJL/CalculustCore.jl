@@ -1,56 +1,93 @@
 #
 ###
-# Box Domain
+# Product Domain
 ###
 
 """ D-dimensional logically reectangular domain """
-struct BoxDomain{T, D, Ti} <: AbstractDomain{T, D}
-    intervals::Ti
+struct ProductDomain{T, D, Tdom} <: AbstractDomain{T, D}
+    domains::Tdom
 
-    function BoxDomain(intervals::IntervalDomain...)
-        T = promote_type(eltype.(intervals)...)
-        D = length(intervals)
-        new{T, D, typeof(intervals)}(intervals)
+    function ProductDomain(domains)
+        T = promote_type(eltype.(domains)...)
+        D = sum(dims.(domains); init = 0)
+
+        new{T, D, typeof(domains)}(domains)
     end
 end
 
-function (::Type{T})(box::BoxDomain) where {T <: Number}
-    BoxDomain(T.(box.intervals)...)
+ProductDomain(domains::AbstractDomain...) = ProductDomain(domains)
+
+function (::Type{T})(int::ProductDomain) where {T <: Number}
+    ProductDomain(T.(int.domains)...)
 end
 
-lengths(dom::BoxDomain) = lengths.(dom.intervals)
-bounding_box(dom::BoxDomain) = dom
+×(doms::AbstractDomain...) = reduce(×, doms)
+×(dom1::AbstractDomain, dom2::AbstractDomain) = ProductDomain(dom1, dom2)
+×(dom1::ProductDomain, dom2::AbstractDomain) = ProductDomain(dom1.domains..., dom2)
+×(dom1::AbstractDomain, dom2::ProductDomain) = ProductDomain(dom1, dom2.domains...)
+×(dom1::ProductDomain, dom2::ProductDomain) = ProductDomain(dom1.domains..., dom2.domains...)
 
-isperiodic(box::BoxDomain, dir::Integer) = box.intervals[dir] |> isperiodic
-isperiodic(box::BoxDomain) = isperiodic.(box.intervals)
+function expanse(dom::ProductDomain{T}) where{T}
 
-endpoints(box::BoxDomain, dir::Integer) = box.intervals[dir] |> endpoints
-endpoints(box::BoxDomain) = endpoints.(box.intervals)
-
-boundary_tags(box::BoxDomain, dir::Integer) = box.intervals[dir] |> boundary_tags
-boundary_tags(box::BoxDomain) = boundary_tags.(box.intervals)
-
-boundary_tag(box::BoxDomain, dir::Integer, i::Integer) = boundary_tags(box, dir)[i]
-boundary_tag(box::BoxDomain, i) = boundary_tag(box, cld(i, 2), 1 + rem(i - 1, 2))
-
-num_boundaries(box::BoxDomain{<:Number, D}) where {D} = 2D
-
-⊗(int1::IntervalDomain, int2::IntervalDomain) = BoxDomain(int1, int2)
-⊗(box1::BoxDomain, int2::IntervalDomain) = BoxDomain(box1.intervals..., int2)
-⊗(int1::IntervalDomain, box2::BoxDomain) = BoxDomain(int1, box2.intervals...)
-⊗(box1::BoxDomain, box2::BoxDomain) = BoxDomain(box1.intervals..., box2.intervals...)
-
-function domains_match(box1::BoxDomain, box2::BoxDomain)
-    if dims(box1) == dims(box2)
-        @warn "dimension mismatch between $box1, $box2"
-        return false
+    e = ()
+    for d in dom.domains
+        e = (e..., expanse(d)...)
     end
 
-    ret = true
-    for i in 1:D1
-        ret ⊗ domains_match(box1.intervals[i], box2.intervals[i])
-    end
-
-    ret
+    T.(e)
 end
+
+function isperiodic(dom::ProductDomain{T,D}, dim::Integer) where{T,D}
+    if dim ≤ D
+        Ds = dims.(dom.domains)
+        cs = cumsum(Ds)
+        d = findfirst(n -> n ≥ dim, cs)
+
+        isperiodic(dom.domains[d], dim + 1 - d)
+    else
+        throw(ArgumentError("d > dims(dom)"))
+    end
+end
+
+function boundaries(dom::ProductDomain{T,D}) where{T,D}
+
+    doms = dom.domains
+    bdr = ()
+
+    for d in eachindex(doms)
+        _dom = doms[d]
+        _bdr = boundaries(_dom)
+
+        for i in eachindex(_bdr)
+            # tag = domain_tag(_bdr[i])
+            __bdr = ×(doms[begin:d-1]..., _bdr[i], doms[d+1:end]...)
+
+        bdr = (bdr..., __bdr)
+        end
+    end
+
+    bdr
+end
+
+function domain_tag(dom::ProductDomain)
+
+    tags = domain_tag.(dom.domains)
+    tags = unique(tags)
+
+    all(isequal(:NoTag), tags) && return :NoTag
+
+    # rm :NoTag
+    i = findall(:NoTag, tags)
+    tags = (tags[begin:i-1]..., tags[i+1:end])
+
+    strs = string.(tag)
+    str = strs[1]
+    for i in 2:length(strs)
+        str = string(str, " × ", strs[i])
+    end
+
+    Symbol(str)
+end
+
+bounding_box(dom::ProductDomain) = dom
 #

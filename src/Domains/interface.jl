@@ -6,79 +6,84 @@ Base.eltype(::AbstractDomain{T}) where {T} = T
 #Base.:∈
 
 """
+    dims(dom)
+
 Dimension of domain
 """
 dims(::AbstractDomain{<:Any, D}) where {D} = D
 
 """
-Length of domain
+    expanse(dom)
+
+Returns NTuple{D} of domain lengths along each dimension
 """
-lengths(dom::AbstractDomain) = lengths(bounding_box(dom))
+expanse(dom::AbstractDomain) = expanse(bounding_box(dom))
 
 """
-args:
-    AbstractDomain{T,D}
-    direction < D
-ret:
-    Bool
+    isperiodic(dom)
+
+Returns NTuple{D, Bool} indicating if the domain in periodic along each
+dimension.
+"""
+function isperiodic(dom::AbstractDomain{T, D}) where{T, D}
+    Tuple(isperiodic(dom, d) for d in 1:D)
+end
+
+"""
+    isperiodic(dom, dim)
+
+Returns Bool indicating if `dom` is periodic in dimension `d`.
 """
 function isperiodic end
 
 """
-args:
-    AbstractDomain
-    direction
-ret:
-    Tuple of end points
+    boundaries(dom)
+
+Returns tuple of domain boundaries of `dom` as a `D-1` domains.
 """
-function endpoints end
+function boundaries end
+
+# """
+#     boundary(dom)
+#
+# Returns boundary of domain `dom` as a `D-1` domain.
+# """
+# boundary(dom::AbstractDomain) = ∪(boundaries(dom)...)
 
 """
-args:
-    AbstractDomain
-    direction
-ret:
-    Tuple of boundary tags
+num_boundaries(dom)
+
+Returns number of boundaries in domain `dom`.
 """
-function boundary_tags end
+num_boundaries(dom::AbstractDomain) = length(boundaries(dom))
 
 """
-args:
-    AbstractDomain
-    i
-ret:
-    Tag of ith boundary
+    domain_tag(dom)
+
+Returns metadata tag corresponding to the interior of domain `dom`.
+"""
+function domain_tag end
+
+"""
+    boundary_tag(dom)
+
+Returns tuple of tags corresponding to `boundaries(dom)`.
+"""
+function boundary_tag(dom::AbstractDomain)
+    domain_tag.(boundaries(dom))
+end
+
+"""
+    boundary_tag(dom, i)
+
+returns tuple of metadata tags corresponding to `boundaries(dom)`.
 """
 function boundary_tag end
 
 """
-get number of boundaries
+    bounding_box(dom)
 
-args:
-    AbstractDomain
-ret:
-    Integer
-"""
-function num_boundaries end
-
-"""
-get bounding box for domain
-
-args:
-    AbstractDomain
-ret:
-    BoxDomain
+Returns bounding box of domain as a BoxDomain of the same dimension.
 """
 function bounding_box end
-
-"""
-check if domain extent matches.
-doesn't check periodicity or bdry_tags
-
-args:
-    AbstractDomain
-    direction
-ret:
-    Bool
-"""
-function domains_match end
+#

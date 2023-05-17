@@ -1,79 +1,72 @@
 #
 ###
-# DeformedDomain
+# DomainMap
+###
+"""
+# Arguments
+- reference domain
+
+- mapping function
+    (x1,...,xD) = map(r1, ..., rD)
+
+- isrescaling - do optimizations if mapping is a simple rescaling
+    x1 = a1 + λ1 × x1(r1),
+    ...,
+    xD = aD + λD × xD(rD)
+
+-isseparable - do optimizations if mapping is separable
+    x1 = x1(r1),
+    ...,
+    xD = xD(rD)
+
+TODO - make types for AffineMap, LinearMap, SeparableMap, Transation, Rotation
+TODO - write constructor that checks for method
+"""
+struct DomainMap{Tm}
+    map::Tm
+    isseparable::Bool
+    isrescaling::Bool
+end
+
+function DomainMap(map; isseparable = false, isrescaling = false)
+    DomainMap(map, isseparable, isrescaling)
+end
+
+###
+# MappedDomain
 ###
 
 """
 Deform D-dimensional domain via mapping
-
-args:
-   -reference domain
-   -mapping function
-        (x1,...,xD) = map(r1, ..., rD)
-   -isrescaling - do optimizations if
-    mapping is a simple rescaling
-        x1 = a1 + λ1 × x1(r1), ...,
-        xD = aD + λD × xD(rD)
-   -isseparable - do optimizations if
-    mapping is separable
-        x1 = x1(r1), ...,
-        xD = xD(rD)
 """
-struct DeformedDomain{T, D, Tdom <: AbstractDomain{T, D}, Tm} <: AbstractDomain{T, D}
+struct MappedDomain{T, D, Tdom <: AbstractDomain{T,D}, Tmap<:DomainMap} <: AbstractDomain{T, D}
     domain::Tdom
-    mapping::Tm
-    isseparable::Bool
-    isrescaling::Bool
+    map::Tmap
 end
 
-function deform(domain::AbstractDomain,
-                mapping = nothing;
-                isseparable = false,
-                isrescaling = false)
-    DeformedDomain(domain, mapping, isseparable, isrescaling)
+function deform(domain::AbstractDomain, map = nothing;
+                isseparable = false, isrescaling = false)
+    isnothing(map) && return domain
+
+    _map = DomainMap(map; isseparable = isseparable, isrescaling = isrescaling)
+
+    MappedDomain(domain, _map)
 end
 
-function (::Type{T})(dom::DeformedDomain) where {T <: Number}
-    BoxDomain(T(dom), dom.mapping, dom.isseparable, dom.isrescaling)
+function (::Type{T})(dom::MappedDomain) where {T <: Number}
+    MappedDomain(T(dom.domain), mapping)
 end
-
-#""" D-Dimensional domain maps """
-abstract type AbstractMap{D} end
-
-# TODO - make a struct for mappings
-struct Deformations{D, Tmap} <: AbstractMap{D}
-    mapping::Tmap
-    isrescaling::Bool
-    isseparable::Bool
-    isinvertibe::Bool # default to true
-end
-
-# AffineMap y = Ax + b
-# LinearMap y = Ax
-# SeparableMap: y = D x + b
-# 
 
 ###
 # Transfinite Interpolation
 ###
 
-function gordon_hall end #TODO
+# function gordon_hall end #TODO
 
-"""
- Gordon Hall map - Transfinite interpolation
-"""
-function mapBoxes(box1::BoxDomain{<:Number, D}, box2::BoxDomain{<:Number, D}) where {D}
-    mapping = nothing
-end
-
-function map_from_ref(domain, ref_domain; D = D) # TODO
-    if domains_match(domain, ref_domain)
-        return domain
-    end
-
-    xe = domain.endpoints
-
-    mapping = domain.mapping == !nothing ? domain.mapping : identity#(r -> r)
-    mapping = mapping ∘ map
-end
+# """
+#  Gordon Hall map - Transfinite interpolation
+# """
+# function mapBoxes(box1::BoxDomain{<:Number, D}, box2::BoxDomain{<:Number, D}) where {D}
+#     mapping = nothing
+# end
 #

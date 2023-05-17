@@ -31,61 +31,81 @@ end
 # Conveniences
 ###
 
-function default_tags(i::Integer)
-    tag1 = Symbol("Lower$(i)")
-    tag2 = Symbol("Upper$(i)")
+function periodic_interval_tags(dim::Integer)
+    tag = Symbol("D$(dim)_periodic")
+
+    (tag, tag)
+end
+
+function default_interval_tags(dim::Integer)
+    tag1 = Symbol("D$(dim)_inf")
+    tag2 = Symbol("D$(dim)_sup")
 
     (tag1, tag2)
 end
 
-function GaussLobattoLegendreDomain(D; periodic_dirs = ())
-    domain = BoxDomain()
-    endpts = (-true, true)
-    for i in 1:D
-        interval = IntervalDomain(endpts...;
-                                  periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i))
-        domain = domain ⊗ interval
+function RectangleDomain(x0, x1, y0, y1)
+end
+
+UnitIntervalDomain(; kwargs...) = UnitDomain(1; kwargs...)
+UnitSquareDomain(; kwargs...) = UnitDomain(2; kwargs...)
+UnitCubeDomain(; kwargs...) = UnitDomain(3; kwargs...)
+
+UnitDomain(D; kwargs...) = HyperSquareDomain(D, 0.0, 1.0; kwargs...)
+ChebyshevDomain(D; kwargs...) = HyperSquareDomain(D, -1.0, 1.0; kwargs...)
+FourierDomain(D; kwargs...) = HyperSquareDomain(D, -π, π; periodic_dirs = 1:D, kwargs...)
+
+function HyperSquareDomain(D::Integer, x0::Number, x1::Number; periodic_dirs = ())
+    domain = ProductDomain()
+    endpts = (x0, x1)
+
+    for d in 1:D
+        periodic = d ∈ periodic_dirs
+        bdr_tags = periodic ? periodic_interval_tags(d) : default_interval_tags(d)
+
+        interval = IntervalDomain(endpts...; periodic = periodic,
+            tag = :Interior, boundary_tags = bdr_tags)
+
+        domain = domain × interval
     end
+
     domain
 end
 
-function ChebyshevDomain(D; periodic_dirs = ())
-    domain = BoxDomain()
-    endpts = (-true, true)
-    for i in 1:D
-        interval = IntervalDomain(endpts...;
-                                  periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i))
-        domain = domain ⊗ interval
+function HyperRectangleDomain(D::Integer, endpoints::NTuple{2,<:Number}...;
+    periodic_dirs = ())
+    domain = ProductDomain()
+
+    @assert length(endpoints) == D
+
+    for d in 1:D
+        periodic = d ∈ periodic_dirs
+        endpts = endpoints[d]
+        bdr_tags = periodic ? periodic_interval_tags(d) : default_interval_tags(d)
+
+        interval = IntervalDomain(endpts...; periodic = periodic,
+            tag = :Interior, boundary_tags = bdr_tags)
+
+        domain = domain × interval
     end
-    domain
 end
 
-function FourierDomain(D; periodic_dirs = 1:D)
-    domain = BoxDomain()
-    endpts = (-π, π)
-    for i in 1:D
-        interval = IntervalDomain(endpts...;
-                                  periodic = i ∈ periodic_dirs,
-                                  boundary_tags = default_tags(i))
-        domain = domain ⊗ interval
+function PolarMap()
+    function polar(r, θ)
+        x = r * cos(θ)
+        y = r * sin(θ)
+        x, y
     end
-    domain
+
+    DomainMap(polar)
 end
 
-function polarMap(r, θ)
-    x = @. r * cos(θ)
-    y = @. r * sin(θ)
-    x, y
-end
-
-function AnnulusDomain(rinner, router)
-    intR = IntervalDomain(rinner, router, false, (:Inner, :Outer))
+function AnnulusDomain(rIn, rOut)
+    intR = IntervalDomain(rIn, rOut, false, (:Inner, :Outer))
     intθ = IntervalDomain(-π, π, true, (:Periodic, :Periodic))
 
-    dom = intR ⊗ intθ
+    dom = intR × intθ
 
-    deform(dom, polar)
+    deform(dom, PolarMap())
 end
 #
