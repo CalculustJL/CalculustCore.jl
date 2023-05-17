@@ -29,9 +29,9 @@ cpu(x) = fmap(x -> adapt(CalculustCPUAdaptor(), x), x)
 Transfer `x` to GPU
 """
 function gpu(x)
-    has_cuda = static_hasmethod(check_use_cuda, typeof(()))
+    cuda_loaded = static_hasmethod(check_use_cuda, typeof(()))
 
-    if !has_cuda
+    if !cuda_loaded
         @warn "CUDA is not loaded. Defaulting to CPU."
         return x
     end
