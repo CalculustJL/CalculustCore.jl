@@ -47,20 +47,39 @@ end
 function RectangleDomain(x0, x1, y0, y1)
 end
 
+UnitDomain(D; kwargs...) = HyperSquareDomain(D, 0.0, 1.0; kwargs...)
+ChebyshevDomain(D; kwargs...) = HyperSquareDomain(D, -1.0, 1.0; kwargs...)
+FourierDomain(D; kwargs...) = HyperSquareDomain(D, -π, π; periodic_dims = 1:D, kwargs...)
+
 UnitIntervalDomain(; kwargs...) = UnitDomain(1; kwargs...)
 UnitSquareDomain(; kwargs...) = UnitDomain(2; kwargs...)
 UnitCubeDomain(; kwargs...) = UnitDomain(3; kwargs...)
 
-UnitDomain(D; kwargs...) = HyperSquareDomain(D, 0.0, 1.0; kwargs...)
-ChebyshevDomain(D; kwargs...) = HyperSquareDomain(D, -1.0, 1.0; kwargs...)
-FourierDomain(D; kwargs...) = HyperSquareDomain(D, -π, π; periodic_dirs = 1:D, kwargs...)
+"""
+HyperRectangleDomain with same endpoints for all dimensions.
+"""
+function HyperSquareDomain(D::Integer, x0::Number, x1::Number; kwargs...)
+    endpoints = ()
 
-function HyperSquareDomain(D::Integer, x0::Number, x1::Number; periodic_dirs = ())
+    for _ in 1:D
+        endpoints = (endpoints..., x0, x1)
+    end
+
+    HyperRectangleDomain(endpoints...; kwargs...)
+end
+
+"""
+Generate a hyper-rectangle domain with endpoints given by `endpoints`.
+"""
+function HyperRectangleDomain(endpoints::Number...; periodic_dims = ())
+    @assert length(endpoints) |> iseven
+    D = div(length(endpoints), 2)
+
     domain = ProductDomain()
-    endpts = (x0, x1)
 
     for d in 1:D
-        periodic = d ∈ periodic_dirs
+        periodic = d ∈ periodic_dims
+        endpts = endpoints[2d-1:2d]
         bdr_tags = periodic ? periodic_interval_tags(d) : default_interval_tags(d)
 
         interval = IntervalDomain(endpts...; periodic = periodic,
@@ -70,24 +89,6 @@ function HyperSquareDomain(D::Integer, x0::Number, x1::Number; periodic_dirs = (
     end
 
     domain
-end
-
-function HyperRectangleDomain(D::Integer, endpoints::NTuple{2,<:Number}...;
-    periodic_dirs = ())
-    domain = ProductDomain()
-
-    @assert length(endpoints) == D
-
-    for d in 1:D
-        periodic = d ∈ periodic_dirs
-        endpts = endpoints[d]
-        bdr_tags = periodic ? periodic_interval_tags(d) : default_interval_tags(d)
-
-        interval = IntervalDomain(endpts...; periodic = periodic,
-            tag = :Interior, boundary_tags = bdr_tags)
-
-        domain = domain × interval
-    end
 end
 
 function PolarMap()
