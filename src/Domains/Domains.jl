@@ -17,12 +17,12 @@ abstract type AbstractDomain{T<:Number, D} end
 include("interface.jl")
 
 # Concrete Types
-include("interval.jl")
-include("box.jl")
+include("basic.jl")
+include("product.jl")
 #include("meshed.jl") # TODO
 
 include("deform.jl")
-include("maps.jl")
+include("concrete.jl")
 
 export
 
