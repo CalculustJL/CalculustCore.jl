@@ -49,15 +49,17 @@ args:
     space::AbstractSpace
     discr::AbstractDiscretization (optional)
 ret:
-    hessianOp: u -> [dud2x1, ..., dud2xD]
+    hessianOp: u -> [∂x1x1 ... ∂x1xD
+                     ...   ... ...
+                     ∂xDx1 ... ∂xDxD]
 """
-function hessianOp end
-hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
+hessianOp(space::AbstractSpace, ::AbstractDiscretization) = hessianOp(space)
 
-function hessianOp(space::AbstractSpace)
-    DD = gradientOp(space, discr)
+function hessianOp(space::AbstractSpace{T,D}) where{T,D}
+    DD = gradientOp(space)
+    DD_ = reshape(DD, (1, D))
 
-    DD .* DD
+    DD * DD_
 end
 
 """

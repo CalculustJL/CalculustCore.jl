@@ -62,7 +62,7 @@ end
 
 function laplaceOp(space::AbstractSpace, discr::Collocation)
     DD2 = -hessianOp(space, discr)
-    sum(DD2)
+    tr(DD2)
 end
 
 function biharmonicOp(space::AbstractSpace, discr::Collocation)

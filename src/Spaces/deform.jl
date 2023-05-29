@@ -137,12 +137,6 @@ function gradientOp(space::DeformedSpace) # ∇
     gradX
 end
 
-function hessianOp(space::DeformedSpace) # ∇²
-    DD = gradX(space)
-
-    DD .* DD
-end
-
 """
 (v,-∇² u) = (vx,ux) + (vy,uy)\n
          := a(v,u)\n
