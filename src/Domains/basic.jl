@@ -11,12 +11,10 @@ const ∅ = NullDomain()
 
 NULLDOM_NOTDEF_MSG = """ This trait is not defined for NullDomain, ∅."""
 
-expanse(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
-isperiodic(::NullDomain, args...) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
+bounding_box(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
+isperiodic(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 boundaries(::NullDomain) = ()
 domain_tag(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
-boundary_tag(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
-bounding_box(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 
 ×(::NullDomain, ::AbstractDomain) = ∅
 ×(::AbstractDomain, ::NullDomain) = ∅
@@ -50,18 +48,10 @@ end
 
 POINTDOM_NOTDEF_MSG = """ This trait is not defined for PointDomain."""
 
-expanse(::PointDomain{T}) where{T} = (zero(T),)
+bounding_box(dom::PointDomain) = IntervalDomain(dom.x, dom.x,)
 isperiodic(::PointDomain, args...) = throw(ArgumentError(POINTDOM_NOTDEF_MSG))
-boundaries(::PointDomain) = (∅,)
 domain_tag(dom::PointDomain) = dom.tag
-function boundary_tag(::PointDomain, i)
-    if i == 1 
-        nothing
-    else
-        throw(ArgumentError("i > num_boundaries(::PointDomain)")) 
-    end
-end
-bounding_box(dom::PointDomain) = dom
+boundaries(::PointDomain) = (∅,)
 
 ###
 # IntervalDomain
@@ -79,7 +69,7 @@ struct IntervalDomain{T, Tp} <: AbstractDomain{T, 1}
     function IntervalDomain(p0::PointDomain, p1::PointDomain,
         periodic::Bool, tag::Union{Symbol, Nothing})
 
-        @assert p0.x < p1.x "x0 < x1"
+        @assert p0.x ≤ p1.x "x0 < x1"
         T = promote_type(eltype.((p0, p1))...)
         p0 = T(p0)
         p1 = T(p1)
@@ -105,6 +95,7 @@ function (::Type{T})(int::IntervalDomain) where {T <: Number}
     IntervalDomain(T(int.p0), T(int.p1), int.periodic, int.tag)
 end
 
+bounding_box(dom::IntervalDomain) = dom
 expanse(dom::IntervalDomain) = (dom.p1.x - dom.p0.x,)
 function isperiodic(dom::IntervalDomain, d::Integer)
     if d == 1
@@ -115,5 +106,4 @@ function isperiodic(dom::IntervalDomain, d::Integer)
 end
 boundaries(dom::IntervalDomain) = (dom.p0, dom.p1,)
 domain_tag(dom::IntervalDomain) = dom.tag
-bounding_box(dom::IntervalDomain) = dom
 #

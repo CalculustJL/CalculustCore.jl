@@ -27,8 +27,11 @@ end
 ×(dom1::AbstractDomain, dom2::ProductDomain) = ProductDomain(dom1, dom2.domains...)
 ×(dom1::ProductDomain, dom2::ProductDomain) = ProductDomain(dom1.domains..., dom2.domains...)
 
-function expanse(dom::ProductDomain{T}) where{T}
+function bounding_box(dom::ProductDomain)
+    ProductDomain(bounding_box.(dom.domains)...)
+end
 
+function expanse(dom::ProductDomain{T}) where{T}
     e = ()
     for d in dom.domains
         e = (e..., expanse(d)...)
@@ -37,16 +40,13 @@ function expanse(dom::ProductDomain{T}) where{T}
     T.(e)
 end
 
-function isperiodic(dom::ProductDomain{T,D}, dim::Integer) where{T,D}
-    if dim ≤ D
-        Ds = dims.(dom.domains)
-        cs = cumsum(Ds)
-        d = findfirst(n -> n ≥ dim, cs)
-
-        isperiodic(dom.domains[d], dim + 1 - d)
-    else
-        throw(ArgumentError("d > dims(dom)"))
+function isperiodic(dom::ProductDomain{T,D}) where{T,D}
+    p = ()
+    for d in dom.domains
+        p = (p..., isperiodic(d)...)
     end
+
+    p
 end
 
 function boundaries(dom::ProductDomain{T,D}) where{T,D}
@@ -88,6 +88,4 @@ function domain_tag(dom::ProductDomain)
 
     Symbol(str)
 end
-
-bounding_box(dom::ProductDomain) = dom
 #
