@@ -29,20 +29,27 @@ export
       # interface
       dims,
       expanse,
+      bounding_box,
       isperiodic,
       boundaries,
       domain_tag,
-      boundary_tag,
-      num_boundaries,
-      bounding_box,
-      ×, ⊗,
+      boundary_tags,
+      ×,
+      ⊗,
       deform,
 
       # concrete types
-      PointDomain,
       IntervalDomain,
+
+      UnitBoxDomain,
+      UnitIntervalDomain,
+      UnitSquareDomain,
+      UnitCubeDomain,
+      BoxDomain,
+
       ChebyshevDomain,
       FourierDomain,
+
       AnnulusDomain
 
 end

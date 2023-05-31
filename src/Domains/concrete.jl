@@ -44,46 +44,55 @@ function default_interval_tags(dim::Integer)
     (tag1, tag2)
 end
 
-function RectangleDomain(x0, x1, y0, y1)
-end
+UnitBoxDomain(D; kwargs...) = FixedEndpointBoxDomain(D, 0.0, 1.0; kwargs...)
+ChebyshevDomain(D; kwargs...) = FixedEndpointBoxDomain(D, -1.0, 1.0; kwargs...)
+FourierDomain(D; kwargs...) = FixedEndpointBoxDomain(D, -π, π; periodic_dims = 1:D, kwargs...)
 
-UnitDomain(D; kwargs...) = HyperSquareDomain(D, 0.0, 1.0; kwargs...)
-ChebyshevDomain(D; kwargs...) = HyperSquareDomain(D, -1.0, 1.0; kwargs...)
-FourierDomain(D; kwargs...) = HyperSquareDomain(D, -π, π; periodic_dims = 1:D, kwargs...)
-
-UnitIntervalDomain(; kwargs...) = UnitDomain(1; kwargs...)
-UnitSquareDomain(; kwargs...) = UnitDomain(2; kwargs...)
-UnitCubeDomain(; kwargs...) = UnitDomain(3; kwargs...)
+UnitIntervalDomain(; kwargs...) = UnitBoxDomain(1; kwargs...)
+UnitSquareDomain(; kwargs...) = UnitBoxDomain(2; kwargs...)
+UnitCubeDomain(; kwargs...) = UnitBoxDomain(3; kwargs...)
 
 """
-HyperRectangleDomain with same endpoints for all dimensions.
+`D`-dimensional `BoxDomain` with same endpoints for all dimensions.
 """
-function HyperSquareDomain(D::Integer, x0::Number, x1::Number; kwargs...)
+function FixedEndpointBoxDomain(D::Integer, x0::Number, x1::Number; kwargs...)
     endpoints = ()
 
     for _ in 1:D
         endpoints = (endpoints..., x0, x1)
     end
 
-    HyperRectangleDomain(endpoints...; kwargs...)
+    BoxDomain(endpoints...; kwargs...)
 end
 
 """
-Generate a hyper-rectangle domain with endpoints given by `endpoints`.
+Generate a `D`-dimensional box domain with endpoints given by `endpoints`.
 """
-function HyperRectangleDomain(endpoints::Number...; periodic_dims = ())
-    @assert length(endpoints) |> iseven
+function BoxDomain(endpoints::Real...;
+                   periodic_dims = (),
+                   tag = nothing,
+                   boundary_tags = nothing)
+
+    @assert length(endpoints) |> iseven "Number of endpoints must be even!"
     D = div(length(endpoints), 2)
 
     domain = ProductDomain()
 
     for d in 1:D
-        periodic = d ∈ periodic_dims
-        endpts = endpoints[2d-1:2d]
-        bdr_tags = periodic ? periodic_interval_tags(d) : default_interval_tags(d)
+        idx = [2d - 1, 2d]
 
-        interval = IntervalDomain(endpts...; periodic = periodic,
-            tag = :Interior, boundary_tags = bdr_tags)
+        periodic = d ∈ periodic_dims
+        tag = isnothing(tag) ? tag : :Interior
+        boundary_tags = if isnothing(boundary_tags)
+            periodic ? periodic_interval_tags(d) : default_interval_tags(d)
+        else
+            boundary_tags[idx]
+        end
+
+        interval = IntervalDomain(endpoints[idx]...;
+                                  periodic = periodic,
+                                  tag = tag,
+                                  boundary_tags = boundary_tags)
 
         domain = domain × interval
     end
