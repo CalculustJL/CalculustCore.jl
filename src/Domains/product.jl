@@ -59,10 +59,9 @@ function boundaries(dom::ProductDomain{T,D}) where{T,D}
         _bdr = boundaries(_dom)
 
         for i in eachindex(_bdr)
-            # tag = domain_tag(_bdr[i])
             __bdr = ×(doms[begin:d-1]..., _bdr[i], doms[d+1:end]...)
 
-        bdr = (bdr..., __bdr)
+            bdr = (bdr..., __bdr)
         end
     end
 
@@ -77,15 +76,27 @@ function domain_tag(dom::ProductDomain)
     all(isequal(:NoTag), tags) && return :NoTag
 
     # rm :NoTag
-    i = findall(:NoTag, tags)
-    tags = (tags[begin:i-1]..., tags[i+1:end])
+    i = findall(tag_notdef, tags) |> first
+    tags = (tags[begin:i-1]..., tags[i+1:end]...)
 
-    strs = string.(tag)
+    length(tags) == 1 && return first(tags)
+
+    strs = string.(tags)
     str = strs[1]
+
     for i in 2:length(strs)
         str = string(str, " × ", strs[i])
     end
 
     Symbol(str)
+end
+
+function Base.show(io::IO, dom::ProductDomain)
+    doms = dom.domains
+    show(io, doms[1])
+    for d in 2:length(doms)
+        print(io, " × ")
+        show(io, doms[d])
+    end
 end
 #

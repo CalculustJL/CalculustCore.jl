@@ -1,4 +1,8 @@
 #
+
+# domain tag not defined
+tag_notdef = isequal(:NoTag)
+
 ###
 # NullDomain
 ###
@@ -15,6 +19,8 @@ bounding_box(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 isperiodic(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 boundaries(::NullDomain) = ()
 domain_tag(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
+
+Base.show(io::IO, ::NullDomain) = print(io, "∅")
 
 ×(::NullDomain, ::AbstractDomain) = ∅
 ×(::AbstractDomain, ::NullDomain) = ∅
@@ -52,6 +58,8 @@ bounding_box(dom::PointDomain) = IntervalDomain(dom.x, dom.x,)
 isperiodic(::PointDomain, args...) = throw(ArgumentError(POINTDOM_NOTDEF_MSG))
 domain_tag(dom::PointDomain) = dom.tag
 boundaries(::PointDomain) = (∅,)
+
+Base.show(io::IO, dom::PointDomain) = print(io, "{$(dom.x)}")
 
 ###
 # IntervalDomain
@@ -97,13 +105,9 @@ end
 
 bounding_box(dom::IntervalDomain) = dom
 expanse(dom::IntervalDomain) = (dom.p1.x - dom.p0.x,)
-function isperiodic(dom::IntervalDomain, d::Integer)
-    if d == 1
-        dom.periodic
-    else
-        throw(ArgumentError("d > dims(dom)"))
-    end
-end
+isperiodic(dom::IntervalDomain) = (dom.periodic,)
 boundaries(dom::IntervalDomain) = (dom.p0, dom.p1,)
 domain_tag(dom::IntervalDomain) = dom.tag
+
+Base.show(io::IO, dom::IntervalDomain) = print(io, "($(dom.p0.x), $(dom.p1.x))")
 #

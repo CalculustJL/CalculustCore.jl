@@ -6,7 +6,7 @@ module Domains
 using DocStringExtensions
 using Setfield
 
-import Base: eltype, ∈, in
+import Base: eltype, ∈, in, show
 import SciMLOperators: ⊗
 import LinearAlgebra: ×
 

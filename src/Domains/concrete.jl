@@ -83,7 +83,7 @@ function BoxDomain(endpoints::Real...;
 
         periodic = d ∈ periodic_dims
         tag = isnothing(tag) ? tag : :Interior
-        boundary_tags = if isnothing(boundary_tags)
+        bdr_tags = if isnothing(boundary_tags)
             periodic ? periodic_interval_tags(d) : default_interval_tags(d)
         else
             boundary_tags[idx]
@@ -92,7 +92,7 @@ function BoxDomain(endpoints::Real...;
         interval = IntervalDomain(endpoints[idx]...;
                                   periodic = periodic,
                                   tag = tag,
-                                  boundary_tags = boundary_tags)
+                                  boundary_tags = bdr_tags)
 
         domain = domain × interval
     end
