@@ -84,14 +84,6 @@ function global_numbering end
 """
 args:
     space::AbstractSpace{T,D}
-ret:
-    AbstractArray of size size(space)
-"""
-function global_numbering end
-
-"""
-args:
-    space::AbstractSpace{T,D}
     i::Integer
 ret:
     ith basis function that can be evaluated
