@@ -75,14 +75,13 @@ function BoxDomain(endpoints::Real...;
 
     @assert length(endpoints) |> iseven "Number of endpoints must be even!"
     D = div(length(endpoints), 2)
+    tag = isnothing(tag) ? :Interior : tag
 
-    domain = ProductDomain()
-
+    intervals = ()
     for d in 1:D
         idx = [2d - 1, 2d]
 
         periodic = d ∈ periodic_dims
-        tag = isnothing(tag) ? tag : :Interior
         bdr_tags = if isnothing(boundary_tags)
             periodic ? periodic_interval_tags(d) : default_interval_tags(d)
         else
@@ -91,13 +90,12 @@ function BoxDomain(endpoints::Real...;
 
         interval = IntervalDomain(endpoints[idx]...;
                                   periodic = periodic,
-                                  tag = tag,
                                   boundary_tags = bdr_tags)
 
-        domain = domain × interval
+        intervals = (intervals..., interval)
     end
 
-    domain
+    ProductDomain(intervals...; tag = tag)
 end
 
 function PolarMap()

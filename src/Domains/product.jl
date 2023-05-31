@@ -6,16 +6,20 @@
 """ D-dimensional logically reectangular domain """
 struct ProductDomain{T, D, Tdom} <: AbstractDomain{T, D}
     domains::Tdom
+    tag::Symbol
 
-    function ProductDomain(domains)
+    function ProductDomain(domains, tag::Union{Symbol, Nothing})
+        tag = isnothing(tag) ? :NoTag : tag
         T = promote_type(eltype.(domains)...)
         D = sum(dims.(domains); init = 0)
 
-        new{T, D, typeof(domains)}(domains)
+        new{T, D, typeof(domains)}(domains, tag)
     end
 end
 
-ProductDomain(domains::AbstractDomain...) = ProductDomain(domains)
+function ProductDomain(domains::AbstractDomain...; tag = nothing)
+    ProductDomain(domains, tag)
+end
 
 function (::Type{T})(int::ProductDomain) where {T <: Number}
     ProductDomain(T.(int.domains)...)
@@ -70,14 +74,21 @@ end
 
 function domain_tag(dom::ProductDomain)
 
+    if !tag_notdef(dom.tag)
+        return dom.tag
+    end
+
     tags = domain_tag.(dom.domains)
     tags = unique(tags)
 
-    all(isequal(:NoTag), tags) && return :NoTag
+    all(tag_notdef, tags) && return :NoTag
 
     # rm :NoTag
-    i = findall(tag_notdef, tags) |> first
-    tags = (tags[begin:i-1]..., tags[i+1:end]...)
+    i = findall(tag_notdef, tags)
+    if length(i) === 1
+        i = first(i)
+        tags = (tags[begin:i-1]..., tags[i+1:end]...)
+    end
 
     length(tags) == 1 && return first(tags)
 
@@ -93,6 +104,12 @@ end
 
 function Base.show(io::IO, dom::ProductDomain)
     doms = dom.domains
+
+    if length(doms) == 0
+        print(io, "ProductDomain()")
+        return
+    end
+
     show(io, doms[1])
     for d in 2:length(doms)
         print(io, " × ")
