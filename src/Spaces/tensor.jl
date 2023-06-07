@@ -15,25 +15,25 @@ end
 
 ## TODO - add short circuits in downstream packages
 
-#function domain(space::TensorProductSpace)
+#function domain(V::TensorProductSpace)
 #    domain(outer) ⊗ domain(inner)
 #end
 #
-#function points(space::TensorProductSpace)
+#function points(V::TensorProductSpace)
 #end
 #
-#function modes(space::TensorProductSpace)
+#function modes(V::TensorProductSpace)
 #end
 #
-#function quadratures(space::TensorProductSpace)
+#function quadratures(V::TensorProductSpace)
 #    (quadratures(inner)..., quadratures(outer)...)
 #end
 #
-#function mass_matrix(space::TensorProductSpace)
-#    DiagonalOperator(space.mass_matrix)
+#function mass_matrix(V::TensorProductSpace)
+#    DiagonalOperator(V.mass_matrix)
 #end
 #
-#function global_numbering(space::TensorProductSpace)
+#function global_numbering(V::TensorProductSpace)
 #end
 #
 #function boundary_nodes()
@@ -41,8 +41,8 @@ end
 
 # vector calculus
 
-function gradientOp(space::TensorProductSpace)
-    @unpack inner, outer = space
+function gradientOp(V::TensorProductSpace)
+    @unpack inner, outer = V
     Di = gradientOp(inner)
     Do = gradientOp(outer)
 
@@ -56,7 +56,7 @@ function gradientOp(space::TensorProductSpace)
     #   ]
 end
 
-function massOp(space::TensorProductSpace)
+function massOp(V::TensorProductSpace)
     # multiply mass matrices
     @error "method not implemented"
 end

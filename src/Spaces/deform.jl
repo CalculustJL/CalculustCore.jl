@@ -23,25 +23,25 @@ struct DeformedSpace{T, D,
     # add DeformedDomain
 end
 
-function Domains.deform(space::AbstractSpace{<:Number, D},
+function Domains.deform(V::AbstractSpace{<:Number, D},
                         mapping = nothing, isseparable = false) where {D}
     if mappping === nothing
         J = IdentityOperator(D)
         Jmat = Diagonal([J for i in 1:D])
         @warn "mapping === nothing"
-        #       return space
-        return DeformedSpace(space, grid(space), Jmat, Jmat, J, J)
+        #       return V
+        return DeformedSpace(V, grid(V), Jmat, Jmat, J, J)
 
     elseif isseparable # x = x(r), y = y(s)
     # eliminate cross terms by making dXdR, etc diagonal
-    elseif rescaling # simple rescaling
-        # make jac, dXdR, etc scaling operations
+    elseif isrescaling # simple rescaling
+        # make jac, dXdR, etc scaling operations, i.e mult with ScalarOps
     end
 
-    R = grid(space)
+    R = grid(V)
     X = mapping(R...)
 
-    gradR = gradientOp(space)
+    gradR = gradientOp(V)
 
     # TODO - fuse SciMLOperator's
     # D1 * D2 == D12
@@ -99,28 +99,28 @@ function Domains.deform(space::AbstractSpace{<:Number, D},
         inv(dXdR)
     end
 
-    DeformedSpace(space, X, dXdR, dRdX, J, Ji)
+    DeformedSpace(V, X, dXdR, dRdX, J, Ji)
 end
 
 ###
 # interface
 ###
 
-Base.size(space::DeformedSpace) = size(space.space)
+Base.size(V::DeformedSpace) = size(V.space)
 
-domain(space::DeformedSpace) = domain(space.space)
-modes(space::DeformedSpace) = modes(space.space)
-quadratures(space::DeformedSpace) = quadratures(space.space)
+domain(V::DeformedSpace) = domain(V.space)
+modes(V::DeformedSpace) = modes(V.space)
+quadratures(V::DeformedSpace) = quadratures(V.space)
 
-points(space::DeformedSpace) = space.grid
+points(V::DeformedSpace) = V.grid
 
 ###
 # vector calculus
 ###
 
-function massOp(space::DeformedSpace, ::Galerkin)
-    M = massOp(space.space)
-    J = space.J
+function massOp(V::DeformedSpace, ::Galerkin)
+    M = massOp(V.space)
+    J = V.J
 
     M * J
 end
@@ -129,16 +129,16 @@ end
 [Dx] * u = [rx sx] * [Dr] * u
 [Dy]     = [ry sy]   [Ds]
 """
-function gradientOp(space::DeformedSpace) # ∇
-    gradR = gradientOp(space.space)
-    dRdX = space.dRdX
+function gradientOp(V::DeformedSpace) # ∇
+    gradR = gradientOp(V.V)
+    dRdX = V.dRdX
     gradX = dRdX * gradR
 
     gradX
 end
 
-function hessianOp(space::DeformedSpace) # ∇²
-    DD = gradX(space)
+function hessianOp(V::DeformedSpace) # ∇²
+    DD = gradX(V)
 
     DD .* DD
 end
@@ -161,10 +161,10 @@ where A_l is
 = [Dr]' * [G11 G12]' * [Dr]
   [Ds]    [G12 G22]    [Ds]
 """
-function laplaceOp(space::DeformedSpace, ::Galerkin)
-    Dr = gradientOp(space.space)
-    M = massOp(space)
-    dRdX = space.dRdX
+function laplaceOp(V::DeformedSpace, ::Galerkin)
+    Dr = gradientOp(V.space)
+    M = massOp(V)
+    dRdX = V.dRdX
 
     MM = Diagonal([M for i in 1:D])
     GG = if dRdX isa Diagonal
@@ -182,15 +182,15 @@ end
 # Dealiased operators
 ###
 
-function laplaceOp(space1::DeformedSpace{<:Number, D},
-                   space2::DeformedSpace{<:Number, D},
+function laplaceOp(V1::DeformedSpace{<:Number, D},
+                   V2::DeformedSpace{<:Number, D},
                    discr::AbstractDiscretization;
                    J = nothing) where {D}
-    J12 = interpolation_operator !== nothing ? J : interpOp(space1, space2)
+    J12 = interpolation_operator !== nothing ? J : interpOp(V1, V2)
 
-    Dr1 = gradientOp(space1.space)
-    M2 = massOp(space2)
-    dRdX2 = space2.dRdX
+    Dr1 = gradientOp(V1.space)
+    M2 = massOp(V2)
+    dRdX2 = V2.dRdX
 
     JD = J12 * Dr1
 
