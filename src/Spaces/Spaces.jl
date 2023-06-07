@@ -1,5 +1,5 @@
 """
-Function Space Interface
+Abstract interface for function spaces
 """
 module Spaces
 
@@ -22,13 +22,17 @@ import SparseArrays: sparse
 @reexport using ..Domains
 
 # interface
+import Base: summary, show
 import Base: eltype, length, size
-import Base: summary, display, show
 
-""" Function space in D-Dimensional space """
+"""
+Function space over a `D`-Dimensional domain
+"""
 abstract type AbstractSpace{T, D} end
 
-""" Spatial Discretizations """
+"""
+Spatial Discretizations
+"""
 abstract type AbstractDiscretization end
 
 include("utils.jl")
