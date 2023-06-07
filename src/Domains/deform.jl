@@ -39,22 +39,32 @@ end
 """
 Deform D-dimensional domain via mapping
 """
-struct MappedDomain{T, D, Tdom <: AbstractDomain{T,D}, Tmap<:DomainMap} <: AbstractDomain{T, D}
-    domain::Tdom
-    map::Tmap
+struct MappedDomain{T, D, TD, TM} <: AbstractDomain{T, D} where{TD <: AbstractDomain{T, D}, TM <: DomainMap}
+    domain::TD
+    map::TM
 end
 
-function deform(domain::AbstractDomain, map = nothing;
+function deform(dom::AbstractDomain, map::DomainMap)
+    MappedDomain(dom, map)
+end
+
+identity_map(xyz::AbstractArray...) = xyz
+
+function deform(dom::AbstractDomain, map = nothing;
                 isseparable = false, isrescaling = false)
-    isnothing(map) && return domain
 
-    _map = DomainMap(map; isseparable = isseparable, isrescaling = isrescaling)
+    map = if isnothing(map)
+        IdentityMap()
+    else
+        _map = DomainMap(map; isseparable = isseparable,
+                         isrescaling = isrescaling)
+    end
 
-    MappedDomain(domain, _map)
+    deform(dom, _map)
 end
 
 function (::Type{T})(dom::MappedDomain) where {T <: Number}
-    MappedDomain(T(dom.domain), mapping)
+    MappedDomain(T(dom.domain), dom.map)
 end
 
 ###
@@ -70,3 +80,31 @@ end
 #     mapping = nothing
 # end
 #
+#=
+# TODO Gordon Hall
+# function mesh_domain(dom1::BoxDomain{<:Number,D},
+#                      space::AbstractSpace{<:Number,D}
+#                     ) where{D}
+#
+#     #function gordonHall(xrm,xrp,xsm,xsp,yrm,yrp,ysm,ysp,zr,zs)
+#     ze  = [-1,1]
+#     Jer = interpMat(zr,ze)
+#     Jes = interpMat(zs,ze)
+#
+#     xv = [xrm[1]   xrp[1]
+#           xrm[end] xrp[end]]
+#
+#     yv = [yrm[1]   yrp[1]
+#           yrm[end] yrp[end]]
+#
+#     xv = ABu(Jes,Jer,xv)
+#     yv = ABu(Jes,Jer,yv)
+#
+#     #display(mesh(xv,yv,0*xv,0,90))
+#
+#     x = ABu([],Jer,vcat(xrm',xrp')) .+ ABu(Jes,[],hcat(xsm,xsp)) .- xv
+#     y = ABu([],Jer,vcat(yrm',yrp')) .+ ABu(Jes,[],hcat(ysm,ysp)) .- yv
+#
+#     return
+# end
+=#

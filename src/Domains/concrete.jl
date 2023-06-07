@@ -1,36 +1,4 @@
-#=
-# TODO Gordon Hall
-function mesh_domain(dom1::BoxDomain{<:Number,D},
-                     space::AbstractSpace{<:Number,D}
-                    ) where{D}
-
-    #function gordonHall(xrm,xrp,xsm,xsp,yrm,yrp,ysm,ysp,zr,zs)
-    ze  = [-1,1]
-    Jer = interpMat(zr,ze)
-    Jes = interpMat(zs,ze)
-
-    xv = [xrm[1]   xrp[1]
-          xrm[end] xrp[end]]
-
-    yv = [yrm[1]   yrp[1]
-          yrm[end] yrp[end]]
-
-    xv = ABu(Jes,Jer,xv)
-    yv = ABu(Jes,Jer,yv)
-
-    #display(mesh(xv,yv,0*xv,0,90))
-
-    x = ABu([],Jer,vcat(xrm',xrp')) .+ ABu(Jes,[],hcat(xsm,xsp)) .- xv
-    y = ABu([],Jer,vcat(yrm',yrp')) .+ ABu(Jes,[],hcat(ysm,ysp)) .- yv
-
-    return
-end
-=#
-
-###
-# Conveniences
-###
-
+#
 function periodic_interval_tags(dim::Integer)
     tag = Symbol("D$(dim)_periodic")
 
@@ -98,15 +66,17 @@ function BoxDomain(endpoints::Real...;
     ProductDomain(intervals...; tag = tag)
 end
 
-function PolarMap()
-    function polar(r, θ)
-        x = r * cos(θ)
-        y = r * sin(θ)
-        x, y
-    end
-
-    DomainMap(polar)
+###
+# Maps
+###
+function polar_map(r::AbstractArray, θ::AbstractArray)
+    x = @. r * cos(θ)
+    y = @. r * sin(θ)
+    x, y
 end
+
+IdentityMap() = DomainMap(identity_map; isseparable = true, isrescaling = true)
+PolarMap() = DomainMap(polar_map, isseparable = false, isrescaling = false)
 
 function AnnulusDomain(rIn, rOut)
     intR = IntervalDomain(rIn, rOut, false, (:Inner, :Outer))
