@@ -1,3 +1,6 @@
+"""
+$README
+"""
 module CalculustCore
 
 using DocStringExtensions

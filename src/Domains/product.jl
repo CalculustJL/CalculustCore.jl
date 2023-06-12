@@ -11,7 +11,7 @@ struct ProductDomain{T, D, Tdom} <: AbstractDomain{T, D}
     function ProductDomain(domains, tag::Union{Symbol, Nothing})
         tag = isnothing(tag) ? :NoTag : tag
         T = promote_type(eltype.(domains)...)
-        D = sum(dims.(domains); init = 0)
+        D = sum(ndims.(domains); init = 0)
 
         new{T, D, typeof(domains)}(domains, tag)
     end

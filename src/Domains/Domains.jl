@@ -4,13 +4,18 @@ Domain Interface
 module Domains
 
 using DocStringExtensions
-using Setfield
+using Setfield: @set!
 
-import Base: eltype, ∈, in, show
+import Base: show
+import Base: ndims, eltype, ∈, in
 import SciMLOperators: ⊗
 import LinearAlgebra: ×
 
-""" D-Dimensional Domain """
+"""
+$TYPEDEF
+
+D-Dimensional Domain
+"""
 abstract type AbstractDomain{T<:Number, D} end
 
 # Interface
@@ -27,7 +32,6 @@ include("concrete.jl")
 export
 
       # interface
-      dims,
       expanse,
       bounding_box,
       isperiodic,

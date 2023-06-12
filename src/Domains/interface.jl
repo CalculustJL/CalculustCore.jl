@@ -5,11 +5,11 @@ Base.eltype(::AbstractDomain{T}) where {T} = T
 #Base.:∈
 
 """
-    dims(dom)
+$SIGNATURES
 
 Dimension of domain
 """
-dims(::AbstractDomain{<:Any, D}) where {D} = D
+Base.ndims(::AbstractDomain{<:Any, D}) where {D} = D
 
 """
     bounding_box(dom)
@@ -21,7 +21,7 @@ Must overload.
 function bounding_box end
 
 """
-    expanse(dom)
+$SIGNATURES
 
 Returns size of domain bounding box.
 
@@ -63,7 +63,7 @@ Returns number of boundaries in domain `dom`.
 num_boundaries(dom::AbstractDomain) = length(boundaries(dom))
 
 """
-    boundary_tags(dom)
+$SIGNATURES
 
 Returns tuple of tags corresponding to `boundaries(dom)`.
 """
