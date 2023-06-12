@@ -78,24 +78,22 @@ function hessianOp(V::AbstractSpace)
 end
 
 """
+    laplaceOp(V::AbstractSpace, discr::AbstractDiscretization)
+
 Laplace Operator: -Δ
 
-args:
-    space::AbstractSpace{T,D}
-    space_dealias
-ret:
-    laplaceOp: AbstractVector -> AbstractVector
+Represents the negative Laplace operator over `V` per discretization scheme
+`discr`. As the laplacian is a negative-definitie operator, we return the
+negative laplacian which is a positive-definite operator.
 """
 function laplaceOp end
 
 """
+    biharmonicOp(V::AbstractSpace, discr::AbstractDiscretization)
+
 Biharmonic Operator: Δ²
 
-args:
-    space::AbstractSpace{T,D}
-    space_dealias (optional)
-ret:
-    biharmonicOp: AbstractVector -> AbstractVector
+Represents the Biharmonic opeator over `V` per discretization scheme `discr`.
 """
 function biharmonicOp end
 
@@ -113,20 +111,21 @@ end
 Diffusion operator: -∇⋅(ν∇⋅)
 """
 function diffusionOp(ν::AbstractVecOrMat,
-                     space1::AbstractSpace{<:Any, D},
-                     space2::AbstractSpace{<:Any, D},
+                     V1::AbstractSpace{<:Any, D},
+                     V2::AbstractSpace{<:Any, D},
                      discr::AbstractDiscretization;
                      J = nothing) where {D}
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
+
+    J12 = J !== nothing ? J : interpOp(V1, V2)
+    #J21 = _transp(J12) # or interpOp(V2, V1) # TODO
 
     Jν = J * DiagonalOperator(ν)
 
-    M2 = massOp(space2, discr)
+    M2 = massOp(V2, discr)
     Mν2 = Jν * M2
     MMν2 = Diagonal([Mν2 for i in 1:D])
 
-    DD = gradientOp(space1, discr)
+    DD = gradientOp(V1, discr)
     JDD = J .* DD
     JDDt = _transp(JDD, discr)
 
