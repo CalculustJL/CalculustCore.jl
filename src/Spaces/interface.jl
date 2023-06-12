@@ -2,10 +2,25 @@
 Base.eltype(::AbstractSpace{T}) where {T} = T
 
 """
+$SIGNATURES
+
 Dimension of underlying domain
 """
-Domains.dims(::AbstractSpace{<:Any, D}) where {D} = D
-Domains.dims(::AbstractArray{<:Any, D}) where {D} = D
+Base.ndims(::AbstractSpace{<:Any, D}) where {D} = D
+
+"""
+$SIGNATURES
+
+get number of points
+"""
+Base.size(space::AbstractSpace{<:Any, D}, d) where {D} = size(space)[d] #TODO dims check
+
+"""
+$SIGNATURES
+
+length of vector in space
+"""
+Base.length(space::AbstractSpace) = prod(size(space))
 
 function SciMLOperators.IdentityOperator(space::AbstractSpace)
     N = length(space)
@@ -18,203 +33,135 @@ function SciMLOperators.NullOperator(space::AbstractSpace)
 end
 
 """
-get number of points
-"""
-Base.size(space::AbstractSpace{<:Any, D}, d) where {D} = size(space)[d] #TODO dims check
+    domain(V::AbstractSpace)
 
-"""
-length of vector in space
-"""
-Base.length(space::AbstractSpace) = prod(size(space))
-
-function Base.summary(io::IO, space::AbstractSpace{T, D}) where {T, D}
-    type_color, no_color = SciMLBase.get_colorizers(io)
-    print(io,
-          type_color, nameof(typeof(space)),
-          no_color, " over domain ",
-          type_color, typeof(domain(space)),
-          no_color, " with uType ",
-          type_color, typeof(first(grid(space))),
-          no_color)
-end
-
-"""
-get domain
-
-args:
-    space::AbstractSpace
-ret:
-    AbstractDomain
+Get domain underlying `V`
 """
 function domain end
 
 """
-args:
-    space::AbstractSpace{T,D}
-ret:
-    (x1, ..., xD,) # incl end points
+    points(V::AbstractSpace)
+
+
+Get `NTuple{D}` of vectors corresonding to the grid
 """
 function points end
 
 """
-args:
-    space::AbstractSpace{T,D}
-ret:
-    Gauss quadratues in form
-    ((z1,w1), ..., (zD,wD),)
-"""
-function quadratures end
+    global_numbering(V::AbstractSpace)
 
-"""
-args:
-    space::AbstractSpace{T,D}
-ret:
-    mass matrix as a SciMLOperator
-"""
-function mass_matrix end
-
-"""
-args:
-    space::AbstractSpace{T,D}
-ret:
-    AbstractArray of size size(space)
+Get `AbstractArray` of size `size(V)`
 """
 function global_numbering end
 
 """
-args:
-    space::AbstractSpace{T,D}
-    i::Integer
-ret:
-    ith basis function that can be evaluated
-    anywhere in Space.domain
-"""
-function basis end
+    boundary_nodes(V::AbstractSpace)
 
-"""
-get indices of boudnary nodes
+Get indices of boudnary nodes
 """
 function boundary_nodes end
 
 ### interpolation
 """
-Interpolate function values to to points.
+    interp(points, u::AbstractVector, V::AbstractSpace)
 
-args:
-    points::vector of coordinates
-    u::AbstractVector
-    space::AbstractSpace{T,D}
-ret:
-    u interpolated to points
+Interpolate function described by `u` to points `points`.
+
 """
 function interp end
 
 """
-Point-to-point interpolant between
-spaces on same domain. used for
-dealiasing
+    interpOp(V1::AbstractSpace, V2::AbstractSpace)
 
-args:
-    space1::AbstractSpace{T,D}
-    space2::AbstractSpace{T,D}
-ret:
-    interpolation operator from
-    space1 to space2
+Grid to grid interpolation operator from `V1` to `V2`. Both spaces must
+share the same domain. Its `[ij]`th entry is the value of the `j`th basis
+function of `V1` at the `i`th grid point of `V2`.
+
+``
+[J]_{ij} = \\phi_{j}(x_i)
+``
 """
 function interpOp end
 
 ### modes
 
 """
-modes
+    modes(V::AbstractSpace)
+
+Get `NTuple{D}` of vectors corresonding to the spectral grid
 """
 function modes end
 
 """
-size of modal basis
+    mode_size(V::AbstractSpace)
+
+Get size of modal space. Equivalent to `size(transform(V))`
 """
 function mode_size end
 
 ### transform
 
 """
+    transform(V::AbstractSpace)
+
 Lazily transforms between physical and modal space.
 """
 function transform end
 
 """
-forward transform operator
+    transformOp(V::AbstractSpace)
 
-args:
-    - space::AbstractSpace
-ret:
-    - transform operator on space
+Get transform operator that takes vectors from `V` to `transform(V)`.
+To change transform operator to act on a different `AbstractVecOrMat`
+subtype, call
 
-to change transform operator to act on a different
-AbstractVecOrMat type, call
-
-`space = make_transform(space, input_vec)`
+    V = make_transform(V, input_prototype)
 """
 function transformOp end
 
 """
-zero high frequency modes
+    truncationOp(V::AbstractSpace{T, D} , fracs::NTuple{D}) where{T, D}
 
-args:
-    - space::AbstractSpace
-    - frac::Number fraction of spectrun to keep
-ret:
-    - truncation operator on space
+Truncation operator removes high-frequency modes in an input vector.
+`fracs[d]` is the proprtion of the spectrum to be preserved in `d`th
+dimension. In spectral space, the operator corresponds to diagonal scaling,
+where the first `fracs[d]` of the spectrum (low frequency modes) is
+multiplied by unity, and the remainder (high-frequency modes) with zeros.
 """
 function truncationOp end
 
 """
-Form transform operator per new input vector for space
+    form_transform(V::AbstractSpace, input::AbstractVecOrMat; [kwargs...])
 
-args:
-    - space::AbstractSpace
-    - u::AbstractVecOrMat
-
-kwargs:
-    - p: parameters
-    - t: time
-
-ret:
-    - ftransform Forward transform wrapped
-    `SciMLOperators.FunctionOperator`
+Form transform operator given by `transformOp(V)` that may be applied to the
+provided `input` prototype array per keyword arguments `kwargs`. `kwargs` may
+include `p`, the parameter set.
 """
-function form_transform(space, args...; kwargs...)
-    space
-end
+function form_transform end
 
 """
-Set transform operator for space acting on vectors like u
+$SIGNATURES
 
-args:
-    - space::AbstractSpace
-    - u::AbstractVecOrMat input prototype of size (N,) or (N,K)
-      where N is the length(space). K will be the batch size.
-
-ret:
-    - space::AbstractSpace with transform operator that can act on `u`
+Returns a copy of `V` with transform operator (given by `transformOp(V)`)
+that may be applied to the provided `input` prototype array per provided
+keyword arguments `kwargs`.
 """
-function make_transform(space::AbstractSpace,
-                        u::Union{Nothing, AbstractArray} = nothing;
+function make_transform(V::AbstractSpace,
+                        input::Union{Nothing, AbstractVecOrMat} = nothing;
                         kwargs...)
-    u = if u isa Union{AbstractVecOrMat, Nothing}
-        u
-    else # ND Array
-        N = length(space)
-        NK = length(u)
-        K = NK ÷ N
 
-        @assert sz[1]==N "Dimension mismatch"
-        reshape(u, (N, K))
+    input = isnothing(input) ? V.points[1] : input
+
+    if length(V) != size(input, 1)
+        msg = """First dimension of input prototype, $input,
+            (of size $(size(u))) must equal the length of $V (of size
+            $(size(V)))."""
+        throw(DimensionMismatch(msg))
     end
 
-    ftr = form_transform(space, u; kwargs...)
-    @set! space.ftransform = ftr
+    F = form_transform(V, input; kwargs...)
+    @set! V.ftransform = F
 
-    space
+    V
 end
 #

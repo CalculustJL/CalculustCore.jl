@@ -110,7 +110,6 @@ Base.size(V::DeformedSpace) = size(V.space)
 
 domain(V::DeformedSpace) = domain(V.space)
 modes(V::DeformedSpace) = modes(V.space)
-quadratures(V::DeformedSpace) = quadratures(V.space)
 
 points(V::DeformedSpace) = V.grid
 

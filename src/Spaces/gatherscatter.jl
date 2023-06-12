@@ -43,7 +43,7 @@ end
 
 #=
 function GatherScatter(space::AbstractSpace)
-    D = dims(space)
+    D = ndims(space)
     N = length(space)
 
     domain = get_domain(space)
@@ -56,7 +56,7 @@ function GatherScatter(space::AbstractSpace)
 
     Qmats = Qmatrix.(npoints, periodic)
 
-    Q = if D == dims(space)
+    Q = if D == ndims(space)
         MatrixOp(Qmats...)
     else
         TensorProductOperator(Qmats...)

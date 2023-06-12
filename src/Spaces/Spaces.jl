@@ -3,6 +3,8 @@ Abstract interface for function spaces
 """
 module Spaces
 
+using DocStringExtensions
+
 using Reexport
 using LinearAlgebra
 
@@ -22,25 +24,29 @@ import SparseArrays: sparse
 @reexport using ..Domains
 
 # interface
-import Base: summary, show
-import Base: eltype, length, size
+import Base: show
+import Base: ndims, eltype, length, size
 
 """
+$TYPEDEF
+
 Function space over a `D`-Dimensional domain
 """
 abstract type AbstractSpace{T, D} end
 
 """
-Spatial Discretizations
+$TYPEDEF
+
+Spatial discretizations scheme
 """
 abstract type AbstractDiscretization end
 
 include("utils.jl")
 
-# interface
+# AbstractSpace interface
 include("interface.jl")
 
-# operators
+# PDE operators
 include("vectorcalculus.jl")
 include("discretizations.jl")
 include("gatherscatter.jl")
@@ -53,18 +59,17 @@ include("deform.jl")
 
 export
       ### from ..Domains
-      dims,
       deform,
 
       ### Interface
+      domain,
       points,
+      global_numbering,
+      boundary_nodes, ndgrid,
+
       modes,
       mode_size,
-      #basis,
-      domain,
-      mass_matrix,
-      global_numbering,
-      boundary_nodes, ndgrid, transform,
+      transform,
       make_transform,
 
       # from SciMLOperators

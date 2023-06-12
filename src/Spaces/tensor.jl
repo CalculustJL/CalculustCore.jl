@@ -25,10 +25,6 @@ end
 #function modes(V::TensorProductSpace)
 #end
 #
-#function quadratures(V::TensorProductSpace)
-#    (quadratures(inner)..., quadratures(outer)...)
-#end
-#
 #function mass_matrix(V::TensorProductSpace)
 #    DiagonalOperator(V.mass_matrix)
 #end

@@ -4,60 +4,77 @@
 ###
 
 """
+    massOp(V::AbstractSpace, discr::AbstractDiscretization)
+
 Mass Operator: ∫⋅dx
 
-Inner Product: <u, v> := u' * M * v
+Represents the mass matrix for discretization scheme `discr`.
 
-args:
-    space::AbstractSpace
-    discr::AbstractDiscretization (optional)
-    space_dealias
-ret:
-    massOp: AbstractVector -> AbstractVector
+For a `Galerkin` discretization, the `[ij]`th entry corresponds to the
+inner product of the `i`th and `j`th basis functions.
+
+``
+[M]_{ij} = \\int_\\Omega \\phi_i(x)\\phi_j(x) dx = \\langle \\phi_i, \\phi_j \\rangle
+``
 """
 function massOp end
 
-function massOp(space1::AbstractSpace{<:Any, D},
-                space2::AbstractSpace{<:Any, D},
+"""
+$SIGNATURES
+
+
+"""
+function massOp(V1::AbstractSpace{<:Any, D},
+                V2::AbstractSpace{<:Any, D},
                 discr::AbstractDiscretization;
                 J = nothing) where {D}
     @error "this method has not been implemented yet"
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
+    J12 = J !== nothing ? J : interpOp(V1, V2)
+    #J21 = _transp(J12) # or interpOp(V2, V1) # TODO
 
-    M2 = massOp(space2)
+    M2 = massOp(V2, discr)
 
     J12 * M2 * J12
 end
 
 """
+    gradientOp(V::AbstractSpace{T, D}) where{T, D} -> [∂x1, ..., ∂xD]
+
 Gradient Operator: ∇
 
-args:
-    space::AbstractSpace
-    discr::AbstractDiscretization (optional)
-ret:
-    gradientOp: u -> [dudx1, ..., dudxD]
+Returns a size `D` `Vector` of operators. The `d`th operator corresponds to
+the linear transformation from a function to its partial derivative in the
+`d`th dimension at the grid points of `V`. Its `[ij]`th entry is equal to the 
+value of the derivative of the `j`th basis function at the `i`th grid point.
+
+``
+[D]_{ij} = \\\partial_{x}phi_{j}(x_i)
+``
 """
-function gradientOp end
 gradientOp(space::AbstractSpace, discr::AbstractDiscretization) = gradientOp(space)
 
 """
+    hessianOp(V::AbstractSpace{T, D}) where{T, D} ->
+
+``
+[∂x1∂x1 ... ∂x1∂xD,
+        ...
+ ∂xD∂x1 ... ∂xD∂xD ]
+``
+
 Hessian Operator: ∇²
 
-args:
-    space::AbstractSpace
-    discr::AbstractDiscretization (optional)
-ret:
-    hessianOp: u -> [dud2x1, ..., dud2xD]
+Returns a `D × D` `Matrix` of operators whose `[ij]`th entry represents the
+transformation from a function to its second partial derivative in the
+`[ij]`th directions.
 """
 function hessianOp end
-hessianOp(space::AbstractSpace, discr::AbstractDiscretization) = hessianOp(space)
+hessianOp(space::AbstractSpace, ::AbstractDiscretization) = hessianOp(space)
 
-function hessianOp(space::AbstractSpace)
-    DD = gradientOp(space, discr)
+function hessianOp(V::AbstractSpace)
+    DD = gradientOp(V)
 
-    DD .* DD
+    DD * transpose(DD)
 end
 
 """
