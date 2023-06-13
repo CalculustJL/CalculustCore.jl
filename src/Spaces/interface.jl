@@ -64,6 +64,10 @@ Get underlying quadrature scheme
 """
 function quadratures end
 
+###
+# boundary management interface
+###
+
 """
     global_numbering(V::AbstractSpace)
 
