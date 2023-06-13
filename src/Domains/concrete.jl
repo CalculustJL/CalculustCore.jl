@@ -1,4 +1,6 @@
 #
+const BoxDomain{T,D} =  Domains.ProductDomain{T, D, <:NTuple{D, IntervalDomain}} where{T, D}
+
 function periodic_interval_tags(dim::Integer)
     tag = Symbol("D$(dim)_periodic")
 

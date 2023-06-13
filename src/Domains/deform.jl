@@ -3,11 +3,13 @@
 # DomainMap
 ###
 """
+$TYPEDEF
+
 # Arguments
 - reference domain
 
 - mapping function
-    (x1,...,xD) = map(r1, ..., rD)
+    (x1,...,xD) = mapping(r1, ..., rD)
 
 - isrescaling - do optimizations if mapping is a simple rescaling
     x1 = a1 + λ1 × x1(r1),
@@ -23,13 +25,13 @@ TODO - make types for AffineMap, LinearMap, SeparableMap, Transation, Rotation
 TODO - write constructor that checks for method
 """
 struct DomainMap{Tm}
-    map::Tm
+    mapping::Tm
     isseparable::Bool
     isrescaling::Bool
 end
 
-function DomainMap(map; isseparable = false, isrescaling = false)
-    DomainMap(map, isseparable, isrescaling)
+function DomainMap(mapping; isseparable = false, isrescaling = false)
+    DomainMap(mapping, isseparable, isrescaling)
 end
 
 ###
@@ -41,30 +43,36 @@ Deform D-dimensional domain via mapping
 """
 struct MappedDomain{T, D, TD, TM} <: AbstractDomain{T, D} where{TD <: AbstractDomain{T, D}, TM <: DomainMap}
     domain::TD
-    map::TM
+    mapping::TM
+
+    function MappedDomain(domain, mapping)
+        D = ndims(domain)
+        T = eltype(domain)
+
+        new{T, D, typeof(domain), typeof(mapping)}(domain, mapping)
+    end
 end
 
-function deform(dom::AbstractDomain, map::DomainMap)
-    MappedDomain(dom, map)
+function deform(dom::AbstractDomain, mapping::DomainMap)
+    MappedDomain(dom, mapping)
 end
 
 identity_map(xyz::AbstractArray...) = xyz
 
-function deform(dom::AbstractDomain, map = nothing;
+function deform(dom::AbstractDomain, mapping = nothing;
                 isseparable = false, isrescaling = false)
 
-    map = if isnothing(map)
+    mapping = if isnothing(mapping)
         IdentityMap()
     else
-        _map = DomainMap(map; isseparable = isseparable,
-                         isrescaling = isrescaling)
+        DomainMap(mapping; isseparable, isrescaling)
     end
 
-    deform(dom, _map)
+    deform(dom, mapping)
 end
 
 function (::Type{T})(dom::MappedDomain) where {T <: Number}
-    MappedDomain(T(dom.domain), dom.map)
+    MappedDomain(T(dom.domain), dom.mapping)
 end
 
 ###
@@ -74,7 +82,7 @@ end
 # function gordon_hall end #TODO
 
 # """
-#  Gordon Hall map - Transfinite interpolation
+#  Gordon Hall mapping - Transfinite interpolation
 # """
 # function mapBoxes(box1::BoxDomain{<:Number, D}, box2::BoxDomain{<:Number, D}) where {D}
 #     mapping = nothing
