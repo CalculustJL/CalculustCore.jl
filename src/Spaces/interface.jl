@@ -1,4 +1,9 @@
 #
+
+###
+# abstract spaces interface
+###
+
 Base.eltype(::AbstractSpace{T}) where {T} = T
 
 """
@@ -61,7 +66,9 @@ Get indices of boudnary nodes
 """
 function boundary_nodes end
 
-### interpolation
+###
+# interpolation interface
+###
 """
     interp(points, u::AbstractVector, V::AbstractSpace)
 
@@ -80,10 +87,14 @@ function of `V1` at the `i`th grid point of `V2`.
 ``
 [J]_{ij} = \\phi_{j}(x_i)
 ``
+
+If `V1 == V2`, we simply return the no-op `IdentityOperator(V1)`.
 """
 function interpOp end
 
-### modes
+###
+# spectral transform interface
+###
 
 """
     modes(V::AbstractSpace)
@@ -98,8 +109,6 @@ function modes end
 Get size of modal space. Equivalent to `size(transform(V))`
 """
 function mode_size end
-
-### transform
 
 """
     transform(V::AbstractSpace)

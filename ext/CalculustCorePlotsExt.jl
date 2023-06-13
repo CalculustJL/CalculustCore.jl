@@ -10,6 +10,8 @@ end
 
 ## CalculustCore.Spaces
 
+#### USE RECIPESBASE.jl instead
+
 """
 plot of function over space
 args:

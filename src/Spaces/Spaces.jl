@@ -14,12 +14,11 @@ using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC,
                       IdentityOperator, NullOperator
 
 # caching
-using UnPack: @unpack
 using Setfield: @set!
 
 # gather-scatter
 # using NNlib: gather, gather!, scatter, scatter!
-import SparseArrays: sparse
+# import SparseArrays: sparse
 
 @reexport using ..Domains
 
@@ -48,12 +47,14 @@ include("interface.jl")
 
 # PDE operators
 include("vectorcalculus.jl")
-include("discretizations.jl")
-include("gatherscatter.jl")
 
-include("NDgrid.jl") # TODO - use LazyGrids.jl instead
+include("discretizations/collocation.jl")
+include("discretizations/galerkin.jl")
 
-#include("tensor.jl")
+include("NDgrid.jl")
+# include("gatherscatter.jl")
+
+# include("tensor.jl")
 include("transform.jl")
 include("deform.jl")
 

@@ -20,24 +20,6 @@ inner product of the `i`th and `j`th basis functions.
 function massOp end
 
 """
-$SIGNATURES
-
-
-"""
-function massOp(V1::AbstractSpace{<:Any, D},
-                V2::AbstractSpace{<:Any, D},
-                discr::AbstractDiscretization;
-                J = nothing) where {D}
-    @error "this method has not been implemented yet"
-    J12 = J !== nothing ? J : interpOp(V1, V2)
-    #J21 = _transp(J12) # or interpOp(V2, V1) # TODO
-
-    M2 = massOp(V2, discr)
-
-    J12 * M2 * J12
-end
-
-"""
     gradientOp(V::AbstractSpace{T, D}) where{T, D} -> [∂x1, ..., ∂xD]
 
 Gradient Operator: ∇
@@ -48,10 +30,10 @@ the linear transformation from a function to its partial derivative in the
 value of the derivative of the `j`th basis function at the `i`th grid point.
 
 ``
-[D]_{ij} = \\\partial_{x}phi_{j}(x_i)
+[D]_{ij} = \\partial_{x}\\phi_{j}(x_i)
 ``
 """
-gradientOp(space::AbstractSpace, discr::AbstractDiscretization) = gradientOp(space)
+gradientOp(V::AbstractSpace, ::AbstractDiscretization) = gradientOp(V)
 
 """
     hessianOp(V::AbstractSpace{T, D}) where{T, D} ->
@@ -68,13 +50,12 @@ Returns a `D × D` `Matrix` of operators whose `[ij]`th entry represents the
 transformation from a function to its second partial derivative in the
 `[ij]`th directions.
 """
-function hessianOp end
-hessianOp(space::AbstractSpace, ::AbstractDiscretization) = hessianOp(space)
+hessianOp(V::AbstractSpace, ::AbstractDiscretization) = hessianOp(V)
 
 function hessianOp(V::AbstractSpace)
     DD = gradientOp(V)
 
-    DD * transpose(DD)
+    DD * reshape(DD, (1, ndims(V)))
 end
 
 """
@@ -82,9 +63,9 @@ end
 
 Laplace Operator: -Δ
 
-Represents the negative Laplace operator over `V` per discretization scheme
-`discr`. As the laplacian is a negative-definitie operator, we return the
-negative laplacian which is a positive-definite operator.
+Returns the negative Laplace operator over `V` per discretization scheme
+`discr`. As the Laplace operator (laplacian) is a negative-definitie operator,
+we return the negative laplacian which is a positive-definite operator.
 """
 function laplaceOp end
 
@@ -98,9 +79,17 @@ Represents the Biharmonic opeator over `V` per discretization scheme `discr`.
 function biharmonicOp end
 
 """
+    diffusionOp(ν::Number, V::AbstractSpace, discr::AbstractDiscretization)
+
 Diffusion operator: -νΔ
+
+Returns the negative Laplace Operator scaled by diffusion coefficient `ν`.
+`ν` can be updated per `ν_update_func` which expects the same signature as
+`SciMLOperators.ScalarOperator`. All positional arguments besides `ν` are
+passed down to `laplaceOp` to form the negative lapalcian.
 """
 function diffusionOp(ν::Number, args...; ν_update_func = DEFAULT_UPDATE_FUNC)
+
     ν = ScalarOperator(ν; update_func = ν_update_func)
     A = laplaceOp(args...)
 
@@ -108,43 +97,36 @@ function diffusionOp(ν::Number, args...; ν_update_func = DEFAULT_UPDATE_FUNC)
 end
 
 """
+$SIGNATURES
+
 Diffusion operator: -∇⋅(ν∇⋅)
+
+Returns the diffusion operator where `ν` is the space-varying diffusion
+coefficient in `V`. `ν` can be updated per `ν_update_func` which expets the
+same signature as `SciMLOperators.DiagonalOperator`.
 """
 function diffusionOp(ν::AbstractVecOrMat,
-                     V1::AbstractSpace{<:Any, D},
-                     V2::AbstractSpace{<:Any, D},
+                     V::AbstractSpace{<:Any, D},
                      discr::AbstractDiscretization;
-                     J = nothing) where {D}
+                     ν_update_func = DEFAULT_UPDATE_FUNC) where{D}
 
-    J12 = J !== nothing ? J : interpOp(V1, V2)
-    #J21 = _transp(J12) # or interpOp(V2, V1) # TODO
+    M = massOp(V, discr)
+    ν = DiagonalOperator(ν; update_func = ν_update_func)
 
-    Jν = J * DiagonalOperator(ν)
+    Mν = M * ν
+    MMν = Diagonal([Mν for _ in 1:D])
 
-    M2 = massOp(V2, discr)
-    Mν2 = Jν * M2
-    MMν2 = Diagonal([Mν2 for i in 1:D])
+    DD = gradientOp(V, discr)
+    DDt = _transp(DD, discr)
 
-    DD = gradientOp(V1, discr)
-    JDD = J .* DD
-    JDDt = _transp(JDD, discr)
-
-    JDDt * MMν2 * JDD
+    DDt * MMν * DD
 end
 
 """
-Advection Operator: v⃗⋅∇
+$SIGNATURES
 
-args:
-    vel...::AbstractVector
-    space::AbstractSpace{<:Any,D}
-    space_dealias (optional)
-ret:
-    advectionOp: AbstractVector -> AbstractVector
-"""
-function advectionOp end
+Advection Operator: (v⃗⋅∇)⋅  
 
-"""
 for v,u,T in H¹₀(Ω)
 
 (v,(u⃗⋅∇)T) = (v,ux*∂xT + uy*∂yT)\n
@@ -158,62 +140,45 @@ implemented as
                    [Dx]
 """
 function advectionOp(vels::NTuple{D},
-                     space::AbstractSpace{<:Any, D},
+                     V::AbstractSpace{<:Any, D},
                      discr::AbstractDiscretization;
                      vel_update_funcs = nothing) where {D}
     VV = _pair_update_funcs(vels, vel_update_funcs)
+    VVt = _transp(VV, discr)
 
-    DD = gradientOp(space, discr)
-    M = massOp(space, discr)
+    DD = gradientOp(V, discr)
+    M = massOp(V, discr)
     MM = Diagonal([M for i in 1:D])
 
-    VV' * MM * DD # TODO - transpose instead of adjoint VVt=_transp(VV, discr)
+    VVt * MM * DD
 end
 
 """
-ux,uy, ∇T are interpolated to
-a grid with higher polynomial order
-for dealiasing (over-integration)
-so we don't commit any
-"variational crimes"
-"""
-function advectionOp(vel::NTuple{D},
-                     space1::AbstractSpace{<:Any, D},
-                     space2::AbstractSpace{<:Any, D};
-                     J = nothing) where {D}
-    @error "this method has not been implemented yet"
-    J12 = J !== nothing ? J : interpOp(space1, space2)
-    #J21 = _transp(J12) # or interpOp(space2, space1) # TODO
+    divergenceOp(V::AbstractSpace, discr::AbstractDiscretization)
 
-    VV1 = [DiagonalOperator.(vel)...]
-    VV2 = J12 .* VV1
-    M2 = massOp(space2)
-    MM2 = Diagonal([M for i in 1:D])
-    DD1 = gradientOp(space1)
-
-    VV2' * MM2 * (J12 .* DD1)
-end
-
-"""
 Divergence Operator: ∇⋅
 """
 function divergenceOp end
 
 """
-Added forcing as an operator
+$SIGNATURES
+
+Added forcing as an operator.
 
 F = forcingOp(f)
+L = A + F
 
-F(u) = u + M*f
+F(u) = 0 * u + M * f
+L(u) = A * u + M * f
 """
 function forcingOp(f::AbstractVecOrMat,
-                   space::AbstractSpace,
+                   V::AbstractSpace,
                    discr::AbstractDiscretization;
                    f_update_func = DEFAULT_UPDATE_FUNC,
                    f_update_func! = DEFAULT_UPDATE_FUNC,
                   )
-    Z = NullOperator(space)
-    M = massOp(space, discr)
+    Z = NullOperator(V)
+    M = massOp(V, discr)
 
     AffineOperator(Z, M, f; update_func = f_update_func,
                    update_func! = f_update_func!)

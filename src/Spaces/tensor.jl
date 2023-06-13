@@ -8,7 +8,7 @@ struct TensorProductSpace{
                           D1 + D2,
                           I <: AbstractSpace{<:Any, D1},
                           O <: AbstractSpace{<:Any, D2}
-                          } <: AbstractSpace{T, D1 + D2}
+                         } <: AbstractSpace{T, D1 + D2}
     inner::I
     outer::O
 end
@@ -38,9 +38,9 @@ end
 # vector calculus
 
 function gradientOp(V::TensorProductSpace)
-    @unpack inner, outer = V
-    Di = gradientOp(inner)
-    Do = gradientOp(outer)
+
+    Di = gradientOp(V.inner)
+    Do = gradientOp(V.outer)
 
     @error "method not implemented"
 

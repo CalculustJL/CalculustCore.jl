@@ -8,62 +8,63 @@ struct TransformedSpace{T, D, Tsp <: AbstractSpace{T, D}} <: AbstractSpace{T, D}
     space::Tsp
 end
 
-transform(space::AbstractSpace) = TransformedSpace(space)
-transform(space::TransformedSpace) = space.space
+transform(V::AbstractSpace) = TransformedSpace(V)
+transform(Vh::TransformedSpace) = Vh.space
 
 ###
 # interface
 ###
-Base.size(space::TransformedSpace) = mode_size(space.space)
+Base.size(Vh::TransformedSpace) = mode_size(Vh.space)
 
-domain(space::TransformedSpace) = domain(space.space)
-points(space::TransformedSpace) = modes(space.space)
-modes(space::TransformedSpace) = points(space.space)
+domain(Vh::TransformedSpace) = domain(Vh.space)
+points(Vh::TransformedSpace) = modes(Vh.space)
+modes(Vh::TransformedSpace) = points(Vh.space)
 
-function Domains.deform(space::TransformedSpace)
-    phys = transform(space)
-    def = deform(space)
+function Domains.deform(Vh::TransformedSpace, args...)
 
-    transform(def)
+    V = transform(Vh)
+    V = deform(V, args...)
+
+    transform(V)
 end
 
-function form_transform(space::TransformedSpace, u::AbstractArray; kwargs...)
-    F = transformOp(space)
-    phys = form_transform(space, F * û; kwargs...)
+function form_transform(Vh::TransformedSpace, u::AbstractArray; kwargs...)
+    F = transformOp(Vh)
+    V = form_transform(Vh, F * u; kwargs...)
 
-    transform(phys)
+    transform(V)
 end
 
-#function Domains.⊗(space::TransformedSpace, space::AbstractSpace)
+#function Domains.⊗(Vh::TransformedSpace, W::AbstractSpace)
 #end
 
 ###
 # vector calculus - modal space <-> modal space
 ###
 
-#function massOp(space::TransformedSpace, discr::AbstractDiscretization)
+#function massOp(Vh::TransformedSpace, discr::AbstractDiscretization)
 #end
 #
-#function gradientOp(space::TransformedSpace)
+#function gradientOp(Vh::TransformedSpace)
 #end
 #
-#function hessianOp(space::TransformedSpace)
+#function hessianOp(Vh::TransformedSpace)
 #end
 #
-#function laplaceOp(space::TransformedSpace, discr::AbstractDiscretization)
+#function laplaceOp(Vh::TransformedSpace, discr::AbstractDiscretization)
 #end
 #
-#function diffusionOp(ν::Number, space::TransformedSpace, discr::AbstractDiscretization)
+#function diffusionOp(ν::Number, Vh::TransformedSpace, discr::AbstractDiscretization)
 #end
 #
-#function diffusionOp(ν::AbstractVector, space::TransformedSpace, discr::AbstractDiscretization)
+#function diffusionOp(ν::AbstractVector, Vh::TransformedSpace, discr::AbstractDiscretization)
 #end
 #
-#function advectionOp(vel::NTuple{D}, space::TransformedSpace{<:Any,D}) where{D}
+#function advectionOp(vel::NTuple{D}, Vh::TransformedSpace{<:Any,D}) where{D}
 #end
 
-function transformOp(space::TransformedSpace)
-    ftr = transformOp(space.space)
+function transformOp(Vh::TransformedSpace)
+    ftr = transformOp(Vh.space)
     inv(ftr)
 end
 #
