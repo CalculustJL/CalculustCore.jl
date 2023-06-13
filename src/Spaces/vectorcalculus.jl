@@ -54,8 +54,9 @@ hessianOp(V::AbstractSpace, ::AbstractDiscretization) = hessianOp(V)
 
 function hessianOp(V::AbstractSpace)
     DD = gradientOp(V)
+    DD_ = reshape(DD, (1, ndims(V)))
 
-    DD * reshape(DD, (1, ndims(V)))
+    DD * DD_
 end
 
 """
