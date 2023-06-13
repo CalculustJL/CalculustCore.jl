@@ -60,6 +60,7 @@ domain_tag(dom::PointDomain) = dom.tag
 boundaries(::PointDomain) = (∅,)
 
 Base.show(io::IO, dom::PointDomain) = print(io, "{$(dom.x)}")
+Base.convert(T::Type{<:Number}, dom::PointDomain) = T(dom.x)
 
 ###
 # IntervalDomain
