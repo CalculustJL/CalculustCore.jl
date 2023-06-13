@@ -37,6 +37,10 @@ function SciMLOperators.NullOperator(space::AbstractSpace)
     SciMLOperators.NullOperator(N)
 end
 
+###
+# interface to physical space
+###
+
 """
     domain(V::AbstractSpace)
 
@@ -51,6 +55,14 @@ function domain end
 Get `NTuple{D}` of vectors corresonding to the grid
 """
 function points end
+
+"""
+    quadratures(V::AbstractSpace)
+
+
+Get underlying quadrature scheme
+"""
+function quadratures end
 
 """
     global_numbering(V::AbstractSpace)
