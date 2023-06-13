@@ -95,12 +95,12 @@ function laplaceOp(V::AbstractSpace{<:Any, D},
     DD' * MM * DD
 end
 
-"""
-    biharmonicOp(V::AbstractSpace{<:Any, D}, discr::Galerkin, Vd::AbstractSpace{<:Any, D}, J = nothing) where{D}
-
-$GALERKIN_DEALIAS_MSG
-"""
-biharmonicOp
+# """
+#     biharmonicOp(V::AbstractSpace{<:Any, D}, discr::Galerkin, Vd::AbstractSpace{<:Any, D}, J = nothing) where{D}
+# 
+# $GALERKIN_DEALIAS_MSG
+# """
+# biharmonicOp
 
 """
 $SIGNATURES
@@ -144,7 +144,7 @@ for dealiasing (over-integration) so we don't commit any "variational crimes"
 function advectionOp(vels::NTuple{D},
                      V::AbstractSpace{<:Any, D},
                      discr::Galerkin,
-                     Vd::AbstractSpace{<:Any, D};
+                     Vd::AbstractSpace{<:Any, D},
                      J = nothing;
                      vel_update_funcs = nothing) where {D}
 

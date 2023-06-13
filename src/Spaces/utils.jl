@@ -18,8 +18,6 @@ function _pair_update_funcs(vecs, funcs)
     VV
 end
 
-# TODO - remove ComposedUpdateFunction after cleaning FourierSpaces.jl
-
 """
 (f1 ∘ f2)(v, u, p, t) with caching
 """
@@ -32,7 +30,7 @@ struct ComposedUpdateFunction{F1, F2, C <: AbstractArray}
         f1 = isnothing(f1) ? DEFAULT_UPDATE_FUNC : f1
         f2 = isnothing(f2) ? DEFAULT_UPDATE_FUNC : f2
 
-        new(f1, f2, cache)
+        new{typeof(f1), typeof(f2), typeof(cache)}(f1, f2, cache)
     end
 end
 

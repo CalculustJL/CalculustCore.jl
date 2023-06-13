@@ -50,7 +50,7 @@ $COLLOCATION_DEALIAS_MSG
 function advectionOp(vels::NTuple{D},
                      V::AbstractSpace{<:Any, D},
                      discr::Collocation,
-                     Vd::AbstractSpace{<:Any, D};
+                     Vd::AbstractSpace{<:Any, D},
                      J = nothing;
                      vel_update_funcs = nothing) where {D}
 
