@@ -175,7 +175,7 @@ function make_transform(V::AbstractSpace,
                         input::Union{Nothing, AbstractVecOrMat} = nothing;
                         kwargs...)
 
-    input = isnothing(input) ? V.points[1] : input
+    input = isnothing(input) ? points(V)[1] : input
 
     if length(V) != size(input, 1)
         msg = """First dimension of input prototype, $input,
