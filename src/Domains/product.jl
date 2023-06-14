@@ -3,7 +3,9 @@
 # Product Domain
 ###
 
-""" D-dimensional logically reectangular domain """
+"""
+$TYPEDEF
+"""
 struct ProductDomain{T, D, Tdom} <: AbstractDomain{T, D}
     domains::Tdom
     tag::Symbol
@@ -25,6 +27,11 @@ function (::Type{T})(int::ProductDomain) where {T <: Number}
     ProductDomain(T.(int.domains)...)
 end
 
+"""
+Take cartesian product of `AbstractDomain`s `doms`
+
+$SIGNATURES
+"""
 ×(doms::AbstractDomain...) = reduce(×, doms)
 ×(dom1::AbstractDomain, dom2::AbstractDomain) = ProductDomain(dom1, dom2)
 ×(dom1::ProductDomain, dom2::AbstractDomain) = ProductDomain(dom1.domains..., dom2)

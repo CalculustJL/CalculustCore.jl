@@ -2,27 +2,9 @@
 ###
 # DomainMap
 ###
+
 """
 $TYPEDEF
-
-# Arguments
-- reference domain
-
-- mapping function
-    (x1,...,xD) = mapping(r1, ..., rD)
-
-- isrescaling - do optimizations if mapping is a simple rescaling
-    x1 = a1 + λ1 × x1(r1),
-    ...,
-    xD = aD + λD × xD(rD)
-
--isseparable - do optimizations if mapping is separable
-    x1 = x1(r1),
-    ...,
-    xD = xD(rD)
-
-TODO - make types for AffineMap, LinearMap, SeparableMap, Transation, Rotation
-TODO - write constructor that checks for method
 """
 struct DomainMap{Tm}
     mapping::Tm
@@ -30,6 +12,12 @@ struct DomainMap{Tm}
     isrescaling::Bool
 end
 
+"""
+$SIGNATURES
+
+Deform `AbstractDomain` `dom` via mapping
+
+"""
 function DomainMap(mapping; isseparable = false, isrescaling = false)
     DomainMap(mapping, isseparable, isrescaling)
 end
@@ -39,7 +27,7 @@ end
 ###
 
 """
-Deform D-dimensional domain via mapping
+$TYPEDEF
 """
 struct MappedDomain{T, D, TD, TM} <: AbstractDomain{T, D} where{TD <: AbstractDomain{T, D}, TM <: DomainMap}
     domain::TD
@@ -53,13 +41,45 @@ struct MappedDomain{T, D, TD, TM} <: AbstractDomain{T, D} where{TD <: AbstractDo
     end
 end
 
-function deform(dom::AbstractDomain, mapping::DomainMap)
-    MappedDomain(dom, mapping)
+"""
+$SIGNATURES
+
+Deform `domain` via `mapping`.
+"""
+function deform(domain::AbstractDomain, mapping::DomainMap)
+    MappedDomain(domain, mapping)
 end
 
-identity_map(xyz::AbstractArray...) = xyz
+"""
+$SIGNATURES
 
-function deform(dom::AbstractDomain, mapping = nothing;
+Deform `domain` via `mapping`, which expects the function signature
+
+    mapping(r1, ..., rD) = x1, ..., xD
+
+where the inputs and outputs are `NTuple{D, <:AbstractArray}`.
+
+# Keyword Arguments
+- `isrescaling` - Set to `true` if `mapping` is a rescaling operation, i.e.
+
+    x1 = a1 + λ1 × x1(r1),
+
+    ...,
+
+    xD = aD + λD × xD(rD)
+
+- `isseparable` - Set to `true` if `mapping` is separable, i.e.
+
+    x1 = x1(r1),
+
+    ...,
+
+    xD = xD(rD)
+
+TODO - make types for AffineMap, LinearMap, SeparableMap, Transation, Rotation
+TODO - check `static_hasmethod` in constructor
+"""
+function deform(domain::AbstractDomain, mapping = nothing;
                 isseparable = false, isrescaling = false)
 
     mapping = if isnothing(mapping)
@@ -68,7 +88,7 @@ function deform(dom::AbstractDomain, mapping = nothing;
         DomainMap(mapping; isseparable, isrescaling)
     end
 
-    deform(dom, mapping)
+    deform(domain, mapping)
 end
 
 function (::Type{T})(dom::MappedDomain) where {T <: Number}

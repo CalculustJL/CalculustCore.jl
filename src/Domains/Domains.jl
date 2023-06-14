@@ -1,5 +1,5 @@
 """
-Domain Interface
+Abstract Domain Interface
 """
 module Domains
 
@@ -8,13 +8,12 @@ using Setfield: @set!
 
 import Base: show
 import Base: ndims, eltype, ∈, in
-import SciMLOperators: ⊗
 import LinearAlgebra: ×
 
 """
 $TYPEDEF
 
-D-Dimensional Domain
+`D`-dimensional domain of type `T`
 """
 abstract type AbstractDomain{T<:Number, D} end
 
@@ -39,7 +38,6 @@ export
       domain_tag,
       boundary_tags,
       ×,
-      ⊗,
       deform,
 
       # concrete types

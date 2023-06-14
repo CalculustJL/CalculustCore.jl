@@ -1,5 +1,7 @@
 #
 """
+$TYPEDEF
+
 Deform domain, compute Jacobian of transformation, and its inverse
 
 given 2D mapping

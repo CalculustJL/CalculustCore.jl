@@ -11,7 +11,7 @@ using LinearAlgebra
 # operator algebra
 @reexport using SciMLOperators
 using SciMLOperators: AbstractSciMLOperator, DEFAULT_UPDATE_FUNC,
-                      IdentityOperator, NullOperator
+                      IdentityOperator, NullOperator, ⊗
 
 # caching
 using Setfield: @set!
@@ -73,8 +73,10 @@ export
       transform,
       make_transform,
 
-      # from SciMLOperators
+      # SciMLOperators
       ⊗,
+      IdentityOperator,
+      NullOperator,
 
       ### Discretizations
       Collocation,

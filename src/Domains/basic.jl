@@ -8,6 +8,8 @@ tag_notdef = isequal(:NoTag)
 ###
 
 """
+$TYPEDEF
+
 Domain representing the empty set, ∅. Dimension set to `-1`.
 """
 struct NullDomain <: AbstractDomain{Bool, -1} end
@@ -34,7 +36,7 @@ deform(::NullDomain, args...) = ∅
 ###
 
 """
-Zero-dimensional domain representing a point.
+$TYPEDEF
 """
 struct PointDomain{T<:Number} <: AbstractDomain{T, 0}
     x::T
@@ -46,6 +48,11 @@ struct PointDomain{T<:Number} <: AbstractDomain{T, 0}
     end
 end
 
+"""
+$SIGNATURES
+
+Zero-dimensional domain representing a point.
+"""
 PointDomain(x; tag = nothing) = PointDomain(x, tag)
 
 function (::Type{T})(dom::PointDomain) where{T<:Number}
@@ -67,7 +74,7 @@ Base.convert(T::Type{<:Number}, dom::PointDomain) = T(dom.x)
 ###
 
 """
-1D open interval containing `x` such that `x0 < x < x1`.
+$TYPEDEF
 """
 struct IntervalDomain{T, Tp} <: AbstractDomain{T, 1}
     p0::Tp
@@ -88,6 +95,11 @@ struct IntervalDomain{T, Tp} <: AbstractDomain{T, 1}
     end
 end
 
+"""
+$SIGNATURES
+
+1D open interval containing `x` for `x0 < x < x1`.
+"""
 function IntervalDomain(x0, x1;
     periodic = false,
     tag = nothing,

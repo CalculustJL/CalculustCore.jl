@@ -16,25 +16,25 @@ Base.ndims(::AbstractSpace{<:Any, D}) where {D} = D
 """
 $SIGNATURES
 
-get number of points
+get number of points in `d`th dimension
 """
-Base.size(space::AbstractSpace{<:Any, D}, d) where {D} = size(space)[d] #TODO dims check
+Base.size(V::AbstractSpace{<:Any, D}, d) where {D} = size(V)[d]
 
 """
 $SIGNATURES
 
 length of vector in space
 """
-Base.length(space::AbstractSpace) = prod(size(space))
+Base.length(V::AbstractSpace) = prod(size(V))
 
-function SciMLOperators.IdentityOperator(space::AbstractSpace)
-    N = length(space)
-    SciMLOperators.IdentityOperator(N)
+function SciMLOperators.IdentityOperator(V::AbstractSpace)
+    N = length(V)
+    IdentityOperator(N)
 end
 
-function SciMLOperators.NullOperator(space::AbstractSpace)
-    N = length(space)
-    SciMLOperators.NullOperator(N)
+function SciMLOperators.NullOperator(V::AbstractSpace)
+    N = length(V)
+    NullOperator(N)
 end
 
 ###
