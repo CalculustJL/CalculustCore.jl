@@ -37,6 +37,7 @@ export
       boundaries,
       domain_tag,
       boundary_tags,
+      num_boundaries,
       ×,
       deform,
 

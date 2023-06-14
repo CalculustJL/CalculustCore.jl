@@ -108,7 +108,7 @@ struct BoundaryValueSolution{T, D, uType, R, A, C} #<: SciMLBase.AbstractDAESolu
 
         new{
             eltype(space),
-            dims(space),
+            ndims(space),
             typeof(u),
             typeof(resid),
             typeof(alg),

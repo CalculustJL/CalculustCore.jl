@@ -95,6 +95,13 @@ function (::Type{T})(dom::MappedDomain) where {T <: Number}
     MappedDomain(T(dom.domain), dom.mapping)
 end
 
+bounding_box(dom::MappedDomain) = @error "TODO"
+expanse(dom::MappedDomain) = @error "TODO"
+isperiodic(dom::MappedDomain) = isperiodic(dom.domain)
+boundaries(dom::MappedDomain) = boundaries(dom.domain)
+domain_tag(dom::MappedDomain) = domain_tag(dom.domain)
+num_boundaries(dom::MappedDomain) = num_boundaries(dom.domain)
+
 ###
 # Transfinite Interpolation
 ###

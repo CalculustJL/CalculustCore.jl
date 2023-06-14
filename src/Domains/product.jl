@@ -79,6 +79,8 @@ function boundaries(dom::ProductDomain{T,D}) where{T,D}
     bdr
 end
 
+num_boundaries(dom::ProductDomain) = sum(num_boundaries.(dom.domains))
+
 function domain_tag(dom::ProductDomain)
 
     if !tag_notdef(dom.tag)

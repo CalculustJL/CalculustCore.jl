@@ -56,7 +56,7 @@ Must overload
 function domain_tag end
 
 """
-num_boundaries(dom)
+    num_boundaries(dom)
 
 Returns number of boundaries in domain `dom`.
 """

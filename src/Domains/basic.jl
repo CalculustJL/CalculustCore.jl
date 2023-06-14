@@ -21,6 +21,7 @@ bounding_box(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 isperiodic(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
 boundaries(::NullDomain) = ()
 domain_tag(::NullDomain) = throw(ArgumentError(NULLDOM_NOTDEF_MSG))
+num_boundaries(::NullDomain) = 0
 
 Base.show(io::IO, ::NullDomain) = print(io, "∅")
 
@@ -65,6 +66,7 @@ bounding_box(dom::PointDomain) = IntervalDomain(dom.x, dom.x,)
 isperiodic(::PointDomain, args...) = throw(ArgumentError(POINTDOM_NOTDEF_MSG))
 domain_tag(dom::PointDomain) = dom.tag
 boundaries(::PointDomain) = (∅,)
+num_boundaries(::PointDomain) = 1
 
 Base.show(io::IO, dom::PointDomain) = print(io, "{$(dom.x)}")
 Base.convert(T::Type{<:Number}, dom::PointDomain) = T(dom.x)
@@ -121,6 +123,7 @@ expanse(dom::IntervalDomain) = (dom.p1.x - dom.p0.x,)
 isperiodic(dom::IntervalDomain) = (dom.periodic,)
 boundaries(dom::IntervalDomain) = (dom.p0, dom.p1,)
 domain_tag(dom::IntervalDomain) = dom.tag
+num_boundaries(::IntervalDomain) = 2
 
 Base.show(io::IO, dom::IntervalDomain) = print(io, "($(dom.p0.x), $(dom.p1.x))")
 #

@@ -20,10 +20,24 @@ using ..Domains: AbstractDomain
 using ..Spaces
 using ..Spaces: AbstractSpace, AbstractDiscretization
 
+"""
+$TYPEDEF
+"""
 abstract type AbstractBoundaryCondition{T} end
 
+"""
+$TYPEDEF
+"""
 abstract type AbstractBoundaryValueProblem <: SciMLBase.DEProblem end
+
+"""
+$TYPEDEF
+"""
 abstract type AbstractBoundaryValueCache <: SciMLBase.DECache end
+
+"""
+$TYPEDEF
+"""
 abstract type AbstractBoundaryValueAlgorithm <: SciMLBase.DEAlgorithm end
 
 include("utils.jl")

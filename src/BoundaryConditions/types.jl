@@ -1,4 +1,9 @@
 #
+"""
+$TYPEDEF
+
+$FIELDS
+"""
 struct BoundaryCondition{T,
                          Tdict,
                          Tamasks,
@@ -21,15 +26,18 @@ struct BoundaryCondition{T,
     discr::Tdiscr
 end
 
-function BoundaryCondition(bc_dict::Dict,
-                           space::AbstractSpace{<:Number, D},
-                           discr::AbstractDiscretization) where {D}
-    dom = domain(space)
-    indices = boundary_nodes(space)
-    antimasks = boundary_antimasks(space, dom, indices)
-    mask_dir = dirichlet_mask(space, dom, indices, bc_dict)
-    amask_dir = IdentityOperator(length(space)) - mask_dir
+"""
+$SIGNATURES
 
-    BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, space, discr)
+"""
+function BoundaryCondition(bc_dict::Dict, V::AbstractSpace,
+                           discr::AbstractDiscretization)
+    dom = domain(V)
+    indices = boundary_nodes(V)
+    antimasks = boundary_antimasks(V, dom, indices)
+    mask_dir = dirichlet_mask(V, dom, indices, bc_dict)
+    amask_dir = IdentityOperator(length(V)) - mask_dir
+
+    BoundaryCondition(bc_dict, antimasks, mask_dir, amask_dir, V, discr)
 end
 #
