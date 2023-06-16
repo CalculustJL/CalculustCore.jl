@@ -118,9 +118,14 @@ function diffusionOp(ν::AbstractVecOrMat,
     MMν = Diagonal([Mν for _ in 1:D])
 
     DD = gradientOp(V, discr)
+
+    # TODO - hack so ops play nice inside arrays
+    DD = AbstractSciMLOperator[DD...]
     DDt = _transp(DD, discr)
 
-    DDt * MMν * DD
+    L = DDt * MMν * DD
+
+    isa(L, AbstractArray) ? L[1] : L
 end
 
 """
