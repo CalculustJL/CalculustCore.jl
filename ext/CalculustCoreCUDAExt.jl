@@ -1,14 +1,8 @@
 module CalculustCoreCUDAExt
 
-if isdefined(Base, :get_extension)
-    using CUDA
-    using Adapt
-    using CalculustCore
-else
-    using ..CUDA
-    using ..Adapt
-    using ..CalculustCore
-end
+using CUDA
+using Adapt
+using CalculustCore
 
 function CalculustCore.check_use_cuda()
     CalculustCore.USE_CUDA[] = CUDA.functional()

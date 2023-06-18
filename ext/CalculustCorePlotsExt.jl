@@ -1,12 +1,7 @@
 module CalculustCorePlotsExt
 
-if isdefined(Base, :get_extension)
-    using Plots
-    using CalculustCore
-else
-    using ..Plots
-    using ..CalculustCore
-end
+using Plots
+using CalculustCore
 
 ## CalculustCore.Spaces
 
@@ -71,14 +66,4 @@ function Plots.animate(u::AbstractMatrix,
     end
 end
 
-## CalculustCore.BoundaryConditions
-
-function Plots.plot(sol::BoundaryConditions.:BoundaryValueSolution{<:Number, 1})
-    plot(sol.u, sol.cache.space)
-end
-
-function Plots.plot(sol::BoundaryConditions.BoundaryValueSolution{<:Number, 2}; a = 45, b = 60)
-    plot(sol.u, sol.cache.space)
-end
-
-end
+end # module
