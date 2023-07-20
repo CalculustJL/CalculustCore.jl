@@ -179,7 +179,7 @@ function make_transform(V::AbstractSpace,
 
     if length(V) != size(input, 1)
         msg = """First dimension of input prototype, $input,
-            (of size $(size(u))) must equal the length of $V (of size
+            (of size $(size(input))) must equal the length of $V (of size
             $(size(V)))."""
         throw(DimensionMismatch(msg))
     end
