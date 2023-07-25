@@ -127,7 +127,7 @@ function diffusionOp(ν::AbstractVecOrMat,
     DD = AbstractSciMLOperator[DD...]
     DDt = _transp(DD, discr)
 
-    L = -DDt * MMν * DD
+    L = -(DDt * MMν * DD)
 
     isa(L, AbstractArray) ? L[1] : L
 end
