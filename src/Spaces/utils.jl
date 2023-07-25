@@ -1,6 +1,4 @@
 #
-_transp(a, ::AbstractDiscretization) = transpose(a)
-
 function _pair_update_funcs(vecs, funcs)
     VV = AbstractSciMLOperator[]
 

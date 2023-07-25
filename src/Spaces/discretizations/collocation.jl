@@ -81,9 +81,9 @@ function advectionOp(vels::NTuple{D},
     # generalize `FourierSpaces.jl` implementation
 end
 
-function divergenceOp(V::AbstractSpace, ::Collocation)
+function divergenceOp(V::AbstractSpace, discr::Collocation)
     DD = gradientOp(V)
 
-    sum(DD)
+    _transp(DD, discr)
 end
 
