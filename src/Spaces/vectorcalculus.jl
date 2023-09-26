@@ -150,10 +150,13 @@ implemented as
                    [Dx]
 """
 function advectionOp(vels::NTuple{D},
-                     V::AbstractSpace{<:Any, D},
-                     discr::AbstractDiscretization;
-                     vel_update_funcs = nothing) where {D}
-    VV = _pair_update_funcs(vels, vel_update_funcs)
+    V::AbstractSpace{<:Any, D},
+    discr::AbstractDiscretization;
+    vel_update_funcs = nothing,
+    vel_update_funcs! = nothing,
+) where {D}
+
+    VV = _pair_update_funcs(vels, vel_update_funcs, vel_update_funcs!)
     VVt = _transp(VV, discr)
 
     DD = gradientOp(V, discr)

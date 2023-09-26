@@ -1,15 +1,13 @@
 #
-function _pair_update_funcs(vecs, funcs)
+function _pair_update_funcs(vecs, funcs, funcs!)
     VV = AbstractSciMLOperator[]
 
     for i in 1:length(vecs)
-        func = if funcs isa Nothing
-            DEFAULT_UPDATE_FUNC
-        else
-            funcs[i]
-        end
+        vec = vecs[i]
+        update_func  = funcs  isa Nothing ? DEFAULT_UPDATE_FUNC : funcs[i]
+        update_func! = funcs! isa Nothing ? DEFAULT_UPDATE_FUNC : funcs![i]
 
-        V = DiagonalOperator(vecs[i]; update_func = func)
+        V = DiagonalOperator(vec; update_func, update_func!)
         push!(VV, V)
     end
 
@@ -32,6 +30,7 @@ struct ComposedUpdateFunction{F1, F2, C <: AbstractArray}
     end
 end
 
+# TODO - function (A::ComposedUpdateFunction)(u, p, t) not supported yet
 function (A::ComposedUpdateFunction)(u, p, t)
 
     v = A.f2(u, p, t)
