@@ -26,7 +26,7 @@ CalculustCorePlotsExt = "Plots"
 
 [compat]
 Adapt = "3"
-CUDA = "3.12.0, 4"
+CUDA = "4, 5"
 DocStringExtensions = "0.8, 0.9"
 Functors = "0.2, 0.3, 0.4"
 Plots = "1"
